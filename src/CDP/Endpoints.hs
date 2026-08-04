@@ -59,43 +59,46 @@ class Endpoint ep where
 instance Endpoint EPBrowserVersion where
     type EndpointResponse EPBrowserVersion = BrowserVersion
     getEndpoint hostPort _ = performRequest (Proxy :: Proxy EPBrowserVersion) $
-        getRequest hostPort ["json", "version"] Nothing
+        getRequest hostPort "GET" ["json", "version"] Nothing
     epDecode = const A.eitherDecode
 
 instance Endpoint EPAllTargets where
     type EndpointResponse EPAllTargets = [TargetInfo]
     getEndpoint hostPort _ = performRequest (Proxy :: Proxy EPAllTargets) $ 
-        getRequest hostPort ["json", "list"] Nothing
+        getRequest hostPort "GET" ["json", "list"] Nothing
     epDecode = const A.eitherDecode
 
 instance Endpoint EPCurrentProtocol where
     type EndpointResponse EPCurrentProtocol = CDP.Definition.TopLevel
     getEndpoint hostPort _ = performRequest (Proxy :: Proxy EPCurrentProtocol) $
-        getRequest hostPort ["json", "protocol"] Nothing
+        getRequest hostPort "GET" ["json", "protocol"] Nothing
     epDecode = const A.eitherDecode
 
 instance Endpoint EPOpenNewTab where
     type EndpointResponse EPOpenNewTab = TargetInfo
     getEndpoint hostPort (EPOpenNewTab url) = performRequest (Proxy :: Proxy EPOpenNewTab) $
-        getRequest hostPort ["json", "new"] (Just url)
-    epDecode = const A.eitherDecode 
+        getRequest hostPort "PUT" ["json", "new"] (Just url)
+    epDecode = const A.eitherDecode
+    --
 
 instance Endpoint EPActivateTarget where
     type EndpointResponse EPActivateTarget = ()
     getEndpoint hostPort (EPActivateTarget id) = performRequest (Proxy :: Proxy EPActivateTarget) $
-        getRequest hostPort ["json", "activate", id] Nothing
+        getRequest hostPort "PUT" ["json", "activate", id] Nothing
     epDecode = const . const $ Right ()
+    --
 
 instance Endpoint EPCloseTarget where
     type EndpointResponse EPCloseTarget = ()
     getEndpoint hostPort (EPCloseTarget id) = performRequest (Proxy :: Proxy EPCloseTarget) $
-        getRequest hostPort ["json", "close", id] Nothing
+        getRequest hostPort "PUT" ["json", "close", id] Nothing
     epDecode = const . const $ Right ()
+    --
 
 instance Endpoint EPFrontend where
     type EndpointResponse EPFrontend = BS.ByteString
     getEndpoint hostPort EPFrontend = performRequest (Proxy :: Proxy EPFrontend) $
-        getRequest hostPort ["devtools", "inspector.html"] Nothing
+        getRequest hostPort "GET" ["devtools", "inspector.html"] Nothing
     epDecode = const Right
 
 data BrowserVersion = BrowserVersion
@@ -142,10 +145,10 @@ pageAddress :: (String, Int) -> IO (String, Int, String)
 pageAddress hostPort = fromMaybe (throw . ERRParse $ "invalid or missing URI when connecting to page") .
     (parseUri . T.unpack . tiWebSocketDebuggerUrl <=< listToMaybe) <$> getEndpoint hostPort EPAllTargets
 
-getRequest :: (String, Int) -> [T.Text] -> Maybe T.Text -> Http.Request
-getRequest (host, port) path mbParam = Http.parseRequest_ . T.unpack $ r
+getRequest :: (String, Int) -> T.Text -> [T.Text] -> Maybe T.Text -> Http.Request
+getRequest (host, port) verb path mbParam = Http.parseRequest_ . T.unpack $ r
   where
-    r = mconcat ["GET ", T.pack host, ":", T.pack (show port), "/", T.intercalate "/" path
+    r = mconcat [verb , " ", T.pack host, ":", T.pack (show port), "/", T.intercalate "/" path
                 , maybe "" ("?" <>) mbParam 
                 ]
 
