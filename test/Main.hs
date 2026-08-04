@@ -5,6 +5,7 @@ module Main (main) where
 import Test.Hspec
 import Control.Monad
 import Data.Default
+import Data.Maybe (listToMaybe)
 import Control.Concurrent
 
 import qualified CDP as CDP
@@ -66,10 +67,10 @@ main = hspec $ do
             let cks = CDP.networkGetAllCookiesCookies cookies
             length cks `shouldBe` 1
         
-            let cookie = head cks
-            CDP.networkCookieName   cookie `shouldBe` name
-            CDP.networkCookieValue  cookie `shouldBe` value
-            CDP.networkCookieDomain cookie `shouldBe` domain
+            forM_ (listToMaybe cks) $ \cookie -> do
+                CDP.networkCookieName   cookie `shouldBe` name
+                CDP.networkCookieValue  cookie `shouldBe` value
+                CDP.networkCookieDomain cookie `shouldBe` domain
 
     describe "Expected events are triggered" $ do
         it "navigates to a page" $ do

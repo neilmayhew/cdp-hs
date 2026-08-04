@@ -6,6 +6,9 @@
 
 module CDP.Endpoints where
 
+import Control.Monad ((<=<))
+import Data.Foldable (asum)
+import Data.Kind (Type)
 import Data.Maybe
 import Data.List
 import Data.Proxy
@@ -49,7 +52,7 @@ connectToTab cfg url = do
         pure targetInfo
 
 class Endpoint ep where
-    type EndpointResponse ep :: *
+    type EndpointResponse ep :: Type
     getEndpoint :: (String, Int) -> ep -> IO (EndpointResponse ep)
     epDecode :: Proxy ep -> BS.ByteString -> Either String (EndpointResponse ep)
 
@@ -136,8 +139,8 @@ browserAddress hostPort = fromMaybe (throw . ERRParse $ "invalid URI when connec
     parseUri . T.unpack . bvWebSocketDebuggerUrl <$> getEndpoint hostPort EPBrowserVersion
 
 pageAddress :: (String, Int) -> IO (String, Int, String)
-pageAddress hostPort = fromMaybe (throw . ERRParse $ "invalid URI when connecting to page") . 
-    parseUri . T.unpack . tiWebSocketDebuggerUrl . head <$> getEndpoint hostPort EPAllTargets
+pageAddress hostPort = fromMaybe (throw . ERRParse $ "invalid or missing URI when connecting to page") .
+    (parseUri . T.unpack . tiWebSocketDebuggerUrl <=< listToMaybe) <$> getEndpoint hostPort EPAllTargets
 
 getRequest :: (String, Int) -> [T.Text] -> Maybe T.Text -> Http.Request
 getRequest (host, port) path mbParam = Http.parseRequest_ . T.unpack $ r
