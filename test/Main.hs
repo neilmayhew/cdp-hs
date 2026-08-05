@@ -39,13 +39,13 @@ main = hspec $ do
             void $ CDP.runClient cfg $ \handle -> do
                 mapM (CDP.fromSomeCommand $ void . (CDP.sendCommandWait handle)) $
                     [ CDP.SomeCommand CDP.PBrowserGetVersion
-                    , CDP.SomeCommand CDP.PEmulationCanEmulate
+                    , CDP.SomeCommand CDP.PEmulationGetScreenInfos
                     ]
 
         it "sends commands: w/ params w/o results" $ do
             CDP.runClient cfg $ \handle -> 
                 CDP.sendCommandWait handle $
-                    CDP.PEmulationSetGeolocationOverride (Just 90) (Just 90) Nothing
+                    CDP.PEmulationSetGeolocationOverride (Just 90) (Just 90) Nothing Nothing Nothing Nothing Nothing
         
         it "sends commands: w/ params w/ results" $ do
             void $ CDP.runClient cfg $ \handle ->
@@ -58,13 +58,13 @@ main = hspec $ do
                 domain = "localhost"
 
             cookies <- CDP.runClient cfg $ \handle -> do
-                CDP.sendCommandWait handle CDP.PNetworkClearBrowserCookies
+                CDP.sendCommandWait handle $ CDP.PStorageClearCookies Nothing
                 CDP.sendCommandWait handle $
                     CDP.PNetworkSetCookie name value Nothing (Just domain) Nothing Nothing Nothing Nothing Nothing
-                        Nothing Nothing Nothing Nothing Nothing
-                CDP.sendCommandWait handle CDP.PNetworkGetAllCookies
+                        Nothing Nothing Nothing Nothing
+                CDP.sendCommandWait handle $ CDP.PStorageGetCookies Nothing
     
-            let cks = CDP.networkGetAllCookiesCookies cookies
+            let cks = CDP.storageGetCookiesCookies cookies
             length cks `shouldBe` 1
         
             forM_ (listToMaybe cks) $ \cookie -> do
@@ -80,7 +80,7 @@ main = hspec $ do
                 void $ CDP.subscribe handle $ \e -> modifyMVar_ frameIdsM $ 
                     \ids -> pure ((CDP.pageFrameId . CDP.pageFrameNavigatedFrame $ e) : ids)
                 -- enable events
-                CDP.sendCommandWait handle $ CDP.PPageEnable
+                CDP.sendCommandWait handle $ CDP.PPageEnable Nothing
                 -- navigate to page
                 void $ CDP.sendCommandWait handle $
                     CDP.PPageNavigate "http://wikipedia.com" Nothing Nothing Nothing Nothing
