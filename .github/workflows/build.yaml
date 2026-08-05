@@ -1,9 +1,16 @@
 name: "build"
 on:
+  push:
+    branches:
+    - main
+    paths-ignore:
+    - "**/*.md"
+    - ".github/**/*"
   pull_request:
     paths-ignore:
-      - "**/*.md"
-      - ".github/**/*"
+    - "**/*.md"
+    - ".github/**/*"
+
 jobs:
   build:
     runs-on: ubuntu-latest
