@@ -45,7 +45,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.Runtime as Runtime
 
 
@@ -77,6 +77,9 @@ data AnimationAnimation = AnimationAnimation
     -- | `Animation`'s playback rate.
     animationAnimationPlaybackRate :: Double,
     -- | `Animation`'s start time.
+    --   Milliseconds for time based animations and
+    --   percentage [0 - 100] for scroll driven animations
+    --   (i.e. when viewOrScrollTimeline exists).
     animationAnimationStartTime :: Double,
     -- | `Animation`'s current time.
     animationAnimationCurrentTime :: Double,
@@ -86,7 +89,9 @@ data AnimationAnimation = AnimationAnimation
     animationAnimationSource :: Maybe AnimationAnimationEffect,
     -- | A unique ID for `Animation` representing the sources that triggered this CSS
     --   animation/transition.
-    animationAnimationCssId :: Maybe T.Text
+    animationAnimationCssId :: Maybe T.Text,
+    -- | View or scroll timeline
+    animationAnimationViewOrScrollTimeline :: Maybe AnimationViewOrScrollTimeline
   }
   deriving (Eq, Show)
 instance FromJSON AnimationAnimation where
@@ -101,6 +106,7 @@ instance FromJSON AnimationAnimation where
     <*> o A..: "type"
     <*> o A..:? "source"
     <*> o A..:? "cssId"
+    <*> o A..:? "viewOrScrollTimeline"
 instance ToJSON AnimationAnimation where
   toJSON p = A.object $ catMaybes [
     ("id" A..=) <$> Just (animationAnimationId p),
@@ -112,7 +118,44 @@ instance ToJSON AnimationAnimation where
     ("currentTime" A..=) <$> Just (animationAnimationCurrentTime p),
     ("type" A..=) <$> Just (animationAnimationType p),
     ("source" A..=) <$> (animationAnimationSource p),
-    ("cssId" A..=) <$> (animationAnimationCssId p)
+    ("cssId" A..=) <$> (animationAnimationCssId p),
+    ("viewOrScrollTimeline" A..=) <$> (animationAnimationViewOrScrollTimeline p)
+    ]
+
+-- | Type 'Animation.ViewOrScrollTimeline'.
+--   Timeline instance
+data AnimationViewOrScrollTimeline = AnimationViewOrScrollTimeline
+  {
+    -- | Scroll container node
+    animationViewOrScrollTimelineSourceNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
+    -- | Represents the starting scroll position of the timeline
+    --   as a length offset in pixels from scroll origin.
+    animationViewOrScrollTimelineStartOffset :: Maybe Double,
+    -- | Represents the ending scroll position of the timeline
+    --   as a length offset in pixels from scroll origin.
+    animationViewOrScrollTimelineEndOffset :: Maybe Double,
+    -- | The element whose principal box's visibility in the
+    --   scrollport defined the progress of the timeline.
+    --   Does not exist for animations with ScrollTimeline
+    animationViewOrScrollTimelineSubjectNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
+    -- | Orientation of the scroll
+    animationViewOrScrollTimelineAxis :: DOMNetworkEmulationPageSecurity.DOMScrollOrientation
+  }
+  deriving (Eq, Show)
+instance FromJSON AnimationViewOrScrollTimeline where
+  parseJSON = A.withObject "AnimationViewOrScrollTimeline" $ \o -> AnimationViewOrScrollTimeline
+    <$> o A..:? "sourceNodeId"
+    <*> o A..:? "startOffset"
+    <*> o A..:? "endOffset"
+    <*> o A..:? "subjectNodeId"
+    <*> o A..: "axis"
+instance ToJSON AnimationViewOrScrollTimeline where
+  toJSON p = A.object $ catMaybes [
+    ("sourceNodeId" A..=) <$> (animationViewOrScrollTimelineSourceNodeId p),
+    ("startOffset" A..=) <$> (animationViewOrScrollTimelineStartOffset p),
+    ("endOffset" A..=) <$> (animationViewOrScrollTimelineEndOffset p),
+    ("subjectNodeId" A..=) <$> (animationViewOrScrollTimelineSubjectNodeId p),
+    ("axis" A..=) <$> Just (animationViewOrScrollTimelineAxis p)
     ]
 
 -- | Type 'Animation.AnimationEffect'.
@@ -125,16 +168,19 @@ data AnimationAnimationEffect = AnimationAnimationEffect
     animationAnimationEffectEndDelay :: Double,
     -- | `AnimationEffect`'s iteration start.
     animationAnimationEffectIterationStart :: Double,
-    -- | `AnimationEffect`'s iterations.
-    animationAnimationEffectIterations :: Double,
+    -- | `AnimationEffect`'s iterations. Omitted if the value is infinite.
+    animationAnimationEffectIterations :: Maybe Double,
     -- | `AnimationEffect`'s iteration duration.
+    --   Milliseconds for time based animations and
+    --   percentage [0 - 100] for scroll driven animations
+    --   (i.e. when viewOrScrollTimeline exists).
     animationAnimationEffectDuration :: Double,
     -- | `AnimationEffect`'s playback direction.
     animationAnimationEffectDirection :: T.Text,
     -- | `AnimationEffect`'s fill mode.
     animationAnimationEffectFill :: T.Text,
     -- | `AnimationEffect`'s target node.
-    animationAnimationEffectBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    animationAnimationEffectBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | `AnimationEffect`'s keyframes.
     animationAnimationEffectKeyframesRule :: Maybe AnimationKeyframesRule,
     -- | `AnimationEffect`'s timing function.
@@ -146,7 +192,7 @@ instance FromJSON AnimationAnimationEffect where
     <$> o A..: "delay"
     <*> o A..: "endDelay"
     <*> o A..: "iterationStart"
-    <*> o A..: "iterations"
+    <*> o A..:? "iterations"
     <*> o A..: "duration"
     <*> o A..: "direction"
     <*> o A..: "fill"
@@ -158,7 +204,7 @@ instance ToJSON AnimationAnimationEffect where
     ("delay" A..=) <$> Just (animationAnimationEffectDelay p),
     ("endDelay" A..=) <$> Just (animationAnimationEffectEndDelay p),
     ("iterationStart" A..=) <$> Just (animationAnimationEffectIterationStart p),
-    ("iterations" A..=) <$> Just (animationAnimationEffectIterations p),
+    ("iterations" A..=) <$> (animationAnimationEffectIterations p),
     ("duration" A..=) <$> Just (animationAnimationEffectDuration p),
     ("direction" A..=) <$> Just (animationAnimationEffectDirection p),
     ("fill" A..=) <$> Just (animationAnimationEffectFill p),
@@ -245,6 +291,19 @@ instance FromJSON AnimationAnimationStarted where
     <$> o A..: "animation"
 instance Event AnimationAnimationStarted where
   eventName _ = "Animation.animationStarted"
+
+-- | Type of the 'Animation.animationUpdated' event.
+data AnimationAnimationUpdated = AnimationAnimationUpdated
+  {
+    -- | Animation that was updated.
+    animationAnimationUpdatedAnimation :: AnimationAnimation
+  }
+  deriving (Eq, Show)
+instance FromJSON AnimationAnimationUpdated where
+  parseJSON = A.withObject "AnimationAnimationUpdated" $ \o -> AnimationAnimationUpdated
+    <$> o A..: "animation"
+instance Event AnimationAnimationUpdated where
+  eventName _ = "Animation.animationUpdated"
 
 -- | Disables animation domain notifications.
 

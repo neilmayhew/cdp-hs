@@ -33,22 +33,30 @@ library
       CDP
       CDP.Domains
       CDP.Domains.Accessibility
+      CDP.Domains.Ads
       CDP.Domains.Animation
       CDP.Domains.Audits
+      CDP.Domains.Autofill
       CDP.Domains.BackgroundService
+      CDP.Domains.BluetoothEmulation
       CDP.Domains.BrowserTarget
       CDP.Domains.CacheStorage
       CDP.Domains.Cast
+      CDP.Domains.CrashReportContext
       CDP.Domains.CSS
-      CDP.Domains.Database
       CDP.Domains.Debugger
+      CDP.Domains.DeviceAccess
       CDP.Domains.DeviceOrientation
+      CDP.Domains.DigitalCredentials
       CDP.Domains.DOMDebugger
-      CDP.Domains.DOMPageNetworkEmulationSecurity
+      CDP.Domains.DOMNetworkEmulationPageSecurity
       CDP.Domains.DOMSnapshot
       CDP.Domains.DOMStorage
       CDP.Domains.EventBreakpoints
+      CDP.Domains.Extensions
+      CDP.Domains.FedCm
       CDP.Domains.Fetch
+      CDP.Domains.FileSystem
       CDP.Domains.HeadlessExperimental
       CDP.Domains.HeapProfiler
       CDP.Domains.IndexedDB
@@ -62,15 +70,19 @@ library
       CDP.Domains.Overlay
       CDP.Domains.Performance
       CDP.Domains.PerformanceTimeline
+      CDP.Domains.Preload
       CDP.Domains.Profiler
+      CDP.Domains.PWA
       CDP.Domains.Runtime
       CDP.Domains.ServiceWorker
+      CDP.Domains.SmartCardEmulation
       CDP.Domains.Storage
       CDP.Domains.SystemInfo
       CDP.Domains.Tethering
       CDP.Domains.Tracing
       CDP.Domains.WebAudio
       CDP.Domains.WebAuthn
+      CDP.Domains.WebMCP
       CDP.Endpoints
       CDP.Internal.Utils
       CDP.Runtime

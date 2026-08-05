@@ -10,7 +10,7 @@
 {- |
 = Media
 
-This domain allows detailed inspection of media elements
+This domain allows detailed inspection of media elements.
 -}
 
 
@@ -46,6 +46,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
 
 -- | Type 'Media.PlayerId'.
@@ -186,6 +187,23 @@ instance ToJSON MediaPlayerError where
     ("data" A..=) <$> Just (mediaPlayerErrorData p)
     ]
 
+-- | Type 'Media.Player'.
+data MediaPlayer = MediaPlayer
+  {
+    mediaPlayerPlayerId :: MediaPlayerId,
+    mediaPlayerDomNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON MediaPlayer where
+  parseJSON = A.withObject "MediaPlayer" $ \o -> MediaPlayer
+    <$> o A..: "playerId"
+    <*> o A..:? "domNodeId"
+instance ToJSON MediaPlayer where
+  toJSON p = A.object $ catMaybes [
+    ("playerId" A..=) <$> Just (mediaPlayerPlayerId p),
+    ("domNodeId" A..=) <$> (mediaPlayerDomNodeId p)
+    ]
+
 -- | Type of the 'Media.playerPropertiesChanged' event.
 data MediaPlayerPropertiesChanged = MediaPlayerPropertiesChanged
   {
@@ -242,17 +260,17 @@ instance FromJSON MediaPlayerErrorsRaised where
 instance Event MediaPlayerErrorsRaised where
   eventName _ = "Media.playerErrorsRaised"
 
--- | Type of the 'Media.playersCreated' event.
-data MediaPlayersCreated = MediaPlayersCreated
+-- | Type of the 'Media.playerCreated' event.
+data MediaPlayerCreated = MediaPlayerCreated
   {
-    mediaPlayersCreatedPlayers :: [MediaPlayerId]
+    mediaPlayerCreatedPlayer :: MediaPlayer
   }
   deriving (Eq, Show)
-instance FromJSON MediaPlayersCreated where
-  parseJSON = A.withObject "MediaPlayersCreated" $ \o -> MediaPlayersCreated
-    <$> o A..: "players"
-instance Event MediaPlayersCreated where
-  eventName _ = "Media.playersCreated"
+instance FromJSON MediaPlayerCreated where
+  parseJSON = A.withObject "MediaPlayerCreated" $ \o -> MediaPlayerCreated
+    <$> o A..: "player"
+instance Event MediaPlayerCreated where
+  eventName _ = "Media.playerCreated"
 
 -- | Enables the Media domain
 

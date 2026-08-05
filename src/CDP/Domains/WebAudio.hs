@@ -69,19 +69,21 @@ instance ToJSON WebAudioContextType where
 
 -- | Type 'WebAudio.ContextState'.
 --   Enum of AudioContextState from the spec
-data WebAudioContextState = WebAudioContextStateSuspended | WebAudioContextStateRunning | WebAudioContextStateClosed
+data WebAudioContextState = WebAudioContextStateSuspended | WebAudioContextStateRunning | WebAudioContextStateClosed | WebAudioContextStateInterrupted
   deriving (Ord, Eq, Show, Read)
 instance FromJSON WebAudioContextState where
   parseJSON = A.withText "WebAudioContextState" $ \v -> case v of
     "suspended" -> pure WebAudioContextStateSuspended
     "running" -> pure WebAudioContextStateRunning
     "closed" -> pure WebAudioContextStateClosed
+    "interrupted" -> pure WebAudioContextStateInterrupted
     "_" -> fail "failed to parse WebAudioContextState"
 instance ToJSON WebAudioContextState where
   toJSON v = A.String $ case v of
     WebAudioContextStateSuspended -> "suspended"
     WebAudioContextStateRunning -> "running"
     WebAudioContextStateClosed -> "closed"
+    WebAudioContextStateInterrupted -> "interrupted"
 
 -- | Type 'WebAudio.NodeType'.
 --   Enum of AudioNode types

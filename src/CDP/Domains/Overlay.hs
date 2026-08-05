@@ -46,7 +46,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.Runtime as Runtime
 
 
@@ -54,10 +54,10 @@ import CDP.Domains.Runtime as Runtime
 --   Configuration data for drawing the source order of an elements children.
 data OverlaySourceOrderConfig = OverlaySourceOrderConfig
   {
-    -- | the color to outline the givent element in.
-    overlaySourceOrderConfigParentOutlineColor :: DOMPageNetworkEmulationSecurity.DOMRGBA,
+    -- | the color to outline the given element in.
+    overlaySourceOrderConfigParentOutlineColor :: DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | the color to outline the child elements in.
-    overlaySourceOrderConfigChildOutlineColor :: DOMPageNetworkEmulationSecurity.DOMRGBA
+    overlaySourceOrderConfigChildOutlineColor :: DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 instance FromJSON OverlaySourceOrderConfig where
@@ -87,11 +87,11 @@ data OverlayGridHighlightConfig = OverlayGridHighlightConfig
     -- | Show track size labels (default: false).
     overlayGridHighlightConfigShowTrackSizes :: Maybe Bool,
     -- | The grid container border highlight color (default: transparent).
-    overlayGridHighlightConfigGridBorderColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigGridBorderColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The row line color (default: transparent).
-    overlayGridHighlightConfigRowLineColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigRowLineColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The column line color (default: transparent).
-    overlayGridHighlightConfigColumnLineColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigColumnLineColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | Whether the grid border is dashed (default: false).
     overlayGridHighlightConfigGridBorderDash :: Maybe Bool,
     -- | Whether row lines are dashed (default: false).
@@ -99,17 +99,17 @@ data OverlayGridHighlightConfig = OverlayGridHighlightConfig
     -- | Whether column lines are dashed (default: false).
     overlayGridHighlightConfigColumnLineDash :: Maybe Bool,
     -- | The row gap highlight fill color (default: transparent).
-    overlayGridHighlightConfigRowGapColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigRowGapColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The row gap hatching fill color (default: transparent).
-    overlayGridHighlightConfigRowHatchColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigRowHatchColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The column gap highlight fill color (default: transparent).
-    overlayGridHighlightConfigColumnGapColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigColumnGapColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The column gap hatching fill color (default: transparent).
-    overlayGridHighlightConfigColumnHatchColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigColumnHatchColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The named grid areas border color (Default: transparent).
-    overlayGridHighlightConfigAreaBorderColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayGridHighlightConfigAreaBorderColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The grid container background color (Default: transparent).
-    overlayGridHighlightConfigGridBackgroundColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    overlayGridHighlightConfigGridBackgroundColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 instance FromJSON OverlayGridHighlightConfig where
@@ -238,7 +238,7 @@ instance ToJSON OverlayLineStylePattern where
 data OverlayLineStyle = OverlayLineStyle
   {
     -- | The color of the line (default: transparent)
-    overlayLineStyleColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayLineStyleColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The line pattern (default: solid)
     overlayLineStylePattern :: Maybe OverlayLineStylePattern
   }
@@ -258,9 +258,9 @@ instance ToJSON OverlayLineStyle where
 data OverlayBoxStyle = OverlayBoxStyle
   {
     -- | The background color for the box (default: transparent)
-    overlayBoxStyleFillColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayBoxStyleFillColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The hatching color for the box (default: transparent)
-    overlayBoxStyleHatchColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    overlayBoxStyleHatchColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 instance FromJSON OverlayBoxStyle where
@@ -303,21 +303,21 @@ data OverlayHighlightConfig = OverlayHighlightConfig
     -- | Whether the extension lines from node to the rulers should be shown (default: false).
     overlayHighlightConfigShowExtensionLines :: Maybe Bool,
     -- | The content box highlight fill color (default: transparent).
-    overlayHighlightConfigContentColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigContentColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The padding highlight fill color (default: transparent).
-    overlayHighlightConfigPaddingColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigPaddingColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The border highlight fill color (default: transparent).
-    overlayHighlightConfigBorderColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigBorderColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The margin highlight fill color (default: transparent).
-    overlayHighlightConfigMarginColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigMarginColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The event target element highlight fill color (default: transparent).
-    overlayHighlightConfigEventTargetColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigEventTargetColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The shape outside fill color (default: transparent).
-    overlayHighlightConfigShapeColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigShapeColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The shape margin fill color (default: transparent).
-    overlayHighlightConfigShapeMarginColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigShapeMarginColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The grid layout color (default: transparent).
-    overlayHighlightConfigCssGridColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHighlightConfigCssGridColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The color format used to format color styles (default: hex).
     overlayHighlightConfigColorFormat :: Maybe OverlayColorFormat,
     -- | The grid layout highlight configuration (default: all transparent).
@@ -400,7 +400,7 @@ data OverlayGridNodeHighlightConfig = OverlayGridNodeHighlightConfig
     -- | A descriptor for the highlight appearance.
     overlayGridNodeHighlightConfigGridHighlightConfig :: OverlayGridHighlightConfig,
     -- | Identifier of the node to highlight.
-    overlayGridNodeHighlightConfigNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    overlayGridNodeHighlightConfigNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayGridNodeHighlightConfig where
@@ -419,7 +419,7 @@ data OverlayFlexNodeHighlightConfig = OverlayFlexNodeHighlightConfig
     -- | A descriptor for the highlight appearance of flex containers.
     overlayFlexNodeHighlightConfigFlexContainerHighlightConfig :: OverlayFlexContainerHighlightConfig,
     -- | Identifier of the node to highlight.
-    overlayFlexNodeHighlightConfigNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    overlayFlexNodeHighlightConfigNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayFlexNodeHighlightConfig where
@@ -440,9 +440,9 @@ data OverlayScrollSnapContainerHighlightConfig = OverlayScrollSnapContainerHighl
     -- | The style of the snap area border (default: transparent)
     overlayScrollSnapContainerHighlightConfigSnapAreaBorder :: Maybe OverlayLineStyle,
     -- | The margin highlight fill color (default: transparent).
-    overlayScrollSnapContainerHighlightConfigScrollMarginColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayScrollSnapContainerHighlightConfigScrollMarginColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The padding highlight fill color (default: transparent).
-    overlayScrollSnapContainerHighlightConfigScrollPaddingColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    overlayScrollSnapContainerHighlightConfigScrollPaddingColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 instance FromJSON OverlayScrollSnapContainerHighlightConfig where
@@ -465,7 +465,7 @@ data OverlayScrollSnapHighlightConfig = OverlayScrollSnapHighlightConfig
     -- | A descriptor for the highlight appearance of scroll snap containers.
     overlayScrollSnapHighlightConfigScrollSnapContainerHighlightConfig :: OverlayScrollSnapContainerHighlightConfig,
     -- | Identifier of the node to highlight.
-    overlayScrollSnapHighlightConfigNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    overlayScrollSnapHighlightConfigNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayScrollSnapHighlightConfig where
@@ -483,11 +483,11 @@ instance ToJSON OverlayScrollSnapHighlightConfig where
 data OverlayHingeConfig = OverlayHingeConfig
   {
     -- | A rectangle represent hinge
-    overlayHingeConfigRect :: DOMPageNetworkEmulationSecurity.DOMRect,
+    overlayHingeConfigRect :: DOMNetworkEmulationPageSecurity.DOMRect,
     -- | The content box highlight fill color (default: a dark color).
-    overlayHingeConfigContentColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayHingeConfigContentColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The content box highlight outline color (default: transparent).
-    overlayHingeConfigOutlineColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    overlayHingeConfigOutlineColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 instance FromJSON OverlayHingeConfig where
@@ -502,13 +502,103 @@ instance ToJSON OverlayHingeConfig where
     ("outlineColor" A..=) <$> (overlayHingeConfigOutlineColor p)
     ]
 
+-- | Type 'Overlay.DisplayCutoutShape'.
+--   Supported display cutout shapes.
+data OverlayDisplayCutoutShape = OverlayDisplayCutoutShapePill | OverlayDisplayCutoutShapeNotch | OverlayDisplayCutoutShapeCircle | OverlayDisplayCutoutShapeRectangle
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON OverlayDisplayCutoutShape where
+  parseJSON = A.withText "OverlayDisplayCutoutShape" $ \v -> case v of
+    "pill" -> pure OverlayDisplayCutoutShapePill
+    "notch" -> pure OverlayDisplayCutoutShapeNotch
+    "circle" -> pure OverlayDisplayCutoutShapeCircle
+    "rectangle" -> pure OverlayDisplayCutoutShapeRectangle
+    "_" -> fail "failed to parse OverlayDisplayCutoutShape"
+instance ToJSON OverlayDisplayCutoutShape where
+  toJSON v = A.String $ case v of
+    OverlayDisplayCutoutShapePill -> "pill"
+    OverlayDisplayCutoutShapeNotch -> "notch"
+    OverlayDisplayCutoutShapeCircle -> "circle"
+    OverlayDisplayCutoutShapeRectangle -> "rectangle"
+
+-- | Type 'Overlay.DisplayCutoutConfig'.
+--   Configuration for a display cutout.
+data OverlayDisplayCutoutConfig = OverlayDisplayCutoutConfig
+  {
+    -- | A rectangle representing the cutout bounds.
+    overlayDisplayCutoutConfigRect :: DOMNetworkEmulationPageSecurity.DOMRect,
+    -- | Shape used to draw the cutout.
+    overlayDisplayCutoutConfigShape :: OverlayDisplayCutoutShape,
+    -- | Border radius for rounded cutout shapes.
+    overlayDisplayCutoutConfigBorderRadius :: Maybe Int,
+    -- | Upper shoulder radius for notch cutout shapes.
+    overlayDisplayCutoutConfigUpperRadius :: Maybe Int,
+    -- | Lower transition radius for notch cutout shapes.
+    overlayDisplayCutoutConfigLowerRadius :: Maybe Int,
+    -- | Center x coordinate for circle cutout shapes.
+    overlayDisplayCutoutConfigCx :: Maybe Int,
+    -- | Center y coordinate for circle cutout shapes.
+    overlayDisplayCutoutConfigCy :: Maybe Int,
+    -- | Radius for circle cutout shapes.
+    overlayDisplayCutoutConfigRadius :: Maybe Int,
+    -- | The cutout fill color (default: black).
+    overlayDisplayCutoutConfigContentColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
+  }
+  deriving (Eq, Show)
+instance FromJSON OverlayDisplayCutoutConfig where
+  parseJSON = A.withObject "OverlayDisplayCutoutConfig" $ \o -> OverlayDisplayCutoutConfig
+    <$> o A..: "rect"
+    <*> o A..: "shape"
+    <*> o A..:? "borderRadius"
+    <*> o A..:? "upperRadius"
+    <*> o A..:? "lowerRadius"
+    <*> o A..:? "cx"
+    <*> o A..:? "cy"
+    <*> o A..:? "radius"
+    <*> o A..:? "contentColor"
+instance ToJSON OverlayDisplayCutoutConfig where
+  toJSON p = A.object $ catMaybes [
+    ("rect" A..=) <$> Just (overlayDisplayCutoutConfigRect p),
+    ("shape" A..=) <$> Just (overlayDisplayCutoutConfigShape p),
+    ("borderRadius" A..=) <$> (overlayDisplayCutoutConfigBorderRadius p),
+    ("upperRadius" A..=) <$> (overlayDisplayCutoutConfigUpperRadius p),
+    ("lowerRadius" A..=) <$> (overlayDisplayCutoutConfigLowerRadius p),
+    ("cx" A..=) <$> (overlayDisplayCutoutConfigCx p),
+    ("cy" A..=) <$> (overlayDisplayCutoutConfigCy p),
+    ("radius" A..=) <$> (overlayDisplayCutoutConfigRadius p),
+    ("contentColor" A..=) <$> (overlayDisplayCutoutConfigContentColor p)
+    ]
+
+-- | Type 'Overlay.WindowControlsOverlayConfig'.
+--   Configuration for Window Controls Overlay
+data OverlayWindowControlsOverlayConfig = OverlayWindowControlsOverlayConfig
+  {
+    -- | Whether the title bar CSS should be shown when emulating the Window Controls Overlay.
+    overlayWindowControlsOverlayConfigShowCSS :: Bool,
+    -- | Selected platforms to show the overlay.
+    overlayWindowControlsOverlayConfigSelectedPlatform :: T.Text,
+    -- | The theme color defined in app manifest.
+    overlayWindowControlsOverlayConfigThemeColor :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON OverlayWindowControlsOverlayConfig where
+  parseJSON = A.withObject "OverlayWindowControlsOverlayConfig" $ \o -> OverlayWindowControlsOverlayConfig
+    <$> o A..: "showCSS"
+    <*> o A..: "selectedPlatform"
+    <*> o A..: "themeColor"
+instance ToJSON OverlayWindowControlsOverlayConfig where
+  toJSON p = A.object $ catMaybes [
+    ("showCSS" A..=) <$> Just (overlayWindowControlsOverlayConfigShowCSS p),
+    ("selectedPlatform" A..=) <$> Just (overlayWindowControlsOverlayConfigSelectedPlatform p),
+    ("themeColor" A..=) <$> Just (overlayWindowControlsOverlayConfigThemeColor p)
+    ]
+
 -- | Type 'Overlay.ContainerQueryHighlightConfig'.
 data OverlayContainerQueryHighlightConfig = OverlayContainerQueryHighlightConfig
   {
     -- | A descriptor for the highlight appearance of container query containers.
     overlayContainerQueryHighlightConfigContainerQueryContainerHighlightConfig :: OverlayContainerQueryContainerHighlightConfig,
     -- | Identifier of the container node to highlight.
-    overlayContainerQueryHighlightConfigNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    overlayContainerQueryHighlightConfigNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayContainerQueryHighlightConfig where
@@ -546,7 +636,7 @@ data OverlayIsolatedElementHighlightConfig = OverlayIsolatedElementHighlightConf
     -- | A descriptor for the highlight appearance of an element in isolation mode.
     overlayIsolatedElementHighlightConfigIsolationModeHighlightConfig :: OverlayIsolationModeHighlightConfig,
     -- | Identifier of the isolated element to highlight.
-    overlayIsolatedElementHighlightConfigNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    overlayIsolatedElementHighlightConfigNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayIsolatedElementHighlightConfig where
@@ -563,11 +653,11 @@ instance ToJSON OverlayIsolatedElementHighlightConfig where
 data OverlayIsolationModeHighlightConfig = OverlayIsolationModeHighlightConfig
   {
     -- | The fill color of the resizers (default: transparent).
-    overlayIsolationModeHighlightConfigResizerColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayIsolationModeHighlightConfigResizerColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The fill color for resizer handles (default: transparent).
-    overlayIsolationModeHighlightConfigResizerHandleColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    overlayIsolationModeHighlightConfigResizerHandleColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The fill color for the mask covering non-isolated elements (default: transparent).
-    overlayIsolationModeHighlightConfigMaskColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    overlayIsolationModeHighlightConfigMaskColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 instance FromJSON OverlayIsolationModeHighlightConfig where
@@ -583,14 +673,13 @@ instance ToJSON OverlayIsolationModeHighlightConfig where
     ]
 
 -- | Type 'Overlay.InspectMode'.
-data OverlayInspectMode = OverlayInspectModeSearchForNode | OverlayInspectModeSearchForUAShadowDOM | OverlayInspectModeCaptureAreaScreenshot | OverlayInspectModeShowDistances | OverlayInspectModeNone
+data OverlayInspectMode = OverlayInspectModeSearchForNode | OverlayInspectModeSearchForUAShadowDOM | OverlayInspectModeCaptureAreaScreenshot | OverlayInspectModeNone
   deriving (Ord, Eq, Show, Read)
 instance FromJSON OverlayInspectMode where
   parseJSON = A.withText "OverlayInspectMode" $ \v -> case v of
     "searchForNode" -> pure OverlayInspectModeSearchForNode
     "searchForUAShadowDOM" -> pure OverlayInspectModeSearchForUAShadowDOM
     "captureAreaScreenshot" -> pure OverlayInspectModeCaptureAreaScreenshot
-    "showDistances" -> pure OverlayInspectModeShowDistances
     "none" -> pure OverlayInspectModeNone
     "_" -> fail "failed to parse OverlayInspectMode"
 instance ToJSON OverlayInspectMode where
@@ -598,14 +687,32 @@ instance ToJSON OverlayInspectMode where
     OverlayInspectModeSearchForNode -> "searchForNode"
     OverlayInspectModeSearchForUAShadowDOM -> "searchForUAShadowDOM"
     OverlayInspectModeCaptureAreaScreenshot -> "captureAreaScreenshot"
-    OverlayInspectModeShowDistances -> "showDistances"
     OverlayInspectModeNone -> "none"
+
+-- | Type 'Overlay.InspectedElementAnchorConfig'.
+data OverlayInspectedElementAnchorConfig = OverlayInspectedElementAnchorConfig
+  {
+    -- | Identifier of the node to highlight.
+    overlayInspectedElementAnchorConfigNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
+    -- | Identifier of the backend node to highlight.
+    overlayInspectedElementAnchorConfigBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON OverlayInspectedElementAnchorConfig where
+  parseJSON = A.withObject "OverlayInspectedElementAnchorConfig" $ \o -> OverlayInspectedElementAnchorConfig
+    <$> o A..:? "nodeId"
+    <*> o A..:? "backendNodeId"
+instance ToJSON OverlayInspectedElementAnchorConfig where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> (overlayInspectedElementAnchorConfigNodeId p),
+    ("backendNodeId" A..=) <$> (overlayInspectedElementAnchorConfigBackendNodeId p)
+    ]
 
 -- | Type of the 'Overlay.inspectNodeRequested' event.
 data OverlayInspectNodeRequested = OverlayInspectNodeRequested
   {
     -- | Id of the node to inspect.
-    overlayInspectNodeRequestedBackendNodeId :: DOMPageNetworkEmulationSecurity.DOMBackendNodeId
+    overlayInspectNodeRequestedBackendNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayInspectNodeRequested where
@@ -617,7 +724,7 @@ instance Event OverlayInspectNodeRequested where
 -- | Type of the 'Overlay.nodeHighlightRequested' event.
 data OverlayNodeHighlightRequested = OverlayNodeHighlightRequested
   {
-    overlayNodeHighlightRequestedNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    overlayNodeHighlightRequestedNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 instance FromJSON OverlayNodeHighlightRequested where
@@ -630,7 +737,7 @@ instance Event OverlayNodeHighlightRequested where
 data OverlayScreenshotRequested = OverlayScreenshotRequested
   {
     -- | Viewport to capture, in device independent pixels (dip).
-    overlayScreenshotRequestedViewport :: DOMPageNetworkEmulationSecurity.PageViewport
+    overlayScreenshotRequestedViewport :: DOMNetworkEmulationPageSecurity.PageViewport
   }
   deriving (Eq, Show)
 instance FromJSON OverlayScreenshotRequested where
@@ -638,6 +745,32 @@ instance FromJSON OverlayScreenshotRequested where
     <$> o A..: "viewport"
 instance Event OverlayScreenshotRequested where
   eventName _ = "Overlay.screenshotRequested"
+
+-- | Type of the 'Overlay.inspectPanelShowRequested' event.
+data OverlayInspectPanelShowRequested = OverlayInspectPanelShowRequested
+  {
+    -- | Id of the node to show in the panel.
+    overlayInspectPanelShowRequestedBackendNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON OverlayInspectPanelShowRequested where
+  parseJSON = A.withObject "OverlayInspectPanelShowRequested" $ \o -> OverlayInspectPanelShowRequested
+    <$> o A..: "backendNodeId"
+instance Event OverlayInspectPanelShowRequested where
+  eventName _ = "Overlay.inspectPanelShowRequested"
+
+-- | Type of the 'Overlay.inspectedElementWindowRestored' event.
+data OverlayInspectedElementWindowRestored = OverlayInspectedElementWindowRestored
+  {
+    -- | Id of the node to restore the floating window for.
+    overlayInspectedElementWindowRestoredBackendNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON OverlayInspectedElementWindowRestored where
+  parseJSON = A.withObject "OverlayInspectedElementWindowRestored" $ \o -> OverlayInspectedElementWindowRestored
+    <$> o A..: "backendNodeId"
+instance Event OverlayInspectedElementWindowRestored where
+  eventName _ = "Overlay.inspectedElementWindowRestored"
 
 -- | Type of the 'Overlay.inspectModeCanceled' event.
 data OverlayInspectModeCanceled = OverlayInspectModeCanceled
@@ -685,7 +818,7 @@ instance Command POverlayEnable where
 data POverlayGetHighlightObjectForTest = POverlayGetHighlightObjectForTest
   {
     -- | Id of the node to get highlight object for.
-    pOverlayGetHighlightObjectForTestNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pOverlayGetHighlightObjectForTestNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Whether to include distance info.
     pOverlayGetHighlightObjectForTestIncludeDistance :: Maybe Bool,
     -- | Whether to include style info.
@@ -700,7 +833,7 @@ pOverlayGetHighlightObjectForTest
   {-
   -- | Id of the node to get highlight object for.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> POverlayGetHighlightObjectForTest
 pOverlayGetHighlightObjectForTest
   arg_pOverlayGetHighlightObjectForTestNodeId
@@ -737,14 +870,14 @@ instance Command POverlayGetHighlightObjectForTest where
 data POverlayGetGridHighlightObjectsForTest = POverlayGetGridHighlightObjectsForTest
   {
     -- | Ids of the node to get highlight object for.
-    pOverlayGetGridHighlightObjectsForTestNodeIds :: [DOMPageNetworkEmulationSecurity.DOMNodeId]
+    pOverlayGetGridHighlightObjectsForTestNodeIds :: [DOMNetworkEmulationPageSecurity.DOMNodeId]
   }
   deriving (Eq, Show)
 pOverlayGetGridHighlightObjectsForTest
   {-
   -- | Ids of the node to get highlight object for.
   -}
-  :: [DOMPageNetworkEmulationSecurity.DOMNodeId]
+  :: [DOMNetworkEmulationPageSecurity.DOMNodeId]
   -> POverlayGetGridHighlightObjectsForTest
 pOverlayGetGridHighlightObjectsForTest
   arg_pOverlayGetGridHighlightObjectsForTestNodeIds
@@ -773,14 +906,14 @@ instance Command POverlayGetGridHighlightObjectsForTest where
 data POverlayGetSourceOrderHighlightObjectForTest = POverlayGetSourceOrderHighlightObjectForTest
   {
     -- | Id of the node to highlight.
-    pOverlayGetSourceOrderHighlightObjectForTestNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pOverlayGetSourceOrderHighlightObjectForTestNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pOverlayGetSourceOrderHighlightObjectForTest
   {-
   -- | Id of the node to highlight.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> POverlayGetSourceOrderHighlightObjectForTest
 pOverlayGetSourceOrderHighlightObjectForTest
   arg_pOverlayGetSourceOrderHighlightObjectForTestNodeId
@@ -828,9 +961,9 @@ data POverlayHighlightNode = POverlayHighlightNode
     -- | A descriptor for the highlight appearance.
     pOverlayHighlightNodeHighlightConfig :: OverlayHighlightConfig,
     -- | Identifier of the node to highlight.
-    pOverlayHighlightNodeNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pOverlayHighlightNodeNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Identifier of the backend node to highlight.
-    pOverlayHighlightNodeBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    pOverlayHighlightNodeBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | JavaScript object id of the node to be highlighted.
     pOverlayHighlightNodeObjectId :: Maybe Runtime.RuntimeRemoteObjectId,
     -- | Selectors to highlight relevant nodes.
@@ -870,18 +1003,18 @@ instance Command POverlayHighlightNode where
 data POverlayHighlightQuad = POverlayHighlightQuad
   {
     -- | Quad to highlight
-    pOverlayHighlightQuadQuad :: DOMPageNetworkEmulationSecurity.DOMQuad,
+    pOverlayHighlightQuadQuad :: DOMNetworkEmulationPageSecurity.DOMQuad,
     -- | The highlight fill color (default: transparent).
-    pOverlayHighlightQuadColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    pOverlayHighlightQuadColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The highlight outline color (default: transparent).
-    pOverlayHighlightQuadOutlineColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    pOverlayHighlightQuadOutlineColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 pOverlayHighlightQuad
   {-
   -- | Quad to highlight
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMQuad
+  :: DOMNetworkEmulationPageSecurity.DOMQuad
   -> POverlayHighlightQuad
 pOverlayHighlightQuad
   arg_pOverlayHighlightQuadQuad
@@ -901,6 +1034,9 @@ instance Command POverlayHighlightQuad where
   fromJSON = const . A.Success . const ()
 
 -- | Highlights given rectangle. Coordinates are absolute with respect to the main frame viewport.
+--   Issue: the method does not handle device pixel ratio (DPR) correctly.
+--   The coordinates currently have to be adjusted by the client
+--   if DPR is not 1 (see crbug.com/437807128).
 
 -- | Parameters of the 'Overlay.highlightRect' command.
 data POverlayHighlightRect = POverlayHighlightRect
@@ -914,9 +1050,9 @@ data POverlayHighlightRect = POverlayHighlightRect
     -- | Rectangle height
     pOverlayHighlightRectHeight :: Int,
     -- | The highlight fill color (default: transparent).
-    pOverlayHighlightRectColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA,
+    pOverlayHighlightRectColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA,
     -- | The highlight outline color (default: transparent).
-    pOverlayHighlightRectOutlineColor :: Maybe DOMPageNetworkEmulationSecurity.DOMRGBA
+    pOverlayHighlightRectOutlineColor :: Maybe DOMNetworkEmulationPageSecurity.DOMRGBA
   }
   deriving (Eq, Show)
 pOverlayHighlightRect
@@ -972,9 +1108,9 @@ data POverlayHighlightSourceOrder = POverlayHighlightSourceOrder
     -- | A descriptor for the appearance of the overlay drawing.
     pOverlayHighlightSourceOrderSourceOrderConfig :: OverlaySourceOrderConfig,
     -- | Identifier of the node to highlight.
-    pOverlayHighlightSourceOrderNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pOverlayHighlightSourceOrderNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Identifier of the backend node to highlight.
-    pOverlayHighlightSourceOrderBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    pOverlayHighlightSourceOrderBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | JavaScript object id of the node to be highlighted.
     pOverlayHighlightSourceOrderObjectId :: Maybe Runtime.RuntimeRemoteObjectId
   }
@@ -1253,6 +1389,33 @@ instance Command POverlaySetShowContainerQueryOverlays where
   commandName _ = "Overlay.setShowContainerQueryOverlays"
   fromJSON = const . A.Success . const ()
 
+
+-- | Parameters of the 'Overlay.setShowInspectedElementAnchor' command.
+data POverlaySetShowInspectedElementAnchor = POverlaySetShowInspectedElementAnchor
+  {
+    -- | Node identifier for which to show an anchor for.
+    pOverlaySetShowInspectedElementAnchorInspectedElementAnchorConfig :: OverlayInspectedElementAnchorConfig
+  }
+  deriving (Eq, Show)
+pOverlaySetShowInspectedElementAnchor
+  {-
+  -- | Node identifier for which to show an anchor for.
+  -}
+  :: OverlayInspectedElementAnchorConfig
+  -> POverlaySetShowInspectedElementAnchor
+pOverlaySetShowInspectedElementAnchor
+  arg_pOverlaySetShowInspectedElementAnchorInspectedElementAnchorConfig
+  = POverlaySetShowInspectedElementAnchor
+    arg_pOverlaySetShowInspectedElementAnchorInspectedElementAnchorConfig
+instance ToJSON POverlaySetShowInspectedElementAnchor where
+  toJSON p = A.object $ catMaybes [
+    ("inspectedElementAnchorConfig" A..=) <$> Just (pOverlaySetShowInspectedElementAnchorInspectedElementAnchorConfig p)
+    ]
+instance Command POverlaySetShowInspectedElementAnchor where
+  type CommandResponse POverlaySetShowInspectedElementAnchor = ()
+  commandName _ = "Overlay.setShowInspectedElementAnchor"
+  fromJSON = const . A.Success . const ()
+
 -- | Requests that backend shows paint rectangles
 
 -- | Parameters of the 'Overlay.setShowPaintRects' command.
@@ -1337,30 +1500,6 @@ instance Command POverlaySetShowScrollBottleneckRects where
   commandName _ = "Overlay.setShowScrollBottleneckRects"
   fromJSON = const . A.Success . const ()
 
--- | Request that backend shows an overlay with web vital metrics.
-
--- | Parameters of the 'Overlay.setShowWebVitals' command.
-data POverlaySetShowWebVitals = POverlaySetShowWebVitals
-  {
-    pOverlaySetShowWebVitalsShow :: Bool
-  }
-  deriving (Eq, Show)
-pOverlaySetShowWebVitals
-  :: Bool
-  -> POverlaySetShowWebVitals
-pOverlaySetShowWebVitals
-  arg_pOverlaySetShowWebVitalsShow
-  = POverlaySetShowWebVitals
-    arg_pOverlaySetShowWebVitalsShow
-instance ToJSON POverlaySetShowWebVitals where
-  toJSON p = A.object $ catMaybes [
-    ("show" A..=) <$> Just (pOverlaySetShowWebVitalsShow p)
-    ]
-instance Command POverlaySetShowWebVitals where
-  type CommandResponse POverlaySetShowWebVitals = ()
-  commandName _ = "Overlay.setShowWebVitals"
-  fromJSON = const . A.Success . const ()
-
 -- | Paints viewport size upon main frame resize.
 
 -- | Parameters of the 'Overlay.setShowViewportSizeOnResize' command.
@@ -1412,6 +1551,29 @@ instance Command POverlaySetShowHinge where
   commandName _ = "Overlay.setShowHinge"
   fromJSON = const . A.Success . const ()
 
+-- | Add a display cutout overlay.
+
+-- | Parameters of the 'Overlay.setShowDisplayCutout' command.
+data POverlaySetShowDisplayCutout = POverlaySetShowDisplayCutout
+  {
+    -- | display cutout data, null means hide display cutout
+    pOverlaySetShowDisplayCutoutDisplayCutoutConfig :: Maybe OverlayDisplayCutoutConfig
+  }
+  deriving (Eq, Show)
+pOverlaySetShowDisplayCutout
+  :: POverlaySetShowDisplayCutout
+pOverlaySetShowDisplayCutout
+  = POverlaySetShowDisplayCutout
+    Nothing
+instance ToJSON POverlaySetShowDisplayCutout where
+  toJSON p = A.object $ catMaybes [
+    ("displayCutoutConfig" A..=) <$> (pOverlaySetShowDisplayCutoutDisplayCutoutConfig p)
+    ]
+instance Command POverlaySetShowDisplayCutout where
+  type CommandResponse POverlaySetShowDisplayCutout = ()
+  commandName _ = "Overlay.setShowDisplayCutout"
+  fromJSON = const . A.Success . const ()
+
 -- | Show elements in isolation mode with overlays.
 
 -- | Parameters of the 'Overlay.setShowIsolatedElements' command.
@@ -1438,5 +1600,28 @@ instance ToJSON POverlaySetShowIsolatedElements where
 instance Command POverlaySetShowIsolatedElements where
   type CommandResponse POverlaySetShowIsolatedElements = ()
   commandName _ = "Overlay.setShowIsolatedElements"
+  fromJSON = const . A.Success . const ()
+
+-- | Show Window Controls Overlay for PWA
+
+-- | Parameters of the 'Overlay.setShowWindowControlsOverlay' command.
+data POverlaySetShowWindowControlsOverlay = POverlaySetShowWindowControlsOverlay
+  {
+    -- | Window Controls Overlay data, null means hide Window Controls Overlay
+    pOverlaySetShowWindowControlsOverlayWindowControlsOverlayConfig :: Maybe OverlayWindowControlsOverlayConfig
+  }
+  deriving (Eq, Show)
+pOverlaySetShowWindowControlsOverlay
+  :: POverlaySetShowWindowControlsOverlay
+pOverlaySetShowWindowControlsOverlay
+  = POverlaySetShowWindowControlsOverlay
+    Nothing
+instance ToJSON POverlaySetShowWindowControlsOverlay where
+  toJSON p = A.object $ catMaybes [
+    ("windowControlsOverlayConfig" A..=) <$> (pOverlaySetShowWindowControlsOverlayWindowControlsOverlayConfig p)
+    ]
+instance Command POverlaySetShowWindowControlsOverlay where
+  type CommandResponse POverlaySetShowWindowControlsOverlay = ()
+  commandName _ = "Overlay.setShowWindowControlsOverlay"
   fromJSON = const . A.Success . const ()
 

@@ -125,7 +125,8 @@ data ServiceWorkerServiceWorkerVersion = ServiceWorkerServiceWorkerVersion
     --   For cached script it is the last time the cache entry was validated.
     serviceWorkerServiceWorkerVersionScriptResponseTime :: Maybe Double,
     serviceWorkerServiceWorkerVersionControlledClients :: Maybe [BrowserTarget.TargetTargetID],
-    serviceWorkerServiceWorkerVersionTargetId :: Maybe BrowserTarget.TargetTargetID
+    serviceWorkerServiceWorkerVersionTargetId :: Maybe BrowserTarget.TargetTargetID,
+    serviceWorkerServiceWorkerVersionRouterRules :: Maybe T.Text
   }
   deriving (Eq, Show)
 instance FromJSON ServiceWorkerServiceWorkerVersion where
@@ -139,6 +140,7 @@ instance FromJSON ServiceWorkerServiceWorkerVersion where
     <*> o A..:? "scriptResponseTime"
     <*> o A..:? "controlledClients"
     <*> o A..:? "targetId"
+    <*> o A..:? "routerRules"
 instance ToJSON ServiceWorkerServiceWorkerVersion where
   toJSON p = A.object $ catMaybes [
     ("versionId" A..=) <$> Just (serviceWorkerServiceWorkerVersionVersionId p),
@@ -149,7 +151,8 @@ instance ToJSON ServiceWorkerServiceWorkerVersion where
     ("scriptLastModified" A..=) <$> (serviceWorkerServiceWorkerVersionScriptLastModified p),
     ("scriptResponseTime" A..=) <$> (serviceWorkerServiceWorkerVersionScriptResponseTime p),
     ("controlledClients" A..=) <$> (serviceWorkerServiceWorkerVersionControlledClients p),
-    ("targetId" A..=) <$> (serviceWorkerServiceWorkerVersionTargetId p)
+    ("targetId" A..=) <$> (serviceWorkerServiceWorkerVersionTargetId p),
+    ("routerRules" A..=) <$> (serviceWorkerServiceWorkerVersionRouterRules p)
     ]
 
 -- | Type 'ServiceWorker.ServiceWorkerErrorMessage'.
@@ -350,29 +353,6 @@ instance ToJSON PServiceWorkerEnable where
 instance Command PServiceWorkerEnable where
   type CommandResponse PServiceWorkerEnable = ()
   commandName _ = "ServiceWorker.enable"
-  fromJSON = const . A.Success . const ()
-
-
--- | Parameters of the 'ServiceWorker.inspectWorker' command.
-data PServiceWorkerInspectWorker = PServiceWorkerInspectWorker
-  {
-    pServiceWorkerInspectWorkerVersionId :: T.Text
-  }
-  deriving (Eq, Show)
-pServiceWorkerInspectWorker
-  :: T.Text
-  -> PServiceWorkerInspectWorker
-pServiceWorkerInspectWorker
-  arg_pServiceWorkerInspectWorkerVersionId
-  = PServiceWorkerInspectWorker
-    arg_pServiceWorkerInspectWorkerVersionId
-instance ToJSON PServiceWorkerInspectWorker where
-  toJSON p = A.object $ catMaybes [
-    ("versionId" A..=) <$> Just (pServiceWorkerInspectWorkerVersionId p)
-    ]
-instance Command PServiceWorkerInspectWorker where
-  type CommandResponse PServiceWorkerInspectWorker = ()
-  commandName _ = "ServiceWorker.inspectWorker"
   fromJSON = const . A.Success . const ()
 
 

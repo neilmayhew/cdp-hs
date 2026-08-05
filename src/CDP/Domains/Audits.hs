@@ -46,7 +46,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.Runtime as Runtime
 
 
@@ -77,25 +77,25 @@ instance ToJSON AuditsAffectedCookie where
 data AuditsAffectedRequest = AuditsAffectedRequest
   {
     -- | The unique request id.
-    auditsAffectedRequestRequestId :: DOMPageNetworkEmulationSecurity.NetworkRequestId,
-    auditsAffectedRequestUrl :: Maybe T.Text
+    auditsAffectedRequestRequestId :: Maybe DOMNetworkEmulationPageSecurity.NetworkRequestId,
+    auditsAffectedRequestUrl :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON AuditsAffectedRequest where
   parseJSON = A.withObject "AuditsAffectedRequest" $ \o -> AuditsAffectedRequest
-    <$> o A..: "requestId"
-    <*> o A..:? "url"
+    <$> o A..:? "requestId"
+    <*> o A..: "url"
 instance ToJSON AuditsAffectedRequest where
   toJSON p = A.object $ catMaybes [
-    ("requestId" A..=) <$> Just (auditsAffectedRequestRequestId p),
-    ("url" A..=) <$> (auditsAffectedRequestUrl p)
+    ("requestId" A..=) <$> (auditsAffectedRequestRequestId p),
+    ("url" A..=) <$> Just (auditsAffectedRequestUrl p)
     ]
 
 -- | Type 'Audits.AffectedFrame'.
 --   Information about the frame affected by an inspector issue.
 data AuditsAffectedFrame = AuditsAffectedFrame
   {
-    auditsAffectedFrameFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId
+    auditsAffectedFrameFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId
   }
   deriving (Eq, Show)
 instance FromJSON AuditsAffectedFrame where
@@ -107,7 +107,7 @@ instance ToJSON AuditsAffectedFrame where
     ]
 
 -- | Type 'Audits.CookieExclusionReason'.
-data AuditsCookieExclusionReason = AuditsCookieExclusionReasonExcludeSameSiteUnspecifiedTreatedAsLax | AuditsCookieExclusionReasonExcludeSameSiteNoneInsecure | AuditsCookieExclusionReasonExcludeSameSiteLax | AuditsCookieExclusionReasonExcludeSameSiteStrict | AuditsCookieExclusionReasonExcludeInvalidSameParty | AuditsCookieExclusionReasonExcludeSamePartyCrossPartyContext | AuditsCookieExclusionReasonExcludeDomainNonASCII
+data AuditsCookieExclusionReason = AuditsCookieExclusionReasonExcludeSameSiteUnspecifiedTreatedAsLax | AuditsCookieExclusionReasonExcludeSameSiteNoneInsecure | AuditsCookieExclusionReasonExcludeSameSiteLax | AuditsCookieExclusionReasonExcludeSameSiteStrict | AuditsCookieExclusionReasonExcludeDomainNonASCII | AuditsCookieExclusionReasonExcludeThirdPartyCookieBlockedInFirstPartySet | AuditsCookieExclusionReasonExcludeThirdPartyPhaseout | AuditsCookieExclusionReasonExcludePortMismatch | AuditsCookieExclusionReasonExcludeSchemeMismatch
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsCookieExclusionReason where
   parseJSON = A.withText "AuditsCookieExclusionReason" $ \v -> case v of
@@ -115,9 +115,11 @@ instance FromJSON AuditsCookieExclusionReason where
     "ExcludeSameSiteNoneInsecure" -> pure AuditsCookieExclusionReasonExcludeSameSiteNoneInsecure
     "ExcludeSameSiteLax" -> pure AuditsCookieExclusionReasonExcludeSameSiteLax
     "ExcludeSameSiteStrict" -> pure AuditsCookieExclusionReasonExcludeSameSiteStrict
-    "ExcludeInvalidSameParty" -> pure AuditsCookieExclusionReasonExcludeInvalidSameParty
-    "ExcludeSamePartyCrossPartyContext" -> pure AuditsCookieExclusionReasonExcludeSamePartyCrossPartyContext
     "ExcludeDomainNonASCII" -> pure AuditsCookieExclusionReasonExcludeDomainNonASCII
+    "ExcludeThirdPartyCookieBlockedInFirstPartySet" -> pure AuditsCookieExclusionReasonExcludeThirdPartyCookieBlockedInFirstPartySet
+    "ExcludeThirdPartyPhaseout" -> pure AuditsCookieExclusionReasonExcludeThirdPartyPhaseout
+    "ExcludePortMismatch" -> pure AuditsCookieExclusionReasonExcludePortMismatch
+    "ExcludeSchemeMismatch" -> pure AuditsCookieExclusionReasonExcludeSchemeMismatch
     "_" -> fail "failed to parse AuditsCookieExclusionReason"
 instance ToJSON AuditsCookieExclusionReason where
   toJSON v = A.String $ case v of
@@ -125,12 +127,14 @@ instance ToJSON AuditsCookieExclusionReason where
     AuditsCookieExclusionReasonExcludeSameSiteNoneInsecure -> "ExcludeSameSiteNoneInsecure"
     AuditsCookieExclusionReasonExcludeSameSiteLax -> "ExcludeSameSiteLax"
     AuditsCookieExclusionReasonExcludeSameSiteStrict -> "ExcludeSameSiteStrict"
-    AuditsCookieExclusionReasonExcludeInvalidSameParty -> "ExcludeInvalidSameParty"
-    AuditsCookieExclusionReasonExcludeSamePartyCrossPartyContext -> "ExcludeSamePartyCrossPartyContext"
     AuditsCookieExclusionReasonExcludeDomainNonASCII -> "ExcludeDomainNonASCII"
+    AuditsCookieExclusionReasonExcludeThirdPartyCookieBlockedInFirstPartySet -> "ExcludeThirdPartyCookieBlockedInFirstPartySet"
+    AuditsCookieExclusionReasonExcludeThirdPartyPhaseout -> "ExcludeThirdPartyPhaseout"
+    AuditsCookieExclusionReasonExcludePortMismatch -> "ExcludePortMismatch"
+    AuditsCookieExclusionReasonExcludeSchemeMismatch -> "ExcludeSchemeMismatch"
 
 -- | Type 'Audits.CookieWarningReason'.
-data AuditsCookieWarningReason = AuditsCookieWarningReasonWarnSameSiteUnspecifiedCrossSiteContext | AuditsCookieWarningReasonWarnSameSiteNoneInsecure | AuditsCookieWarningReasonWarnSameSiteUnspecifiedLaxAllowUnsafe | AuditsCookieWarningReasonWarnSameSiteStrictLaxDowngradeStrict | AuditsCookieWarningReasonWarnSameSiteStrictCrossDowngradeStrict | AuditsCookieWarningReasonWarnSameSiteStrictCrossDowngradeLax | AuditsCookieWarningReasonWarnSameSiteLaxCrossDowngradeStrict | AuditsCookieWarningReasonWarnSameSiteLaxCrossDowngradeLax | AuditsCookieWarningReasonWarnAttributeValueExceedsMaxSize | AuditsCookieWarningReasonWarnDomainNonASCII
+data AuditsCookieWarningReason = AuditsCookieWarningReasonWarnSameSiteUnspecifiedCrossSiteContext | AuditsCookieWarningReasonWarnSameSiteNoneInsecure | AuditsCookieWarningReasonWarnSameSiteUnspecifiedLaxAllowUnsafe | AuditsCookieWarningReasonWarnSameSiteStrictLaxDowngradeStrict | AuditsCookieWarningReasonWarnSameSiteStrictCrossDowngradeStrict | AuditsCookieWarningReasonWarnSameSiteStrictCrossDowngradeLax | AuditsCookieWarningReasonWarnSameSiteLaxCrossDowngradeStrict | AuditsCookieWarningReasonWarnSameSiteLaxCrossDowngradeLax | AuditsCookieWarningReasonWarnAttributeValueExceedsMaxSize | AuditsCookieWarningReasonWarnDomainNonASCII | AuditsCookieWarningReasonWarnThirdPartyPhaseout | AuditsCookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion | AuditsCookieWarningReasonWarnDeprecationTrialMetadata | AuditsCookieWarningReasonWarnThirdPartyCookieHeuristic
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsCookieWarningReason where
   parseJSON = A.withText "AuditsCookieWarningReason" $ \v -> case v of
@@ -144,6 +148,10 @@ instance FromJSON AuditsCookieWarningReason where
     "WarnSameSiteLaxCrossDowngradeLax" -> pure AuditsCookieWarningReasonWarnSameSiteLaxCrossDowngradeLax
     "WarnAttributeValueExceedsMaxSize" -> pure AuditsCookieWarningReasonWarnAttributeValueExceedsMaxSize
     "WarnDomainNonASCII" -> pure AuditsCookieWarningReasonWarnDomainNonASCII
+    "WarnThirdPartyPhaseout" -> pure AuditsCookieWarningReasonWarnThirdPartyPhaseout
+    "WarnCrossSiteRedirectDowngradeChangesInclusion" -> pure AuditsCookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion
+    "WarnDeprecationTrialMetadata" -> pure AuditsCookieWarningReasonWarnDeprecationTrialMetadata
+    "WarnThirdPartyCookieHeuristic" -> pure AuditsCookieWarningReasonWarnThirdPartyCookieHeuristic
     "_" -> fail "failed to parse AuditsCookieWarningReason"
 instance ToJSON AuditsCookieWarningReason where
   toJSON v = A.String $ case v of
@@ -157,6 +165,10 @@ instance ToJSON AuditsCookieWarningReason where
     AuditsCookieWarningReasonWarnSameSiteLaxCrossDowngradeLax -> "WarnSameSiteLaxCrossDowngradeLax"
     AuditsCookieWarningReasonWarnAttributeValueExceedsMaxSize -> "WarnAttributeValueExceedsMaxSize"
     AuditsCookieWarningReasonWarnDomainNonASCII -> "WarnDomainNonASCII"
+    AuditsCookieWarningReasonWarnThirdPartyPhaseout -> "WarnThirdPartyPhaseout"
+    AuditsCookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion -> "WarnCrossSiteRedirectDowngradeChangesInclusion"
+    AuditsCookieWarningReasonWarnDeprecationTrialMetadata -> "WarnDeprecationTrialMetadata"
+    AuditsCookieWarningReasonWarnThirdPartyCookieHeuristic -> "WarnThirdPartyCookieHeuristic"
 
 -- | Type 'Audits.CookieOperation'.
 data AuditsCookieOperation = AuditsCookieOperationSetCookie | AuditsCookieOperationReadCookie
@@ -170,6 +182,41 @@ instance ToJSON AuditsCookieOperation where
   toJSON v = A.String $ case v of
     AuditsCookieOperationSetCookie -> "SetCookie"
     AuditsCookieOperationReadCookie -> "ReadCookie"
+
+-- | Type 'Audits.InsightType'.
+--   Represents the category of insight that a cookie issue falls under.
+data AuditsInsightType = AuditsInsightTypeGitHubResource | AuditsInsightTypeGracePeriod | AuditsInsightTypeHeuristics
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsInsightType where
+  parseJSON = A.withText "AuditsInsightType" $ \v -> case v of
+    "GitHubResource" -> pure AuditsInsightTypeGitHubResource
+    "GracePeriod" -> pure AuditsInsightTypeGracePeriod
+    "Heuristics" -> pure AuditsInsightTypeHeuristics
+    "_" -> fail "failed to parse AuditsInsightType"
+instance ToJSON AuditsInsightType where
+  toJSON v = A.String $ case v of
+    AuditsInsightTypeGitHubResource -> "GitHubResource"
+    AuditsInsightTypeGracePeriod -> "GracePeriod"
+    AuditsInsightTypeHeuristics -> "Heuristics"
+
+-- | Type 'Audits.CookieIssueInsight'.
+--   Information about the suggested solution to a cookie issue.
+data AuditsCookieIssueInsight = AuditsCookieIssueInsight
+  {
+    auditsCookieIssueInsightType :: AuditsInsightType,
+    -- | Link to table entry in third-party cookie migration readiness list.
+    auditsCookieIssueInsightTableEntryUrl :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsCookieIssueInsight where
+  parseJSON = A.withObject "AuditsCookieIssueInsight" $ \o -> AuditsCookieIssueInsight
+    <$> o A..: "type"
+    <*> o A..:? "tableEntryUrl"
+instance ToJSON AuditsCookieIssueInsight where
+  toJSON p = A.object $ catMaybes [
+    ("type" A..=) <$> Just (auditsCookieIssueInsightType p),
+    ("tableEntryUrl" A..=) <$> (auditsCookieIssueInsightTableEntryUrl p)
+    ]
 
 -- | Type 'Audits.CookieIssueDetails'.
 --   This information is currently necessary, as the front-end has a difficult
@@ -190,7 +237,9 @@ data AuditsCookieIssueDetails = AuditsCookieIssueDetails
     auditsCookieIssueDetailsOperation :: AuditsCookieOperation,
     auditsCookieIssueDetailsSiteForCookies :: Maybe T.Text,
     auditsCookieIssueDetailsCookieUrl :: Maybe T.Text,
-    auditsCookieIssueDetailsRequest :: Maybe AuditsAffectedRequest
+    auditsCookieIssueDetailsRequest :: Maybe AuditsAffectedRequest,
+    -- | The recommended solution to the issue.
+    auditsCookieIssueDetailsInsight :: Maybe AuditsCookieIssueInsight
   }
   deriving (Eq, Show)
 instance FromJSON AuditsCookieIssueDetails where
@@ -203,6 +252,7 @@ instance FromJSON AuditsCookieIssueDetails where
     <*> o A..:? "siteForCookies"
     <*> o A..:? "cookieUrl"
     <*> o A..:? "request"
+    <*> o A..:? "insight"
 instance ToJSON AuditsCookieIssueDetails where
   toJSON p = A.object $ catMaybes [
     ("cookie" A..=) <$> (auditsCookieIssueDetailsCookie p),
@@ -212,7 +262,37 @@ instance ToJSON AuditsCookieIssueDetails where
     ("operation" A..=) <$> Just (auditsCookieIssueDetailsOperation p),
     ("siteForCookies" A..=) <$> (auditsCookieIssueDetailsSiteForCookies p),
     ("cookieUrl" A..=) <$> (auditsCookieIssueDetailsCookieUrl p),
-    ("request" A..=) <$> (auditsCookieIssueDetailsRequest p)
+    ("request" A..=) <$> (auditsCookieIssueDetailsRequest p),
+    ("insight" A..=) <$> (auditsCookieIssueDetailsInsight p)
+    ]
+
+-- | Type 'Audits.PerformanceIssueType'.
+data AuditsPerformanceIssueType = AuditsPerformanceIssueTypeDocumentCookie
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsPerformanceIssueType where
+  parseJSON = A.withText "AuditsPerformanceIssueType" $ \v -> case v of
+    "DocumentCookie" -> pure AuditsPerformanceIssueTypeDocumentCookie
+    "_" -> fail "failed to parse AuditsPerformanceIssueType"
+instance ToJSON AuditsPerformanceIssueType where
+  toJSON v = A.String $ case v of
+    AuditsPerformanceIssueTypeDocumentCookie -> "DocumentCookie"
+
+-- | Type 'Audits.PerformanceIssueDetails'.
+--   Details for a performance issue.
+data AuditsPerformanceIssueDetails = AuditsPerformanceIssueDetails
+  {
+    auditsPerformanceIssueDetailsPerformanceIssueType :: AuditsPerformanceIssueType,
+    auditsPerformanceIssueDetailsSourceCodeLocation :: Maybe AuditsSourceCodeLocation
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsPerformanceIssueDetails where
+  parseJSON = A.withObject "AuditsPerformanceIssueDetails" $ \o -> AuditsPerformanceIssueDetails
+    <$> o A..: "performanceIssueType"
+    <*> o A..:? "sourceCodeLocation"
+instance ToJSON AuditsPerformanceIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("performanceIssueType" A..=) <$> Just (auditsPerformanceIssueDetailsPerformanceIssueType p),
+    ("sourceCodeLocation" A..=) <$> (auditsPerformanceIssueDetailsSourceCodeLocation p)
     ]
 
 -- | Type 'Audits.MixedContentResolutionStatus'.
@@ -231,11 +311,10 @@ instance ToJSON AuditsMixedContentResolutionStatus where
     AuditsMixedContentResolutionStatusMixedContentWarning -> "MixedContentWarning"
 
 -- | Type 'Audits.MixedContentResourceType'.
-data AuditsMixedContentResourceType = AuditsMixedContentResourceTypeAttributionSrc | AuditsMixedContentResourceTypeAudio | AuditsMixedContentResourceTypeBeacon | AuditsMixedContentResourceTypeCSPReport | AuditsMixedContentResourceTypeDownload | AuditsMixedContentResourceTypeEventSource | AuditsMixedContentResourceTypeFavicon | AuditsMixedContentResourceTypeFont | AuditsMixedContentResourceTypeForm | AuditsMixedContentResourceTypeFrame | AuditsMixedContentResourceTypeImage | AuditsMixedContentResourceTypeImport | AuditsMixedContentResourceTypeManifest | AuditsMixedContentResourceTypePing | AuditsMixedContentResourceTypePluginData | AuditsMixedContentResourceTypePluginResource | AuditsMixedContentResourceTypePrefetch | AuditsMixedContentResourceTypeResource | AuditsMixedContentResourceTypeScript | AuditsMixedContentResourceTypeServiceWorker | AuditsMixedContentResourceTypeSharedWorker | AuditsMixedContentResourceTypeStylesheet | AuditsMixedContentResourceTypeTrack | AuditsMixedContentResourceTypeVideo | AuditsMixedContentResourceTypeWorker | AuditsMixedContentResourceTypeXMLHttpRequest | AuditsMixedContentResourceTypeXSLT
+data AuditsMixedContentResourceType = AuditsMixedContentResourceTypeAudio | AuditsMixedContentResourceTypeBeacon | AuditsMixedContentResourceTypeCSPReport | AuditsMixedContentResourceTypeDownload | AuditsMixedContentResourceTypeEventSource | AuditsMixedContentResourceTypeFavicon | AuditsMixedContentResourceTypeFont | AuditsMixedContentResourceTypeForm | AuditsMixedContentResourceTypeFrame | AuditsMixedContentResourceTypeImage | AuditsMixedContentResourceTypeImport | AuditsMixedContentResourceTypeJSON | AuditsMixedContentResourceTypeManifest | AuditsMixedContentResourceTypePing | AuditsMixedContentResourceTypePluginData | AuditsMixedContentResourceTypePluginResource | AuditsMixedContentResourceTypePrefetch | AuditsMixedContentResourceTypeResource | AuditsMixedContentResourceTypeScript | AuditsMixedContentResourceTypeServiceWorker | AuditsMixedContentResourceTypeSharedWorker | AuditsMixedContentResourceTypeSpeculationRules | AuditsMixedContentResourceTypeStylesheet | AuditsMixedContentResourceTypeTrack | AuditsMixedContentResourceTypeVideo | AuditsMixedContentResourceTypeWorker | AuditsMixedContentResourceTypeXMLHttpRequest | AuditsMixedContentResourceTypeXSLT
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsMixedContentResourceType where
   parseJSON = A.withText "AuditsMixedContentResourceType" $ \v -> case v of
-    "AttributionSrc" -> pure AuditsMixedContentResourceTypeAttributionSrc
     "Audio" -> pure AuditsMixedContentResourceTypeAudio
     "Beacon" -> pure AuditsMixedContentResourceTypeBeacon
     "CSPReport" -> pure AuditsMixedContentResourceTypeCSPReport
@@ -247,6 +326,7 @@ instance FromJSON AuditsMixedContentResourceType where
     "Frame" -> pure AuditsMixedContentResourceTypeFrame
     "Image" -> pure AuditsMixedContentResourceTypeImage
     "Import" -> pure AuditsMixedContentResourceTypeImport
+    "JSON" -> pure AuditsMixedContentResourceTypeJSON
     "Manifest" -> pure AuditsMixedContentResourceTypeManifest
     "Ping" -> pure AuditsMixedContentResourceTypePing
     "PluginData" -> pure AuditsMixedContentResourceTypePluginData
@@ -256,6 +336,7 @@ instance FromJSON AuditsMixedContentResourceType where
     "Script" -> pure AuditsMixedContentResourceTypeScript
     "ServiceWorker" -> pure AuditsMixedContentResourceTypeServiceWorker
     "SharedWorker" -> pure AuditsMixedContentResourceTypeSharedWorker
+    "SpeculationRules" -> pure AuditsMixedContentResourceTypeSpeculationRules
     "Stylesheet" -> pure AuditsMixedContentResourceTypeStylesheet
     "Track" -> pure AuditsMixedContentResourceTypeTrack
     "Video" -> pure AuditsMixedContentResourceTypeVideo
@@ -265,7 +346,6 @@ instance FromJSON AuditsMixedContentResourceType where
     "_" -> fail "failed to parse AuditsMixedContentResourceType"
 instance ToJSON AuditsMixedContentResourceType where
   toJSON v = A.String $ case v of
-    AuditsMixedContentResourceTypeAttributionSrc -> "AttributionSrc"
     AuditsMixedContentResourceTypeAudio -> "Audio"
     AuditsMixedContentResourceTypeBeacon -> "Beacon"
     AuditsMixedContentResourceTypeCSPReport -> "CSPReport"
@@ -277,6 +357,7 @@ instance ToJSON AuditsMixedContentResourceType where
     AuditsMixedContentResourceTypeFrame -> "Frame"
     AuditsMixedContentResourceTypeImage -> "Image"
     AuditsMixedContentResourceTypeImport -> "Import"
+    AuditsMixedContentResourceTypeJSON -> "JSON"
     AuditsMixedContentResourceTypeManifest -> "Manifest"
     AuditsMixedContentResourceTypePing -> "Ping"
     AuditsMixedContentResourceTypePluginData -> "PluginData"
@@ -286,6 +367,7 @@ instance ToJSON AuditsMixedContentResourceType where
     AuditsMixedContentResourceTypeScript -> "Script"
     AuditsMixedContentResourceTypeServiceWorker -> "ServiceWorker"
     AuditsMixedContentResourceTypeSharedWorker -> "SharedWorker"
+    AuditsMixedContentResourceTypeSpeculationRules -> "SpeculationRules"
     AuditsMixedContentResourceTypeStylesheet -> "Stylesheet"
     AuditsMixedContentResourceTypeTrack -> "Track"
     AuditsMixedContentResourceTypeVideo -> "Video"
@@ -335,7 +417,7 @@ instance ToJSON AuditsMixedContentIssueDetails where
 -- | Type 'Audits.BlockedByResponseReason'.
 --   Enum indicating the reason a response has been blocked. These reasons are
 --   refinements of the net error BLOCKED_BY_RESPONSE.
-data AuditsBlockedByResponseReason = AuditsBlockedByResponseReasonCoepFrameResourceNeedsCoepHeader | AuditsBlockedByResponseReasonCoopSandboxedIFrameCannotNavigateToCoopPage | AuditsBlockedByResponseReasonCorpNotSameOrigin | AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep | AuditsBlockedByResponseReasonCorpNotSameSite
+data AuditsBlockedByResponseReason = AuditsBlockedByResponseReasonCoepFrameResourceNeedsCoepHeader | AuditsBlockedByResponseReasonCoopSandboxedIFrameCannotNavigateToCoopPage | AuditsBlockedByResponseReasonCorpNotSameOrigin | AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep | AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip | AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip | AuditsBlockedByResponseReasonCorpNotSameSite | AuditsBlockedByResponseReasonSRIMessageSignatureMismatch
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsBlockedByResponseReason where
   parseJSON = A.withText "AuditsBlockedByResponseReason" $ \v -> case v of
@@ -343,7 +425,10 @@ instance FromJSON AuditsBlockedByResponseReason where
     "CoopSandboxedIFrameCannotNavigateToCoopPage" -> pure AuditsBlockedByResponseReasonCoopSandboxedIFrameCannotNavigateToCoopPage
     "CorpNotSameOrigin" -> pure AuditsBlockedByResponseReasonCorpNotSameOrigin
     "CorpNotSameOriginAfterDefaultedToSameOriginByCoep" -> pure AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep
+    "CorpNotSameOriginAfterDefaultedToSameOriginByDip" -> pure AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip
+    "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip" -> pure AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip
     "CorpNotSameSite" -> pure AuditsBlockedByResponseReasonCorpNotSameSite
+    "SRIMessageSignatureMismatch" -> pure AuditsBlockedByResponseReasonSRIMessageSignatureMismatch
     "_" -> fail "failed to parse AuditsBlockedByResponseReason"
 instance ToJSON AuditsBlockedByResponseReason where
   toJSON v = A.String $ case v of
@@ -351,7 +436,10 @@ instance ToJSON AuditsBlockedByResponseReason where
     AuditsBlockedByResponseReasonCoopSandboxedIFrameCannotNavigateToCoopPage -> "CoopSandboxedIFrameCannotNavigateToCoopPage"
     AuditsBlockedByResponseReasonCorpNotSameOrigin -> "CorpNotSameOrigin"
     AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep -> "CorpNotSameOriginAfterDefaultedToSameOriginByCoep"
+    AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip -> "CorpNotSameOriginAfterDefaultedToSameOriginByDip"
+    AuditsBlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip -> "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip"
     AuditsBlockedByResponseReasonCorpNotSameSite -> "CorpNotSameSite"
+    AuditsBlockedByResponseReasonSRIMessageSignatureMismatch -> "SRIMessageSignatureMismatch"
 
 -- | Type 'Audits.BlockedByResponseIssueDetails'.
 --   Details for a request that has been blocked with the BLOCKED_BY_RESPONSE
@@ -431,13 +519,14 @@ instance ToJSON AuditsHeavyAdIssueDetails where
     ]
 
 -- | Type 'Audits.ContentSecurityPolicyViolationType'.
-data AuditsContentSecurityPolicyViolationType = AuditsContentSecurityPolicyViolationTypeKInlineViolation | AuditsContentSecurityPolicyViolationTypeKEvalViolation | AuditsContentSecurityPolicyViolationTypeKURLViolation | AuditsContentSecurityPolicyViolationTypeKTrustedTypesSinkViolation | AuditsContentSecurityPolicyViolationTypeKTrustedTypesPolicyViolation | AuditsContentSecurityPolicyViolationTypeKWasmEvalViolation
+data AuditsContentSecurityPolicyViolationType = AuditsContentSecurityPolicyViolationTypeKInlineViolation | AuditsContentSecurityPolicyViolationTypeKEvalViolation | AuditsContentSecurityPolicyViolationTypeKURLViolation | AuditsContentSecurityPolicyViolationTypeKSRIViolation | AuditsContentSecurityPolicyViolationTypeKTrustedTypesSinkViolation | AuditsContentSecurityPolicyViolationTypeKTrustedTypesPolicyViolation | AuditsContentSecurityPolicyViolationTypeKWasmEvalViolation
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsContentSecurityPolicyViolationType where
   parseJSON = A.withText "AuditsContentSecurityPolicyViolationType" $ \v -> case v of
     "kInlineViolation" -> pure AuditsContentSecurityPolicyViolationTypeKInlineViolation
     "kEvalViolation" -> pure AuditsContentSecurityPolicyViolationTypeKEvalViolation
     "kURLViolation" -> pure AuditsContentSecurityPolicyViolationTypeKURLViolation
+    "kSRIViolation" -> pure AuditsContentSecurityPolicyViolationTypeKSRIViolation
     "kTrustedTypesSinkViolation" -> pure AuditsContentSecurityPolicyViolationTypeKTrustedTypesSinkViolation
     "kTrustedTypesPolicyViolation" -> pure AuditsContentSecurityPolicyViolationTypeKTrustedTypesPolicyViolation
     "kWasmEvalViolation" -> pure AuditsContentSecurityPolicyViolationTypeKWasmEvalViolation
@@ -447,6 +536,7 @@ instance ToJSON AuditsContentSecurityPolicyViolationType where
     AuditsContentSecurityPolicyViolationTypeKInlineViolation -> "kInlineViolation"
     AuditsContentSecurityPolicyViolationTypeKEvalViolation -> "kEvalViolation"
     AuditsContentSecurityPolicyViolationTypeKURLViolation -> "kURLViolation"
+    AuditsContentSecurityPolicyViolationTypeKSRIViolation -> "kSRIViolation"
     AuditsContentSecurityPolicyViolationTypeKTrustedTypesSinkViolation -> "kTrustedTypesSinkViolation"
     AuditsContentSecurityPolicyViolationTypeKTrustedTypesPolicyViolation -> "kTrustedTypesPolicyViolation"
     AuditsContentSecurityPolicyViolationTypeKWasmEvalViolation -> "kWasmEvalViolation"
@@ -485,7 +575,7 @@ data AuditsContentSecurityPolicyIssueDetails = AuditsContentSecurityPolicyIssueD
     auditsContentSecurityPolicyIssueDetailsContentSecurityPolicyViolationType :: AuditsContentSecurityPolicyViolationType,
     auditsContentSecurityPolicyIssueDetailsFrameAncestor :: Maybe AuditsAffectedFrame,
     auditsContentSecurityPolicyIssueDetailsSourceCodeLocation :: Maybe AuditsSourceCodeLocation,
-    auditsContentSecurityPolicyIssueDetailsViolatingNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId
+    auditsContentSecurityPolicyIssueDetailsViolatingNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
   }
   deriving (Eq, Show)
 instance FromJSON AuditsContentSecurityPolicyIssueDetails where
@@ -543,96 +633,18 @@ instance ToJSON AuditsSharedArrayBufferIssueDetails where
     ("type" A..=) <$> Just (auditsSharedArrayBufferIssueDetailsType p)
     ]
 
--- | Type 'Audits.TwaQualityEnforcementViolationType'.
-data AuditsTwaQualityEnforcementViolationType = AuditsTwaQualityEnforcementViolationTypeKHttpError | AuditsTwaQualityEnforcementViolationTypeKUnavailableOffline | AuditsTwaQualityEnforcementViolationTypeKDigitalAssetLinks
-  deriving (Ord, Eq, Show, Read)
-instance FromJSON AuditsTwaQualityEnforcementViolationType where
-  parseJSON = A.withText "AuditsTwaQualityEnforcementViolationType" $ \v -> case v of
-    "kHttpError" -> pure AuditsTwaQualityEnforcementViolationTypeKHttpError
-    "kUnavailableOffline" -> pure AuditsTwaQualityEnforcementViolationTypeKUnavailableOffline
-    "kDigitalAssetLinks" -> pure AuditsTwaQualityEnforcementViolationTypeKDigitalAssetLinks
-    "_" -> fail "failed to parse AuditsTwaQualityEnforcementViolationType"
-instance ToJSON AuditsTwaQualityEnforcementViolationType where
-  toJSON v = A.String $ case v of
-    AuditsTwaQualityEnforcementViolationTypeKHttpError -> "kHttpError"
-    AuditsTwaQualityEnforcementViolationTypeKUnavailableOffline -> "kUnavailableOffline"
-    AuditsTwaQualityEnforcementViolationTypeKDigitalAssetLinks -> "kDigitalAssetLinks"
-
--- | Type 'Audits.TrustedWebActivityIssueDetails'.
-data AuditsTrustedWebActivityIssueDetails = AuditsTrustedWebActivityIssueDetails
-  {
-    -- | The url that triggers the violation.
-    auditsTrustedWebActivityIssueDetailsUrl :: T.Text,
-    auditsTrustedWebActivityIssueDetailsViolationType :: AuditsTwaQualityEnforcementViolationType,
-    auditsTrustedWebActivityIssueDetailsHttpStatusCode :: Maybe Int,
-    -- | The package name of the Trusted Web Activity client app. This field is
-    --   only used when violation type is kDigitalAssetLinks.
-    auditsTrustedWebActivityIssueDetailsPackageName :: Maybe T.Text,
-    -- | The signature of the Trusted Web Activity client app. This field is only
-    --   used when violation type is kDigitalAssetLinks.
-    auditsTrustedWebActivityIssueDetailsSignature :: Maybe T.Text
-  }
-  deriving (Eq, Show)
-instance FromJSON AuditsTrustedWebActivityIssueDetails where
-  parseJSON = A.withObject "AuditsTrustedWebActivityIssueDetails" $ \o -> AuditsTrustedWebActivityIssueDetails
-    <$> o A..: "url"
-    <*> o A..: "violationType"
-    <*> o A..:? "httpStatusCode"
-    <*> o A..:? "packageName"
-    <*> o A..:? "signature"
-instance ToJSON AuditsTrustedWebActivityIssueDetails where
-  toJSON p = A.object $ catMaybes [
-    ("url" A..=) <$> Just (auditsTrustedWebActivityIssueDetailsUrl p),
-    ("violationType" A..=) <$> Just (auditsTrustedWebActivityIssueDetailsViolationType p),
-    ("httpStatusCode" A..=) <$> (auditsTrustedWebActivityIssueDetailsHttpStatusCode p),
-    ("packageName" A..=) <$> (auditsTrustedWebActivityIssueDetailsPackageName p),
-    ("signature" A..=) <$> (auditsTrustedWebActivityIssueDetailsSignature p)
-    ]
-
--- | Type 'Audits.LowTextContrastIssueDetails'.
-data AuditsLowTextContrastIssueDetails = AuditsLowTextContrastIssueDetails
-  {
-    auditsLowTextContrastIssueDetailsViolatingNodeId :: DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
-    auditsLowTextContrastIssueDetailsViolatingNodeSelector :: T.Text,
-    auditsLowTextContrastIssueDetailsContrastRatio :: Double,
-    auditsLowTextContrastIssueDetailsThresholdAA :: Double,
-    auditsLowTextContrastIssueDetailsThresholdAAA :: Double,
-    auditsLowTextContrastIssueDetailsFontSize :: T.Text,
-    auditsLowTextContrastIssueDetailsFontWeight :: T.Text
-  }
-  deriving (Eq, Show)
-instance FromJSON AuditsLowTextContrastIssueDetails where
-  parseJSON = A.withObject "AuditsLowTextContrastIssueDetails" $ \o -> AuditsLowTextContrastIssueDetails
-    <$> o A..: "violatingNodeId"
-    <*> o A..: "violatingNodeSelector"
-    <*> o A..: "contrastRatio"
-    <*> o A..: "thresholdAA"
-    <*> o A..: "thresholdAAA"
-    <*> o A..: "fontSize"
-    <*> o A..: "fontWeight"
-instance ToJSON AuditsLowTextContrastIssueDetails where
-  toJSON p = A.object $ catMaybes [
-    ("violatingNodeId" A..=) <$> Just (auditsLowTextContrastIssueDetailsViolatingNodeId p),
-    ("violatingNodeSelector" A..=) <$> Just (auditsLowTextContrastIssueDetailsViolatingNodeSelector p),
-    ("contrastRatio" A..=) <$> Just (auditsLowTextContrastIssueDetailsContrastRatio p),
-    ("thresholdAA" A..=) <$> Just (auditsLowTextContrastIssueDetailsThresholdAA p),
-    ("thresholdAAA" A..=) <$> Just (auditsLowTextContrastIssueDetailsThresholdAAA p),
-    ("fontSize" A..=) <$> Just (auditsLowTextContrastIssueDetailsFontSize p),
-    ("fontWeight" A..=) <$> Just (auditsLowTextContrastIssueDetailsFontWeight p)
-    ]
-
 -- | Type 'Audits.CorsIssueDetails'.
 --   Details for a CORS related issue, e.g. a warning or error related to
 --   CORS RFC1918 enforcement.
 data AuditsCorsIssueDetails = AuditsCorsIssueDetails
   {
-    auditsCorsIssueDetailsCorsErrorStatus :: DOMPageNetworkEmulationSecurity.NetworkCorsErrorStatus,
+    auditsCorsIssueDetailsCorsErrorStatus :: DOMNetworkEmulationPageSecurity.NetworkCorsErrorStatus,
     auditsCorsIssueDetailsIsWarning :: Bool,
     auditsCorsIssueDetailsRequest :: AuditsAffectedRequest,
     auditsCorsIssueDetailsLocation :: Maybe AuditsSourceCodeLocation,
     auditsCorsIssueDetailsInitiatorOrigin :: Maybe T.Text,
-    auditsCorsIssueDetailsResourceIPAddressSpace :: Maybe DOMPageNetworkEmulationSecurity.NetworkIPAddressSpace,
-    auditsCorsIssueDetailsClientSecurityState :: Maybe DOMPageNetworkEmulationSecurity.NetworkClientSecurityState
+    auditsCorsIssueDetailsResourceIPAddressSpace :: Maybe DOMNetworkEmulationPageSecurity.NetworkIPAddressSpace,
+    auditsCorsIssueDetailsClientSecurityState :: Maybe DOMNetworkEmulationPageSecurity.NetworkClientSecurityState
   }
   deriving (Eq, Show)
 instance FromJSON AuditsCorsIssueDetails where
@@ -655,61 +667,163 @@ instance ToJSON AuditsCorsIssueDetails where
     ("clientSecurityState" A..=) <$> (auditsCorsIssueDetailsClientSecurityState p)
     ]
 
--- | Type 'Audits.AttributionReportingIssueType'.
-data AuditsAttributionReportingIssueType = AuditsAttributionReportingIssueTypePermissionPolicyDisabled | AuditsAttributionReportingIssueTypePermissionPolicyNotDelegated | AuditsAttributionReportingIssueTypeUntrustworthyReportingOrigin | AuditsAttributionReportingIssueTypeInsecureContext | AuditsAttributionReportingIssueTypeInvalidHeader | AuditsAttributionReportingIssueTypeInvalidRegisterTriggerHeader | AuditsAttributionReportingIssueTypeInvalidEligibleHeader | AuditsAttributionReportingIssueTypeTooManyConcurrentRequests | AuditsAttributionReportingIssueTypeSourceAndTriggerHeaders | AuditsAttributionReportingIssueTypeSourceIgnored | AuditsAttributionReportingIssueTypeTriggerIgnored
+-- | Type 'Audits.SharedDictionaryError'.
+data AuditsSharedDictionaryError = AuditsSharedDictionaryErrorUseErrorCrossOriginNoCorsRequest | AuditsSharedDictionaryErrorUseErrorDictionaryLoadFailure | AuditsSharedDictionaryErrorUseErrorMatchingDictionaryNotUsed | AuditsSharedDictionaryErrorUseErrorUnexpectedContentDictionaryHeader | AuditsSharedDictionaryErrorWriteErrorCossOriginNoCorsRequest | AuditsSharedDictionaryErrorWriteErrorDisallowedBySettings | AuditsSharedDictionaryErrorWriteErrorExpiredResponse | AuditsSharedDictionaryErrorWriteErrorFeatureDisabled | AuditsSharedDictionaryErrorWriteErrorInsufficientResources | AuditsSharedDictionaryErrorWriteErrorInvalidMatchField | AuditsSharedDictionaryErrorWriteErrorInvalidStructuredHeader | AuditsSharedDictionaryErrorWriteErrorInvalidTTLField | AuditsSharedDictionaryErrorWriteErrorNavigationRequest | AuditsSharedDictionaryErrorWriteErrorNoMatchField | AuditsSharedDictionaryErrorWriteErrorNonIntegerTTLField | AuditsSharedDictionaryErrorWriteErrorNonListMatchDestField | AuditsSharedDictionaryErrorWriteErrorNonSecureContext | AuditsSharedDictionaryErrorWriteErrorNonStringIdField | AuditsSharedDictionaryErrorWriteErrorNonStringInMatchDestList | AuditsSharedDictionaryErrorWriteErrorInvalidMatchDestList | AuditsSharedDictionaryErrorWriteErrorNonStringMatchField | AuditsSharedDictionaryErrorWriteErrorNonTokenTypeField | AuditsSharedDictionaryErrorWriteErrorRequestAborted | AuditsSharedDictionaryErrorWriteErrorShuttingDown | AuditsSharedDictionaryErrorWriteErrorTooLongIdField | AuditsSharedDictionaryErrorWriteErrorUnsupportedType
   deriving (Ord, Eq, Show, Read)
-instance FromJSON AuditsAttributionReportingIssueType where
-  parseJSON = A.withText "AuditsAttributionReportingIssueType" $ \v -> case v of
-    "PermissionPolicyDisabled" -> pure AuditsAttributionReportingIssueTypePermissionPolicyDisabled
-    "PermissionPolicyNotDelegated" -> pure AuditsAttributionReportingIssueTypePermissionPolicyNotDelegated
-    "UntrustworthyReportingOrigin" -> pure AuditsAttributionReportingIssueTypeUntrustworthyReportingOrigin
-    "InsecureContext" -> pure AuditsAttributionReportingIssueTypeInsecureContext
-    "InvalidHeader" -> pure AuditsAttributionReportingIssueTypeInvalidHeader
-    "InvalidRegisterTriggerHeader" -> pure AuditsAttributionReportingIssueTypeInvalidRegisterTriggerHeader
-    "InvalidEligibleHeader" -> pure AuditsAttributionReportingIssueTypeInvalidEligibleHeader
-    "TooManyConcurrentRequests" -> pure AuditsAttributionReportingIssueTypeTooManyConcurrentRequests
-    "SourceAndTriggerHeaders" -> pure AuditsAttributionReportingIssueTypeSourceAndTriggerHeaders
-    "SourceIgnored" -> pure AuditsAttributionReportingIssueTypeSourceIgnored
-    "TriggerIgnored" -> pure AuditsAttributionReportingIssueTypeTriggerIgnored
-    "_" -> fail "failed to parse AuditsAttributionReportingIssueType"
-instance ToJSON AuditsAttributionReportingIssueType where
+instance FromJSON AuditsSharedDictionaryError where
+  parseJSON = A.withText "AuditsSharedDictionaryError" $ \v -> case v of
+    "UseErrorCrossOriginNoCorsRequest" -> pure AuditsSharedDictionaryErrorUseErrorCrossOriginNoCorsRequest
+    "UseErrorDictionaryLoadFailure" -> pure AuditsSharedDictionaryErrorUseErrorDictionaryLoadFailure
+    "UseErrorMatchingDictionaryNotUsed" -> pure AuditsSharedDictionaryErrorUseErrorMatchingDictionaryNotUsed
+    "UseErrorUnexpectedContentDictionaryHeader" -> pure AuditsSharedDictionaryErrorUseErrorUnexpectedContentDictionaryHeader
+    "WriteErrorCossOriginNoCorsRequest" -> pure AuditsSharedDictionaryErrorWriteErrorCossOriginNoCorsRequest
+    "WriteErrorDisallowedBySettings" -> pure AuditsSharedDictionaryErrorWriteErrorDisallowedBySettings
+    "WriteErrorExpiredResponse" -> pure AuditsSharedDictionaryErrorWriteErrorExpiredResponse
+    "WriteErrorFeatureDisabled" -> pure AuditsSharedDictionaryErrorWriteErrorFeatureDisabled
+    "WriteErrorInsufficientResources" -> pure AuditsSharedDictionaryErrorWriteErrorInsufficientResources
+    "WriteErrorInvalidMatchField" -> pure AuditsSharedDictionaryErrorWriteErrorInvalidMatchField
+    "WriteErrorInvalidStructuredHeader" -> pure AuditsSharedDictionaryErrorWriteErrorInvalidStructuredHeader
+    "WriteErrorInvalidTTLField" -> pure AuditsSharedDictionaryErrorWriteErrorInvalidTTLField
+    "WriteErrorNavigationRequest" -> pure AuditsSharedDictionaryErrorWriteErrorNavigationRequest
+    "WriteErrorNoMatchField" -> pure AuditsSharedDictionaryErrorWriteErrorNoMatchField
+    "WriteErrorNonIntegerTTLField" -> pure AuditsSharedDictionaryErrorWriteErrorNonIntegerTTLField
+    "WriteErrorNonListMatchDestField" -> pure AuditsSharedDictionaryErrorWriteErrorNonListMatchDestField
+    "WriteErrorNonSecureContext" -> pure AuditsSharedDictionaryErrorWriteErrorNonSecureContext
+    "WriteErrorNonStringIdField" -> pure AuditsSharedDictionaryErrorWriteErrorNonStringIdField
+    "WriteErrorNonStringInMatchDestList" -> pure AuditsSharedDictionaryErrorWriteErrorNonStringInMatchDestList
+    "WriteErrorInvalidMatchDestList" -> pure AuditsSharedDictionaryErrorWriteErrorInvalidMatchDestList
+    "WriteErrorNonStringMatchField" -> pure AuditsSharedDictionaryErrorWriteErrorNonStringMatchField
+    "WriteErrorNonTokenTypeField" -> pure AuditsSharedDictionaryErrorWriteErrorNonTokenTypeField
+    "WriteErrorRequestAborted" -> pure AuditsSharedDictionaryErrorWriteErrorRequestAborted
+    "WriteErrorShuttingDown" -> pure AuditsSharedDictionaryErrorWriteErrorShuttingDown
+    "WriteErrorTooLongIdField" -> pure AuditsSharedDictionaryErrorWriteErrorTooLongIdField
+    "WriteErrorUnsupportedType" -> pure AuditsSharedDictionaryErrorWriteErrorUnsupportedType
+    "_" -> fail "failed to parse AuditsSharedDictionaryError"
+instance ToJSON AuditsSharedDictionaryError where
   toJSON v = A.String $ case v of
-    AuditsAttributionReportingIssueTypePermissionPolicyDisabled -> "PermissionPolicyDisabled"
-    AuditsAttributionReportingIssueTypePermissionPolicyNotDelegated -> "PermissionPolicyNotDelegated"
-    AuditsAttributionReportingIssueTypeUntrustworthyReportingOrigin -> "UntrustworthyReportingOrigin"
-    AuditsAttributionReportingIssueTypeInsecureContext -> "InsecureContext"
-    AuditsAttributionReportingIssueTypeInvalidHeader -> "InvalidHeader"
-    AuditsAttributionReportingIssueTypeInvalidRegisterTriggerHeader -> "InvalidRegisterTriggerHeader"
-    AuditsAttributionReportingIssueTypeInvalidEligibleHeader -> "InvalidEligibleHeader"
-    AuditsAttributionReportingIssueTypeTooManyConcurrentRequests -> "TooManyConcurrentRequests"
-    AuditsAttributionReportingIssueTypeSourceAndTriggerHeaders -> "SourceAndTriggerHeaders"
-    AuditsAttributionReportingIssueTypeSourceIgnored -> "SourceIgnored"
-    AuditsAttributionReportingIssueTypeTriggerIgnored -> "TriggerIgnored"
+    AuditsSharedDictionaryErrorUseErrorCrossOriginNoCorsRequest -> "UseErrorCrossOriginNoCorsRequest"
+    AuditsSharedDictionaryErrorUseErrorDictionaryLoadFailure -> "UseErrorDictionaryLoadFailure"
+    AuditsSharedDictionaryErrorUseErrorMatchingDictionaryNotUsed -> "UseErrorMatchingDictionaryNotUsed"
+    AuditsSharedDictionaryErrorUseErrorUnexpectedContentDictionaryHeader -> "UseErrorUnexpectedContentDictionaryHeader"
+    AuditsSharedDictionaryErrorWriteErrorCossOriginNoCorsRequest -> "WriteErrorCossOriginNoCorsRequest"
+    AuditsSharedDictionaryErrorWriteErrorDisallowedBySettings -> "WriteErrorDisallowedBySettings"
+    AuditsSharedDictionaryErrorWriteErrorExpiredResponse -> "WriteErrorExpiredResponse"
+    AuditsSharedDictionaryErrorWriteErrorFeatureDisabled -> "WriteErrorFeatureDisabled"
+    AuditsSharedDictionaryErrorWriteErrorInsufficientResources -> "WriteErrorInsufficientResources"
+    AuditsSharedDictionaryErrorWriteErrorInvalidMatchField -> "WriteErrorInvalidMatchField"
+    AuditsSharedDictionaryErrorWriteErrorInvalidStructuredHeader -> "WriteErrorInvalidStructuredHeader"
+    AuditsSharedDictionaryErrorWriteErrorInvalidTTLField -> "WriteErrorInvalidTTLField"
+    AuditsSharedDictionaryErrorWriteErrorNavigationRequest -> "WriteErrorNavigationRequest"
+    AuditsSharedDictionaryErrorWriteErrorNoMatchField -> "WriteErrorNoMatchField"
+    AuditsSharedDictionaryErrorWriteErrorNonIntegerTTLField -> "WriteErrorNonIntegerTTLField"
+    AuditsSharedDictionaryErrorWriteErrorNonListMatchDestField -> "WriteErrorNonListMatchDestField"
+    AuditsSharedDictionaryErrorWriteErrorNonSecureContext -> "WriteErrorNonSecureContext"
+    AuditsSharedDictionaryErrorWriteErrorNonStringIdField -> "WriteErrorNonStringIdField"
+    AuditsSharedDictionaryErrorWriteErrorNonStringInMatchDestList -> "WriteErrorNonStringInMatchDestList"
+    AuditsSharedDictionaryErrorWriteErrorInvalidMatchDestList -> "WriteErrorInvalidMatchDestList"
+    AuditsSharedDictionaryErrorWriteErrorNonStringMatchField -> "WriteErrorNonStringMatchField"
+    AuditsSharedDictionaryErrorWriteErrorNonTokenTypeField -> "WriteErrorNonTokenTypeField"
+    AuditsSharedDictionaryErrorWriteErrorRequestAborted -> "WriteErrorRequestAborted"
+    AuditsSharedDictionaryErrorWriteErrorShuttingDown -> "WriteErrorShuttingDown"
+    AuditsSharedDictionaryErrorWriteErrorTooLongIdField -> "WriteErrorTooLongIdField"
+    AuditsSharedDictionaryErrorWriteErrorUnsupportedType -> "WriteErrorUnsupportedType"
 
--- | Type 'Audits.AttributionReportingIssueDetails'.
---   Details for issues around "Attribution Reporting API" usage.
---   Explainer: https://github.com/WICG/attribution-reporting-api
-data AuditsAttributionReportingIssueDetails = AuditsAttributionReportingIssueDetails
-  {
-    auditsAttributionReportingIssueDetailsViolationType :: AuditsAttributionReportingIssueType,
-    auditsAttributionReportingIssueDetailsRequest :: Maybe AuditsAffectedRequest,
-    auditsAttributionReportingIssueDetailsViolatingNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
-    auditsAttributionReportingIssueDetailsInvalidParameter :: Maybe T.Text
-  }
-  deriving (Eq, Show)
-instance FromJSON AuditsAttributionReportingIssueDetails where
-  parseJSON = A.withObject "AuditsAttributionReportingIssueDetails" $ \o -> AuditsAttributionReportingIssueDetails
-    <$> o A..: "violationType"
-    <*> o A..:? "request"
-    <*> o A..:? "violatingNodeId"
-    <*> o A..:? "invalidParameter"
-instance ToJSON AuditsAttributionReportingIssueDetails where
-  toJSON p = A.object $ catMaybes [
-    ("violationType" A..=) <$> Just (auditsAttributionReportingIssueDetailsViolationType p),
-    ("request" A..=) <$> (auditsAttributionReportingIssueDetailsRequest p),
-    ("violatingNodeId" A..=) <$> (auditsAttributionReportingIssueDetailsViolatingNodeId p),
-    ("invalidParameter" A..=) <$> (auditsAttributionReportingIssueDetailsInvalidParameter p)
-    ]
+-- | Type 'Audits.SRIMessageSignatureError'.
+data AuditsSRIMessageSignatureError = AuditsSRIMessageSignatureErrorMissingSignatureHeader | AuditsSRIMessageSignatureErrorMissingSignatureInputHeader | AuditsSRIMessageSignatureErrorInvalidSignatureHeader | AuditsSRIMessageSignatureErrorInvalidSignatureInputHeader | AuditsSRIMessageSignatureErrorSignatureHeaderValueIsNotByteSequence | AuditsSRIMessageSignatureErrorSignatureHeaderValueIsParameterized | AuditsSRIMessageSignatureErrorSignatureHeaderValueIsIncorrectLength | AuditsSRIMessageSignatureErrorSignatureInputHeaderMissingLabel | AuditsSRIMessageSignatureErrorSignatureInputHeaderValueNotInnerList | AuditsSRIMessageSignatureErrorSignatureInputHeaderValueMissingComponents | AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidComponentType | AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidComponentName | AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidHeaderComponentParameter | AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidDerivedComponentParameter | AuditsSRIMessageSignatureErrorSignatureInputHeaderKeyIdLength | AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidParameter | AuditsSRIMessageSignatureErrorSignatureInputHeaderMissingRequiredParameters | AuditsSRIMessageSignatureErrorValidationFailedSignatureExpired | AuditsSRIMessageSignatureErrorValidationFailedInvalidLength | AuditsSRIMessageSignatureErrorValidationFailedSignatureMismatch | AuditsSRIMessageSignatureErrorValidationFailedIntegrityMismatch | AuditsSRIMessageSignatureErrorSignatureBaseUnknownDerivedComponent | AuditsSRIMessageSignatureErrorSignatureBaseMissingHeader | AuditsSRIMessageSignatureErrorSignatureBaseInvalidUnencodedDigest | AuditsSRIMessageSignatureErrorSignatureBaseUnsupportedComponent
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsSRIMessageSignatureError where
+  parseJSON = A.withText "AuditsSRIMessageSignatureError" $ \v -> case v of
+    "MissingSignatureHeader" -> pure AuditsSRIMessageSignatureErrorMissingSignatureHeader
+    "MissingSignatureInputHeader" -> pure AuditsSRIMessageSignatureErrorMissingSignatureInputHeader
+    "InvalidSignatureHeader" -> pure AuditsSRIMessageSignatureErrorInvalidSignatureHeader
+    "InvalidSignatureInputHeader" -> pure AuditsSRIMessageSignatureErrorInvalidSignatureInputHeader
+    "SignatureHeaderValueIsNotByteSequence" -> pure AuditsSRIMessageSignatureErrorSignatureHeaderValueIsNotByteSequence
+    "SignatureHeaderValueIsParameterized" -> pure AuditsSRIMessageSignatureErrorSignatureHeaderValueIsParameterized
+    "SignatureHeaderValueIsIncorrectLength" -> pure AuditsSRIMessageSignatureErrorSignatureHeaderValueIsIncorrectLength
+    "SignatureInputHeaderMissingLabel" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderMissingLabel
+    "SignatureInputHeaderValueNotInnerList" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderValueNotInnerList
+    "SignatureInputHeaderValueMissingComponents" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderValueMissingComponents
+    "SignatureInputHeaderInvalidComponentType" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidComponentType
+    "SignatureInputHeaderInvalidComponentName" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidComponentName
+    "SignatureInputHeaderInvalidHeaderComponentParameter" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidHeaderComponentParameter
+    "SignatureInputHeaderInvalidDerivedComponentParameter" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidDerivedComponentParameter
+    "SignatureInputHeaderKeyIdLength" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderKeyIdLength
+    "SignatureInputHeaderInvalidParameter" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidParameter
+    "SignatureInputHeaderMissingRequiredParameters" -> pure AuditsSRIMessageSignatureErrorSignatureInputHeaderMissingRequiredParameters
+    "ValidationFailedSignatureExpired" -> pure AuditsSRIMessageSignatureErrorValidationFailedSignatureExpired
+    "ValidationFailedInvalidLength" -> pure AuditsSRIMessageSignatureErrorValidationFailedInvalidLength
+    "ValidationFailedSignatureMismatch" -> pure AuditsSRIMessageSignatureErrorValidationFailedSignatureMismatch
+    "ValidationFailedIntegrityMismatch" -> pure AuditsSRIMessageSignatureErrorValidationFailedIntegrityMismatch
+    "SignatureBaseUnknownDerivedComponent" -> pure AuditsSRIMessageSignatureErrorSignatureBaseUnknownDerivedComponent
+    "SignatureBaseMissingHeader" -> pure AuditsSRIMessageSignatureErrorSignatureBaseMissingHeader
+    "SignatureBaseInvalidUnencodedDigest" -> pure AuditsSRIMessageSignatureErrorSignatureBaseInvalidUnencodedDigest
+    "SignatureBaseUnsupportedComponent" -> pure AuditsSRIMessageSignatureErrorSignatureBaseUnsupportedComponent
+    "_" -> fail "failed to parse AuditsSRIMessageSignatureError"
+instance ToJSON AuditsSRIMessageSignatureError where
+  toJSON v = A.String $ case v of
+    AuditsSRIMessageSignatureErrorMissingSignatureHeader -> "MissingSignatureHeader"
+    AuditsSRIMessageSignatureErrorMissingSignatureInputHeader -> "MissingSignatureInputHeader"
+    AuditsSRIMessageSignatureErrorInvalidSignatureHeader -> "InvalidSignatureHeader"
+    AuditsSRIMessageSignatureErrorInvalidSignatureInputHeader -> "InvalidSignatureInputHeader"
+    AuditsSRIMessageSignatureErrorSignatureHeaderValueIsNotByteSequence -> "SignatureHeaderValueIsNotByteSequence"
+    AuditsSRIMessageSignatureErrorSignatureHeaderValueIsParameterized -> "SignatureHeaderValueIsParameterized"
+    AuditsSRIMessageSignatureErrorSignatureHeaderValueIsIncorrectLength -> "SignatureHeaderValueIsIncorrectLength"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderMissingLabel -> "SignatureInputHeaderMissingLabel"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderValueNotInnerList -> "SignatureInputHeaderValueNotInnerList"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderValueMissingComponents -> "SignatureInputHeaderValueMissingComponents"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidComponentType -> "SignatureInputHeaderInvalidComponentType"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidComponentName -> "SignatureInputHeaderInvalidComponentName"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidHeaderComponentParameter -> "SignatureInputHeaderInvalidHeaderComponentParameter"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidDerivedComponentParameter -> "SignatureInputHeaderInvalidDerivedComponentParameter"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderKeyIdLength -> "SignatureInputHeaderKeyIdLength"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderInvalidParameter -> "SignatureInputHeaderInvalidParameter"
+    AuditsSRIMessageSignatureErrorSignatureInputHeaderMissingRequiredParameters -> "SignatureInputHeaderMissingRequiredParameters"
+    AuditsSRIMessageSignatureErrorValidationFailedSignatureExpired -> "ValidationFailedSignatureExpired"
+    AuditsSRIMessageSignatureErrorValidationFailedInvalidLength -> "ValidationFailedInvalidLength"
+    AuditsSRIMessageSignatureErrorValidationFailedSignatureMismatch -> "ValidationFailedSignatureMismatch"
+    AuditsSRIMessageSignatureErrorValidationFailedIntegrityMismatch -> "ValidationFailedIntegrityMismatch"
+    AuditsSRIMessageSignatureErrorSignatureBaseUnknownDerivedComponent -> "SignatureBaseUnknownDerivedComponent"
+    AuditsSRIMessageSignatureErrorSignatureBaseMissingHeader -> "SignatureBaseMissingHeader"
+    AuditsSRIMessageSignatureErrorSignatureBaseInvalidUnencodedDigest -> "SignatureBaseInvalidUnencodedDigest"
+    AuditsSRIMessageSignatureErrorSignatureBaseUnsupportedComponent -> "SignatureBaseUnsupportedComponent"
+
+-- | Type 'Audits.UnencodedDigestError'.
+data AuditsUnencodedDigestError = AuditsUnencodedDigestErrorMalformedDictionary | AuditsUnencodedDigestErrorUnknownAlgorithm | AuditsUnencodedDigestErrorIncorrectDigestType | AuditsUnencodedDigestErrorIncorrectDigestLength
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsUnencodedDigestError where
+  parseJSON = A.withText "AuditsUnencodedDigestError" $ \v -> case v of
+    "MalformedDictionary" -> pure AuditsUnencodedDigestErrorMalformedDictionary
+    "UnknownAlgorithm" -> pure AuditsUnencodedDigestErrorUnknownAlgorithm
+    "IncorrectDigestType" -> pure AuditsUnencodedDigestErrorIncorrectDigestType
+    "IncorrectDigestLength" -> pure AuditsUnencodedDigestErrorIncorrectDigestLength
+    "_" -> fail "failed to parse AuditsUnencodedDigestError"
+instance ToJSON AuditsUnencodedDigestError where
+  toJSON v = A.String $ case v of
+    AuditsUnencodedDigestErrorMalformedDictionary -> "MalformedDictionary"
+    AuditsUnencodedDigestErrorUnknownAlgorithm -> "UnknownAlgorithm"
+    AuditsUnencodedDigestErrorIncorrectDigestType -> "IncorrectDigestType"
+    AuditsUnencodedDigestErrorIncorrectDigestLength -> "IncorrectDigestLength"
+
+-- | Type 'Audits.ConnectionAllowlistError'.
+data AuditsConnectionAllowlistError = AuditsConnectionAllowlistErrorInvalidHeader | AuditsConnectionAllowlistErrorMoreThanOneList | AuditsConnectionAllowlistErrorItemNotInnerList | AuditsConnectionAllowlistErrorInvalidAllowlistItemType | AuditsConnectionAllowlistErrorReportingEndpointNotToken | AuditsConnectionAllowlistErrorInvalidUrlPattern
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsConnectionAllowlistError where
+  parseJSON = A.withText "AuditsConnectionAllowlistError" $ \v -> case v of
+    "InvalidHeader" -> pure AuditsConnectionAllowlistErrorInvalidHeader
+    "MoreThanOneList" -> pure AuditsConnectionAllowlistErrorMoreThanOneList
+    "ItemNotInnerList" -> pure AuditsConnectionAllowlistErrorItemNotInnerList
+    "InvalidAllowlistItemType" -> pure AuditsConnectionAllowlistErrorInvalidAllowlistItemType
+    "ReportingEndpointNotToken" -> pure AuditsConnectionAllowlistErrorReportingEndpointNotToken
+    "InvalidUrlPattern" -> pure AuditsConnectionAllowlistErrorInvalidUrlPattern
+    "_" -> fail "failed to parse AuditsConnectionAllowlistError"
+instance ToJSON AuditsConnectionAllowlistError where
+  toJSON v = A.String $ case v of
+    AuditsConnectionAllowlistErrorInvalidHeader -> "InvalidHeader"
+    AuditsConnectionAllowlistErrorMoreThanOneList -> "MoreThanOneList"
+    AuditsConnectionAllowlistErrorItemNotInnerList -> "ItemNotInnerList"
+    AuditsConnectionAllowlistErrorInvalidAllowlistItemType -> "InvalidAllowlistItemType"
+    AuditsConnectionAllowlistErrorReportingEndpointNotToken -> "ReportingEndpointNotToken"
+    AuditsConnectionAllowlistErrorInvalidUrlPattern -> "InvalidUrlPattern"
 
 -- | Type 'Audits.QuirksModeIssueDetails'.
 --   Details for issues about documents in Quirks Mode
@@ -719,10 +833,10 @@ data AuditsQuirksModeIssueDetails = AuditsQuirksModeIssueDetails
     -- | If false, it means the document's mode is "quirks"
     --   instead of "limited-quirks".
     auditsQuirksModeIssueDetailsIsLimitedQuirksMode :: Bool,
-    auditsQuirksModeIssueDetailsDocumentNodeId :: DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    auditsQuirksModeIssueDetailsDocumentNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     auditsQuirksModeIssueDetailsUrl :: T.Text,
-    auditsQuirksModeIssueDetailsFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId,
-    auditsQuirksModeIssueDetailsLoaderId :: DOMPageNetworkEmulationSecurity.NetworkLoaderId
+    auditsQuirksModeIssueDetailsFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
+    auditsQuirksModeIssueDetailsLoaderId :: DOMNetworkEmulationPageSecurity.NetworkLoaderId
   }
   deriving (Eq, Show)
 instance FromJSON AuditsQuirksModeIssueDetails where
@@ -741,33 +855,130 @@ instance ToJSON AuditsQuirksModeIssueDetails where
     ("loaderId" A..=) <$> Just (auditsQuirksModeIssueDetailsLoaderId p)
     ]
 
--- | Type 'Audits.NavigatorUserAgentIssueDetails'.
-data AuditsNavigatorUserAgentIssueDetails = AuditsNavigatorUserAgentIssueDetails
+-- | Type 'Audits.SharedDictionaryIssueDetails'.
+data AuditsSharedDictionaryIssueDetails = AuditsSharedDictionaryIssueDetails
   {
-    auditsNavigatorUserAgentIssueDetailsUrl :: T.Text,
-    auditsNavigatorUserAgentIssueDetailsLocation :: Maybe AuditsSourceCodeLocation
+    auditsSharedDictionaryIssueDetailsSharedDictionaryError :: AuditsSharedDictionaryError,
+    auditsSharedDictionaryIssueDetailsRequest :: AuditsAffectedRequest
   }
   deriving (Eq, Show)
-instance FromJSON AuditsNavigatorUserAgentIssueDetails where
-  parseJSON = A.withObject "AuditsNavigatorUserAgentIssueDetails" $ \o -> AuditsNavigatorUserAgentIssueDetails
-    <$> o A..: "url"
-    <*> o A..:? "location"
-instance ToJSON AuditsNavigatorUserAgentIssueDetails where
+instance FromJSON AuditsSharedDictionaryIssueDetails where
+  parseJSON = A.withObject "AuditsSharedDictionaryIssueDetails" $ \o -> AuditsSharedDictionaryIssueDetails
+    <$> o A..: "sharedDictionaryError"
+    <*> o A..: "request"
+instance ToJSON AuditsSharedDictionaryIssueDetails where
   toJSON p = A.object $ catMaybes [
-    ("url" A..=) <$> Just (auditsNavigatorUserAgentIssueDetailsUrl p),
-    ("location" A..=) <$> (auditsNavigatorUserAgentIssueDetailsLocation p)
+    ("sharedDictionaryError" A..=) <$> Just (auditsSharedDictionaryIssueDetailsSharedDictionaryError p),
+    ("request" A..=) <$> Just (auditsSharedDictionaryIssueDetailsRequest p)
+    ]
+
+-- | Type 'Audits.SRIMessageSignatureIssueDetails'.
+data AuditsSRIMessageSignatureIssueDetails = AuditsSRIMessageSignatureIssueDetails
+  {
+    auditsSRIMessageSignatureIssueDetailsError :: AuditsSRIMessageSignatureError,
+    auditsSRIMessageSignatureIssueDetailsSignatureBase :: T.Text,
+    auditsSRIMessageSignatureIssueDetailsIntegrityAssertions :: [T.Text],
+    auditsSRIMessageSignatureIssueDetailsRequest :: AuditsAffectedRequest
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsSRIMessageSignatureIssueDetails where
+  parseJSON = A.withObject "AuditsSRIMessageSignatureIssueDetails" $ \o -> AuditsSRIMessageSignatureIssueDetails
+    <$> o A..: "error"
+    <*> o A..: "signatureBase"
+    <*> o A..: "integrityAssertions"
+    <*> o A..: "request"
+instance ToJSON AuditsSRIMessageSignatureIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("error" A..=) <$> Just (auditsSRIMessageSignatureIssueDetailsError p),
+    ("signatureBase" A..=) <$> Just (auditsSRIMessageSignatureIssueDetailsSignatureBase p),
+    ("integrityAssertions" A..=) <$> Just (auditsSRIMessageSignatureIssueDetailsIntegrityAssertions p),
+    ("request" A..=) <$> Just (auditsSRIMessageSignatureIssueDetailsRequest p)
+    ]
+
+-- | Type 'Audits.UnencodedDigestIssueDetails'.
+data AuditsUnencodedDigestIssueDetails = AuditsUnencodedDigestIssueDetails
+  {
+    auditsUnencodedDigestIssueDetailsError :: AuditsUnencodedDigestError,
+    auditsUnencodedDigestIssueDetailsRequest :: AuditsAffectedRequest
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsUnencodedDigestIssueDetails where
+  parseJSON = A.withObject "AuditsUnencodedDigestIssueDetails" $ \o -> AuditsUnencodedDigestIssueDetails
+    <$> o A..: "error"
+    <*> o A..: "request"
+instance ToJSON AuditsUnencodedDigestIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("error" A..=) <$> Just (auditsUnencodedDigestIssueDetailsError p),
+    ("request" A..=) <$> Just (auditsUnencodedDigestIssueDetailsRequest p)
+    ]
+
+-- | Type 'Audits.ConnectionAllowlistIssueDetails'.
+data AuditsConnectionAllowlistIssueDetails = AuditsConnectionAllowlistIssueDetails
+  {
+    auditsConnectionAllowlistIssueDetailsError :: AuditsConnectionAllowlistError,
+    auditsConnectionAllowlistIssueDetailsRequest :: AuditsAffectedRequest
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsConnectionAllowlistIssueDetails where
+  parseJSON = A.withObject "AuditsConnectionAllowlistIssueDetails" $ \o -> AuditsConnectionAllowlistIssueDetails
+    <$> o A..: "error"
+    <*> o A..: "request"
+instance ToJSON AuditsConnectionAllowlistIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("error" A..=) <$> Just (auditsConnectionAllowlistIssueDetailsError p),
+    ("request" A..=) <$> Just (auditsConnectionAllowlistIssueDetailsRequest p)
     ]
 
 -- | Type 'Audits.GenericIssueErrorType'.
-data AuditsGenericIssueErrorType = AuditsGenericIssueErrorTypeCrossOriginPortalPostMessageError
+data AuditsGenericIssueErrorType = AuditsGenericIssueErrorTypeFormLabelForNameError | AuditsGenericIssueErrorTypeFormDuplicateIdForInputError | AuditsGenericIssueErrorTypeFormInputWithNoLabelError | AuditsGenericIssueErrorTypeFormAutocompleteAttributeEmptyError | AuditsGenericIssueErrorTypeFormEmptyIdAndNameAttributesForInputError | AuditsGenericIssueErrorTypeFormAriaLabelledByToNonExistingIdError | AuditsGenericIssueErrorTypeFormInputAssignedAutocompleteValueToIdOrNameAttributeError | AuditsGenericIssueErrorTypeFormLabelHasNeitherForNorNestedInputError | AuditsGenericIssueErrorTypeFormLabelForMatchesNonExistingIdError | AuditsGenericIssueErrorTypeFormInputHasWrongButWellIntendedAutocompleteValueError | AuditsGenericIssueErrorTypeResponseWasBlockedByORB | AuditsGenericIssueErrorTypeNavigationEntryMarkedSkippable | AuditsGenericIssueErrorTypeBackUINavigationWouldSkipAd | AuditsGenericIssueErrorTypeAutofillAndManualTextPolicyControlledFeaturesInfo | AuditsGenericIssueErrorTypeAutofillPolicyControlledFeatureInfo | AuditsGenericIssueErrorTypeManualTextPolicyControlledFeatureInfo | AuditsGenericIssueErrorTypeFormModelContextParameterMissingTitleAndDescription | AuditsGenericIssueErrorTypeFormModelContextMissingToolName | AuditsGenericIssueErrorTypeFormModelContextMissingToolDescription | AuditsGenericIssueErrorTypeFormModelContextRequiredParameterMissingName | AuditsGenericIssueErrorTypeFormModelContextParameterMissingName
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsGenericIssueErrorType where
   parseJSON = A.withText "AuditsGenericIssueErrorType" $ \v -> case v of
-    "CrossOriginPortalPostMessageError" -> pure AuditsGenericIssueErrorTypeCrossOriginPortalPostMessageError
+    "FormLabelForNameError" -> pure AuditsGenericIssueErrorTypeFormLabelForNameError
+    "FormDuplicateIdForInputError" -> pure AuditsGenericIssueErrorTypeFormDuplicateIdForInputError
+    "FormInputWithNoLabelError" -> pure AuditsGenericIssueErrorTypeFormInputWithNoLabelError
+    "FormAutocompleteAttributeEmptyError" -> pure AuditsGenericIssueErrorTypeFormAutocompleteAttributeEmptyError
+    "FormEmptyIdAndNameAttributesForInputError" -> pure AuditsGenericIssueErrorTypeFormEmptyIdAndNameAttributesForInputError
+    "FormAriaLabelledByToNonExistingIdError" -> pure AuditsGenericIssueErrorTypeFormAriaLabelledByToNonExistingIdError
+    "FormInputAssignedAutocompleteValueToIdOrNameAttributeError" -> pure AuditsGenericIssueErrorTypeFormInputAssignedAutocompleteValueToIdOrNameAttributeError
+    "FormLabelHasNeitherForNorNestedInputError" -> pure AuditsGenericIssueErrorTypeFormLabelHasNeitherForNorNestedInputError
+    "FormLabelForMatchesNonExistingIdError" -> pure AuditsGenericIssueErrorTypeFormLabelForMatchesNonExistingIdError
+    "FormInputHasWrongButWellIntendedAutocompleteValueError" -> pure AuditsGenericIssueErrorTypeFormInputHasWrongButWellIntendedAutocompleteValueError
+    "ResponseWasBlockedByORB" -> pure AuditsGenericIssueErrorTypeResponseWasBlockedByORB
+    "NavigationEntryMarkedSkippable" -> pure AuditsGenericIssueErrorTypeNavigationEntryMarkedSkippable
+    "BackUINavigationWouldSkipAd" -> pure AuditsGenericIssueErrorTypeBackUINavigationWouldSkipAd
+    "AutofillAndManualTextPolicyControlledFeaturesInfo" -> pure AuditsGenericIssueErrorTypeAutofillAndManualTextPolicyControlledFeaturesInfo
+    "AutofillPolicyControlledFeatureInfo" -> pure AuditsGenericIssueErrorTypeAutofillPolicyControlledFeatureInfo
+    "ManualTextPolicyControlledFeatureInfo" -> pure AuditsGenericIssueErrorTypeManualTextPolicyControlledFeatureInfo
+    "FormModelContextParameterMissingTitleAndDescription" -> pure AuditsGenericIssueErrorTypeFormModelContextParameterMissingTitleAndDescription
+    "FormModelContextMissingToolName" -> pure AuditsGenericIssueErrorTypeFormModelContextMissingToolName
+    "FormModelContextMissingToolDescription" -> pure AuditsGenericIssueErrorTypeFormModelContextMissingToolDescription
+    "FormModelContextRequiredParameterMissingName" -> pure AuditsGenericIssueErrorTypeFormModelContextRequiredParameterMissingName
+    "FormModelContextParameterMissingName" -> pure AuditsGenericIssueErrorTypeFormModelContextParameterMissingName
     "_" -> fail "failed to parse AuditsGenericIssueErrorType"
 instance ToJSON AuditsGenericIssueErrorType where
   toJSON v = A.String $ case v of
-    AuditsGenericIssueErrorTypeCrossOriginPortalPostMessageError -> "CrossOriginPortalPostMessageError"
+    AuditsGenericIssueErrorTypeFormLabelForNameError -> "FormLabelForNameError"
+    AuditsGenericIssueErrorTypeFormDuplicateIdForInputError -> "FormDuplicateIdForInputError"
+    AuditsGenericIssueErrorTypeFormInputWithNoLabelError -> "FormInputWithNoLabelError"
+    AuditsGenericIssueErrorTypeFormAutocompleteAttributeEmptyError -> "FormAutocompleteAttributeEmptyError"
+    AuditsGenericIssueErrorTypeFormEmptyIdAndNameAttributesForInputError -> "FormEmptyIdAndNameAttributesForInputError"
+    AuditsGenericIssueErrorTypeFormAriaLabelledByToNonExistingIdError -> "FormAriaLabelledByToNonExistingIdError"
+    AuditsGenericIssueErrorTypeFormInputAssignedAutocompleteValueToIdOrNameAttributeError -> "FormInputAssignedAutocompleteValueToIdOrNameAttributeError"
+    AuditsGenericIssueErrorTypeFormLabelHasNeitherForNorNestedInputError -> "FormLabelHasNeitherForNorNestedInputError"
+    AuditsGenericIssueErrorTypeFormLabelForMatchesNonExistingIdError -> "FormLabelForMatchesNonExistingIdError"
+    AuditsGenericIssueErrorTypeFormInputHasWrongButWellIntendedAutocompleteValueError -> "FormInputHasWrongButWellIntendedAutocompleteValueError"
+    AuditsGenericIssueErrorTypeResponseWasBlockedByORB -> "ResponseWasBlockedByORB"
+    AuditsGenericIssueErrorTypeNavigationEntryMarkedSkippable -> "NavigationEntryMarkedSkippable"
+    AuditsGenericIssueErrorTypeBackUINavigationWouldSkipAd -> "BackUINavigationWouldSkipAd"
+    AuditsGenericIssueErrorTypeAutofillAndManualTextPolicyControlledFeaturesInfo -> "AutofillAndManualTextPolicyControlledFeaturesInfo"
+    AuditsGenericIssueErrorTypeAutofillPolicyControlledFeatureInfo -> "AutofillPolicyControlledFeatureInfo"
+    AuditsGenericIssueErrorTypeManualTextPolicyControlledFeatureInfo -> "ManualTextPolicyControlledFeatureInfo"
+    AuditsGenericIssueErrorTypeFormModelContextParameterMissingTitleAndDescription -> "FormModelContextParameterMissingTitleAndDescription"
+    AuditsGenericIssueErrorTypeFormModelContextMissingToolName -> "FormModelContextMissingToolName"
+    AuditsGenericIssueErrorTypeFormModelContextMissingToolDescription -> "FormModelContextMissingToolDescription"
+    AuditsGenericIssueErrorTypeFormModelContextRequiredParameterMissingName -> "FormModelContextRequiredParameterMissingName"
+    AuditsGenericIssueErrorTypeFormModelContextParameterMissingName -> "FormModelContextParameterMissingName"
 
 -- | Type 'Audits.GenericIssueDetails'.
 --   Depending on the concrete errorType, different properties are set.
@@ -775,137 +986,27 @@ data AuditsGenericIssueDetails = AuditsGenericIssueDetails
   {
     -- | Issues with the same errorType are aggregated in the frontend.
     auditsGenericIssueDetailsErrorType :: AuditsGenericIssueErrorType,
-    auditsGenericIssueDetailsFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId
+    auditsGenericIssueDetailsFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId,
+    auditsGenericIssueDetailsViolatingNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
+    auditsGenericIssueDetailsViolatingNodeAttribute :: Maybe T.Text,
+    auditsGenericIssueDetailsRequest :: Maybe AuditsAffectedRequest
   }
   deriving (Eq, Show)
 instance FromJSON AuditsGenericIssueDetails where
   parseJSON = A.withObject "AuditsGenericIssueDetails" $ \o -> AuditsGenericIssueDetails
     <$> o A..: "errorType"
     <*> o A..:? "frameId"
+    <*> o A..:? "violatingNodeId"
+    <*> o A..:? "violatingNodeAttribute"
+    <*> o A..:? "request"
 instance ToJSON AuditsGenericIssueDetails where
   toJSON p = A.object $ catMaybes [
     ("errorType" A..=) <$> Just (auditsGenericIssueDetailsErrorType p),
-    ("frameId" A..=) <$> (auditsGenericIssueDetailsFrameId p)
+    ("frameId" A..=) <$> (auditsGenericIssueDetailsFrameId p),
+    ("violatingNodeId" A..=) <$> (auditsGenericIssueDetailsViolatingNodeId p),
+    ("violatingNodeAttribute" A..=) <$> (auditsGenericIssueDetailsViolatingNodeAttribute p),
+    ("request" A..=) <$> (auditsGenericIssueDetailsRequest p)
     ]
-
--- | Type 'Audits.DeprecationIssueType'.
-data AuditsDeprecationIssueType = AuditsDeprecationIssueTypeAuthorizationCoveredByWildcard | AuditsDeprecationIssueTypeCanRequestURLHTTPContainingNewline | AuditsDeprecationIssueTypeChromeLoadTimesConnectionInfo | AuditsDeprecationIssueTypeChromeLoadTimesFirstPaintAfterLoadTime | AuditsDeprecationIssueTypeChromeLoadTimesWasAlternateProtocolAvailable | AuditsDeprecationIssueTypeCookieWithTruncatingChar | AuditsDeprecationIssueTypeCrossOriginAccessBasedOnDocumentDomain | AuditsDeprecationIssueTypeCrossOriginWindowAlert | AuditsDeprecationIssueTypeCrossOriginWindowConfirm | AuditsDeprecationIssueTypeCSSSelectorInternalMediaControlsOverlayCastButton | AuditsDeprecationIssueTypeDeprecationExample | AuditsDeprecationIssueTypeDocumentDomainSettingWithoutOriginAgentClusterHeader | AuditsDeprecationIssueTypeEventPath | AuditsDeprecationIssueTypeExpectCTHeader | AuditsDeprecationIssueTypeGeolocationInsecureOrigin | AuditsDeprecationIssueTypeGeolocationInsecureOriginDeprecatedNotRemoved | AuditsDeprecationIssueTypeGetUserMediaInsecureOrigin | AuditsDeprecationIssueTypeHostCandidateAttributeGetter | AuditsDeprecationIssueTypeIdentityInCanMakePaymentEvent | AuditsDeprecationIssueTypeInsecurePrivateNetworkSubresourceRequest | AuditsDeprecationIssueTypeLocalCSSFileExtensionRejected | AuditsDeprecationIssueTypeMediaSourceAbortRemove | AuditsDeprecationIssueTypeMediaSourceDurationTruncatingBuffered | AuditsDeprecationIssueTypeNoSysexWebMIDIWithoutPermission | AuditsDeprecationIssueTypeNotificationInsecureOrigin | AuditsDeprecationIssueTypeNotificationPermissionRequestedIframe | AuditsDeprecationIssueTypeObsoleteWebRtcCipherSuite | AuditsDeprecationIssueTypeOpenWebDatabaseInsecureContext | AuditsDeprecationIssueTypeOverflowVisibleOnReplacedElement | AuditsDeprecationIssueTypePaymentInstruments | AuditsDeprecationIssueTypePaymentRequestCSPViolation | AuditsDeprecationIssueTypePersistentQuotaType | AuditsDeprecationIssueTypePictureSourceSrc | AuditsDeprecationIssueTypePrefixedCancelAnimationFrame | AuditsDeprecationIssueTypePrefixedRequestAnimationFrame | AuditsDeprecationIssueTypePrefixedStorageInfo | AuditsDeprecationIssueTypePrefixedVideoDisplayingFullscreen | AuditsDeprecationIssueTypePrefixedVideoEnterFullscreen | AuditsDeprecationIssueTypePrefixedVideoEnterFullScreen | AuditsDeprecationIssueTypePrefixedVideoExitFullscreen | AuditsDeprecationIssueTypePrefixedVideoExitFullScreen | AuditsDeprecationIssueTypePrefixedVideoSupportsFullscreen | AuditsDeprecationIssueTypeRangeExpand | AuditsDeprecationIssueTypeRequestedSubresourceWithEmbeddedCredentials | AuditsDeprecationIssueTypeRTCConstraintEnableDtlsSrtpFalse | AuditsDeprecationIssueTypeRTCConstraintEnableDtlsSrtpTrue | AuditsDeprecationIssueTypeRTCPeerConnectionComplexPlanBSdpUsingDefaultSdpSemantics | AuditsDeprecationIssueTypeRTCPeerConnectionSdpSemanticsPlanB | AuditsDeprecationIssueTypeRtcpMuxPolicyNegotiate | AuditsDeprecationIssueTypeSharedArrayBufferConstructedWithoutIsolation | AuditsDeprecationIssueTypeTextToSpeech_DisallowedByAutoplay | AuditsDeprecationIssueTypeV8SharedArrayBufferConstructedInExtensionWithoutIsolation | AuditsDeprecationIssueTypeXHRJSONEncodingDetection | AuditsDeprecationIssueTypeXMLHttpRequestSynchronousInNonWorkerOutsideBeforeUnload | AuditsDeprecationIssueTypeXRSupportsSession
-  deriving (Ord, Eq, Show, Read)
-instance FromJSON AuditsDeprecationIssueType where
-  parseJSON = A.withText "AuditsDeprecationIssueType" $ \v -> case v of
-    "AuthorizationCoveredByWildcard" -> pure AuditsDeprecationIssueTypeAuthorizationCoveredByWildcard
-    "CanRequestURLHTTPContainingNewline" -> pure AuditsDeprecationIssueTypeCanRequestURLHTTPContainingNewline
-    "ChromeLoadTimesConnectionInfo" -> pure AuditsDeprecationIssueTypeChromeLoadTimesConnectionInfo
-    "ChromeLoadTimesFirstPaintAfterLoadTime" -> pure AuditsDeprecationIssueTypeChromeLoadTimesFirstPaintAfterLoadTime
-    "ChromeLoadTimesWasAlternateProtocolAvailable" -> pure AuditsDeprecationIssueTypeChromeLoadTimesWasAlternateProtocolAvailable
-    "CookieWithTruncatingChar" -> pure AuditsDeprecationIssueTypeCookieWithTruncatingChar
-    "CrossOriginAccessBasedOnDocumentDomain" -> pure AuditsDeprecationIssueTypeCrossOriginAccessBasedOnDocumentDomain
-    "CrossOriginWindowAlert" -> pure AuditsDeprecationIssueTypeCrossOriginWindowAlert
-    "CrossOriginWindowConfirm" -> pure AuditsDeprecationIssueTypeCrossOriginWindowConfirm
-    "CSSSelectorInternalMediaControlsOverlayCastButton" -> pure AuditsDeprecationIssueTypeCSSSelectorInternalMediaControlsOverlayCastButton
-    "DeprecationExample" -> pure AuditsDeprecationIssueTypeDeprecationExample
-    "DocumentDomainSettingWithoutOriginAgentClusterHeader" -> pure AuditsDeprecationIssueTypeDocumentDomainSettingWithoutOriginAgentClusterHeader
-    "EventPath" -> pure AuditsDeprecationIssueTypeEventPath
-    "ExpectCTHeader" -> pure AuditsDeprecationIssueTypeExpectCTHeader
-    "GeolocationInsecureOrigin" -> pure AuditsDeprecationIssueTypeGeolocationInsecureOrigin
-    "GeolocationInsecureOriginDeprecatedNotRemoved" -> pure AuditsDeprecationIssueTypeGeolocationInsecureOriginDeprecatedNotRemoved
-    "GetUserMediaInsecureOrigin" -> pure AuditsDeprecationIssueTypeGetUserMediaInsecureOrigin
-    "HostCandidateAttributeGetter" -> pure AuditsDeprecationIssueTypeHostCandidateAttributeGetter
-    "IdentityInCanMakePaymentEvent" -> pure AuditsDeprecationIssueTypeIdentityInCanMakePaymentEvent
-    "InsecurePrivateNetworkSubresourceRequest" -> pure AuditsDeprecationIssueTypeInsecurePrivateNetworkSubresourceRequest
-    "LocalCSSFileExtensionRejected" -> pure AuditsDeprecationIssueTypeLocalCSSFileExtensionRejected
-    "MediaSourceAbortRemove" -> pure AuditsDeprecationIssueTypeMediaSourceAbortRemove
-    "MediaSourceDurationTruncatingBuffered" -> pure AuditsDeprecationIssueTypeMediaSourceDurationTruncatingBuffered
-    "NoSysexWebMIDIWithoutPermission" -> pure AuditsDeprecationIssueTypeNoSysexWebMIDIWithoutPermission
-    "NotificationInsecureOrigin" -> pure AuditsDeprecationIssueTypeNotificationInsecureOrigin
-    "NotificationPermissionRequestedIframe" -> pure AuditsDeprecationIssueTypeNotificationPermissionRequestedIframe
-    "ObsoleteWebRtcCipherSuite" -> pure AuditsDeprecationIssueTypeObsoleteWebRtcCipherSuite
-    "OpenWebDatabaseInsecureContext" -> pure AuditsDeprecationIssueTypeOpenWebDatabaseInsecureContext
-    "OverflowVisibleOnReplacedElement" -> pure AuditsDeprecationIssueTypeOverflowVisibleOnReplacedElement
-    "PaymentInstruments" -> pure AuditsDeprecationIssueTypePaymentInstruments
-    "PaymentRequestCSPViolation" -> pure AuditsDeprecationIssueTypePaymentRequestCSPViolation
-    "PersistentQuotaType" -> pure AuditsDeprecationIssueTypePersistentQuotaType
-    "PictureSourceSrc" -> pure AuditsDeprecationIssueTypePictureSourceSrc
-    "PrefixedCancelAnimationFrame" -> pure AuditsDeprecationIssueTypePrefixedCancelAnimationFrame
-    "PrefixedRequestAnimationFrame" -> pure AuditsDeprecationIssueTypePrefixedRequestAnimationFrame
-    "PrefixedStorageInfo" -> pure AuditsDeprecationIssueTypePrefixedStorageInfo
-    "PrefixedVideoDisplayingFullscreen" -> pure AuditsDeprecationIssueTypePrefixedVideoDisplayingFullscreen
-    "PrefixedVideoEnterFullscreen" -> pure AuditsDeprecationIssueTypePrefixedVideoEnterFullscreen
-    "PrefixedVideoEnterFullScreen" -> pure AuditsDeprecationIssueTypePrefixedVideoEnterFullScreen
-    "PrefixedVideoExitFullscreen" -> pure AuditsDeprecationIssueTypePrefixedVideoExitFullscreen
-    "PrefixedVideoExitFullScreen" -> pure AuditsDeprecationIssueTypePrefixedVideoExitFullScreen
-    "PrefixedVideoSupportsFullscreen" -> pure AuditsDeprecationIssueTypePrefixedVideoSupportsFullscreen
-    "RangeExpand" -> pure AuditsDeprecationIssueTypeRangeExpand
-    "RequestedSubresourceWithEmbeddedCredentials" -> pure AuditsDeprecationIssueTypeRequestedSubresourceWithEmbeddedCredentials
-    "RTCConstraintEnableDtlsSrtpFalse" -> pure AuditsDeprecationIssueTypeRTCConstraintEnableDtlsSrtpFalse
-    "RTCConstraintEnableDtlsSrtpTrue" -> pure AuditsDeprecationIssueTypeRTCConstraintEnableDtlsSrtpTrue
-    "RTCPeerConnectionComplexPlanBSdpUsingDefaultSdpSemantics" -> pure AuditsDeprecationIssueTypeRTCPeerConnectionComplexPlanBSdpUsingDefaultSdpSemantics
-    "RTCPeerConnectionSdpSemanticsPlanB" -> pure AuditsDeprecationIssueTypeRTCPeerConnectionSdpSemanticsPlanB
-    "RtcpMuxPolicyNegotiate" -> pure AuditsDeprecationIssueTypeRtcpMuxPolicyNegotiate
-    "SharedArrayBufferConstructedWithoutIsolation" -> pure AuditsDeprecationIssueTypeSharedArrayBufferConstructedWithoutIsolation
-    "TextToSpeech_DisallowedByAutoplay" -> pure AuditsDeprecationIssueTypeTextToSpeech_DisallowedByAutoplay
-    "V8SharedArrayBufferConstructedInExtensionWithoutIsolation" -> pure AuditsDeprecationIssueTypeV8SharedArrayBufferConstructedInExtensionWithoutIsolation
-    "XHRJSONEncodingDetection" -> pure AuditsDeprecationIssueTypeXHRJSONEncodingDetection
-    "XMLHttpRequestSynchronousInNonWorkerOutsideBeforeUnload" -> pure AuditsDeprecationIssueTypeXMLHttpRequestSynchronousInNonWorkerOutsideBeforeUnload
-    "XRSupportsSession" -> pure AuditsDeprecationIssueTypeXRSupportsSession
-    "_" -> fail "failed to parse AuditsDeprecationIssueType"
-instance ToJSON AuditsDeprecationIssueType where
-  toJSON v = A.String $ case v of
-    AuditsDeprecationIssueTypeAuthorizationCoveredByWildcard -> "AuthorizationCoveredByWildcard"
-    AuditsDeprecationIssueTypeCanRequestURLHTTPContainingNewline -> "CanRequestURLHTTPContainingNewline"
-    AuditsDeprecationIssueTypeChromeLoadTimesConnectionInfo -> "ChromeLoadTimesConnectionInfo"
-    AuditsDeprecationIssueTypeChromeLoadTimesFirstPaintAfterLoadTime -> "ChromeLoadTimesFirstPaintAfterLoadTime"
-    AuditsDeprecationIssueTypeChromeLoadTimesWasAlternateProtocolAvailable -> "ChromeLoadTimesWasAlternateProtocolAvailable"
-    AuditsDeprecationIssueTypeCookieWithTruncatingChar -> "CookieWithTruncatingChar"
-    AuditsDeprecationIssueTypeCrossOriginAccessBasedOnDocumentDomain -> "CrossOriginAccessBasedOnDocumentDomain"
-    AuditsDeprecationIssueTypeCrossOriginWindowAlert -> "CrossOriginWindowAlert"
-    AuditsDeprecationIssueTypeCrossOriginWindowConfirm -> "CrossOriginWindowConfirm"
-    AuditsDeprecationIssueTypeCSSSelectorInternalMediaControlsOverlayCastButton -> "CSSSelectorInternalMediaControlsOverlayCastButton"
-    AuditsDeprecationIssueTypeDeprecationExample -> "DeprecationExample"
-    AuditsDeprecationIssueTypeDocumentDomainSettingWithoutOriginAgentClusterHeader -> "DocumentDomainSettingWithoutOriginAgentClusterHeader"
-    AuditsDeprecationIssueTypeEventPath -> "EventPath"
-    AuditsDeprecationIssueTypeExpectCTHeader -> "ExpectCTHeader"
-    AuditsDeprecationIssueTypeGeolocationInsecureOrigin -> "GeolocationInsecureOrigin"
-    AuditsDeprecationIssueTypeGeolocationInsecureOriginDeprecatedNotRemoved -> "GeolocationInsecureOriginDeprecatedNotRemoved"
-    AuditsDeprecationIssueTypeGetUserMediaInsecureOrigin -> "GetUserMediaInsecureOrigin"
-    AuditsDeprecationIssueTypeHostCandidateAttributeGetter -> "HostCandidateAttributeGetter"
-    AuditsDeprecationIssueTypeIdentityInCanMakePaymentEvent -> "IdentityInCanMakePaymentEvent"
-    AuditsDeprecationIssueTypeInsecurePrivateNetworkSubresourceRequest -> "InsecurePrivateNetworkSubresourceRequest"
-    AuditsDeprecationIssueTypeLocalCSSFileExtensionRejected -> "LocalCSSFileExtensionRejected"
-    AuditsDeprecationIssueTypeMediaSourceAbortRemove -> "MediaSourceAbortRemove"
-    AuditsDeprecationIssueTypeMediaSourceDurationTruncatingBuffered -> "MediaSourceDurationTruncatingBuffered"
-    AuditsDeprecationIssueTypeNoSysexWebMIDIWithoutPermission -> "NoSysexWebMIDIWithoutPermission"
-    AuditsDeprecationIssueTypeNotificationInsecureOrigin -> "NotificationInsecureOrigin"
-    AuditsDeprecationIssueTypeNotificationPermissionRequestedIframe -> "NotificationPermissionRequestedIframe"
-    AuditsDeprecationIssueTypeObsoleteWebRtcCipherSuite -> "ObsoleteWebRtcCipherSuite"
-    AuditsDeprecationIssueTypeOpenWebDatabaseInsecureContext -> "OpenWebDatabaseInsecureContext"
-    AuditsDeprecationIssueTypeOverflowVisibleOnReplacedElement -> "OverflowVisibleOnReplacedElement"
-    AuditsDeprecationIssueTypePaymentInstruments -> "PaymentInstruments"
-    AuditsDeprecationIssueTypePaymentRequestCSPViolation -> "PaymentRequestCSPViolation"
-    AuditsDeprecationIssueTypePersistentQuotaType -> "PersistentQuotaType"
-    AuditsDeprecationIssueTypePictureSourceSrc -> "PictureSourceSrc"
-    AuditsDeprecationIssueTypePrefixedCancelAnimationFrame -> "PrefixedCancelAnimationFrame"
-    AuditsDeprecationIssueTypePrefixedRequestAnimationFrame -> "PrefixedRequestAnimationFrame"
-    AuditsDeprecationIssueTypePrefixedStorageInfo -> "PrefixedStorageInfo"
-    AuditsDeprecationIssueTypePrefixedVideoDisplayingFullscreen -> "PrefixedVideoDisplayingFullscreen"
-    AuditsDeprecationIssueTypePrefixedVideoEnterFullscreen -> "PrefixedVideoEnterFullscreen"
-    AuditsDeprecationIssueTypePrefixedVideoEnterFullScreen -> "PrefixedVideoEnterFullScreen"
-    AuditsDeprecationIssueTypePrefixedVideoExitFullscreen -> "PrefixedVideoExitFullscreen"
-    AuditsDeprecationIssueTypePrefixedVideoExitFullScreen -> "PrefixedVideoExitFullScreen"
-    AuditsDeprecationIssueTypePrefixedVideoSupportsFullscreen -> "PrefixedVideoSupportsFullscreen"
-    AuditsDeprecationIssueTypeRangeExpand -> "RangeExpand"
-    AuditsDeprecationIssueTypeRequestedSubresourceWithEmbeddedCredentials -> "RequestedSubresourceWithEmbeddedCredentials"
-    AuditsDeprecationIssueTypeRTCConstraintEnableDtlsSrtpFalse -> "RTCConstraintEnableDtlsSrtpFalse"
-    AuditsDeprecationIssueTypeRTCConstraintEnableDtlsSrtpTrue -> "RTCConstraintEnableDtlsSrtpTrue"
-    AuditsDeprecationIssueTypeRTCPeerConnectionComplexPlanBSdpUsingDefaultSdpSemantics -> "RTCPeerConnectionComplexPlanBSdpUsingDefaultSdpSemantics"
-    AuditsDeprecationIssueTypeRTCPeerConnectionSdpSemanticsPlanB -> "RTCPeerConnectionSdpSemanticsPlanB"
-    AuditsDeprecationIssueTypeRtcpMuxPolicyNegotiate -> "RtcpMuxPolicyNegotiate"
-    AuditsDeprecationIssueTypeSharedArrayBufferConstructedWithoutIsolation -> "SharedArrayBufferConstructedWithoutIsolation"
-    AuditsDeprecationIssueTypeTextToSpeech_DisallowedByAutoplay -> "TextToSpeech_DisallowedByAutoplay"
-    AuditsDeprecationIssueTypeV8SharedArrayBufferConstructedInExtensionWithoutIsolation -> "V8SharedArrayBufferConstructedInExtensionWithoutIsolation"
-    AuditsDeprecationIssueTypeXHRJSONEncodingDetection -> "XHRJSONEncodingDetection"
-    AuditsDeprecationIssueTypeXMLHttpRequestSynchronousInNonWorkerOutsideBeforeUnload -> "XMLHttpRequestSynchronousInNonWorkerOutsideBeforeUnload"
-    AuditsDeprecationIssueTypeXRSupportsSession -> "XRSupportsSession"
 
 -- | Type 'Audits.DeprecationIssueDetails'.
 --   This issue tracks information needed to print a deprecation message.
@@ -914,7 +1015,8 @@ data AuditsDeprecationIssueDetails = AuditsDeprecationIssueDetails
   {
     auditsDeprecationIssueDetailsAffectedFrame :: Maybe AuditsAffectedFrame,
     auditsDeprecationIssueDetailsSourceCodeLocation :: AuditsSourceCodeLocation,
-    auditsDeprecationIssueDetailsType :: AuditsDeprecationIssueType
+    -- | One of the deprecation names from third_party/blink/renderer/core/frame/deprecation/deprecation.json5
+    auditsDeprecationIssueDetailsType :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON AuditsDeprecationIssueDetails where
@@ -927,6 +1029,53 @@ instance ToJSON AuditsDeprecationIssueDetails where
     ("affectedFrame" A..=) <$> (auditsDeprecationIssueDetailsAffectedFrame p),
     ("sourceCodeLocation" A..=) <$> Just (auditsDeprecationIssueDetailsSourceCodeLocation p),
     ("type" A..=) <$> Just (auditsDeprecationIssueDetailsType p)
+    ]
+
+-- | Type 'Audits.BounceTrackingIssueDetails'.
+--   This issue warns about sites in the redirect chain of a finished navigation
+--   that may be flagged as trackers and have their state cleared if they don't
+--   receive a user interaction. Note that in this context 'site' means eTLD+1.
+--   For example, if the URL `https://example.test:80/bounce` was in the
+--   redirect chain, the site reported would be `example.test`.
+data AuditsBounceTrackingIssueDetails = AuditsBounceTrackingIssueDetails
+  {
+    auditsBounceTrackingIssueDetailsTrackingSites :: [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsBounceTrackingIssueDetails where
+  parseJSON = A.withObject "AuditsBounceTrackingIssueDetails" $ \o -> AuditsBounceTrackingIssueDetails
+    <$> o A..: "trackingSites"
+instance ToJSON AuditsBounceTrackingIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("trackingSites" A..=) <$> Just (auditsBounceTrackingIssueDetailsTrackingSites p)
+    ]
+
+-- | Type 'Audits.CookieDeprecationMetadataIssueDetails'.
+--   This issue warns about third-party sites that are accessing cookies on the
+--   current page, and have been permitted due to having a global metadata grant.
+--   Note that in this context 'site' means eTLD+1. For example, if the URL
+--   `https://example.test:80/web_page` was accessing cookies, the site reported
+--   would be `example.test`.
+data AuditsCookieDeprecationMetadataIssueDetails = AuditsCookieDeprecationMetadataIssueDetails
+  {
+    auditsCookieDeprecationMetadataIssueDetailsAllowedSites :: [T.Text],
+    auditsCookieDeprecationMetadataIssueDetailsOptOutPercentage :: Double,
+    auditsCookieDeprecationMetadataIssueDetailsIsOptOutTopLevel :: Bool,
+    auditsCookieDeprecationMetadataIssueDetailsOperation :: AuditsCookieOperation
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsCookieDeprecationMetadataIssueDetails where
+  parseJSON = A.withObject "AuditsCookieDeprecationMetadataIssueDetails" $ \o -> AuditsCookieDeprecationMetadataIssueDetails
+    <$> o A..: "allowedSites"
+    <*> o A..: "optOutPercentage"
+    <*> o A..: "isOptOutTopLevel"
+    <*> o A..: "operation"
+instance ToJSON AuditsCookieDeprecationMetadataIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("allowedSites" A..=) <$> Just (auditsCookieDeprecationMetadataIssueDetailsAllowedSites p),
+    ("optOutPercentage" A..=) <$> Just (auditsCookieDeprecationMetadataIssueDetailsOptOutPercentage p),
+    ("isOptOutTopLevel" A..=) <$> Just (auditsCookieDeprecationMetadataIssueDetailsIsOptOutTopLevel p),
+    ("operation" A..=) <$> Just (auditsCookieDeprecationMetadataIssueDetailsOperation p)
     ]
 
 -- | Type 'Audits.ClientHintIssueReason'.
@@ -961,65 +1110,289 @@ instance ToJSON AuditsFederatedAuthRequestIssueDetails where
 --   Should be updated alongside RequestIdTokenStatus in
 --   third_party/blink/public/mojom/devtools/inspector_issue.mojom to include
 --   all cases except for success.
-data AuditsFederatedAuthRequestIssueReason = AuditsFederatedAuthRequestIssueReasonShouldEmbargo | AuditsFederatedAuthRequestIssueReasonTooManyRequests | AuditsFederatedAuthRequestIssueReasonManifestListHttpNotFound | AuditsFederatedAuthRequestIssueReasonManifestListNoResponse | AuditsFederatedAuthRequestIssueReasonManifestListInvalidResponse | AuditsFederatedAuthRequestIssueReasonManifestNotInManifestList | AuditsFederatedAuthRequestIssueReasonManifestListTooBig | AuditsFederatedAuthRequestIssueReasonManifestHttpNotFound | AuditsFederatedAuthRequestIssueReasonManifestNoResponse | AuditsFederatedAuthRequestIssueReasonManifestInvalidResponse | AuditsFederatedAuthRequestIssueReasonClientMetadataHttpNotFound | AuditsFederatedAuthRequestIssueReasonClientMetadataNoResponse | AuditsFederatedAuthRequestIssueReasonClientMetadataInvalidResponse | AuditsFederatedAuthRequestIssueReasonDisabledInSettings | AuditsFederatedAuthRequestIssueReasonErrorFetchingSignin | AuditsFederatedAuthRequestIssueReasonInvalidSigninResponse | AuditsFederatedAuthRequestIssueReasonAccountsHttpNotFound | AuditsFederatedAuthRequestIssueReasonAccountsNoResponse | AuditsFederatedAuthRequestIssueReasonAccountsInvalidResponse | AuditsFederatedAuthRequestIssueReasonIdTokenHttpNotFound | AuditsFederatedAuthRequestIssueReasonIdTokenNoResponse | AuditsFederatedAuthRequestIssueReasonIdTokenInvalidResponse | AuditsFederatedAuthRequestIssueReasonIdTokenInvalidRequest | AuditsFederatedAuthRequestIssueReasonErrorIdToken | AuditsFederatedAuthRequestIssueReasonCanceled | AuditsFederatedAuthRequestIssueReasonRpPageNotVisible
+data AuditsFederatedAuthRequestIssueReason = AuditsFederatedAuthRequestIssueReasonShouldEmbargo | AuditsFederatedAuthRequestIssueReasonTooManyRequests | AuditsFederatedAuthRequestIssueReasonWellKnownHttpNotFound | AuditsFederatedAuthRequestIssueReasonWellKnownNoResponse | AuditsFederatedAuthRequestIssueReasonWellKnownBlockedByConnectionAllowlist | AuditsFederatedAuthRequestIssueReasonWellKnownInvalidResponse | AuditsFederatedAuthRequestIssueReasonWellKnownListEmpty | AuditsFederatedAuthRequestIssueReasonWellKnownInvalidContentType | AuditsFederatedAuthRequestIssueReasonConfigNotInWellKnown | AuditsFederatedAuthRequestIssueReasonWellKnownTooBig | AuditsFederatedAuthRequestIssueReasonConfigHttpNotFound | AuditsFederatedAuthRequestIssueReasonConfigNoResponse | AuditsFederatedAuthRequestIssueReasonConfigBlockedByConnectionAllowlist | AuditsFederatedAuthRequestIssueReasonConfigInvalidResponse | AuditsFederatedAuthRequestIssueReasonConfigInvalidContentType | AuditsFederatedAuthRequestIssueReasonIdpNotPotentiallyTrustworthy | AuditsFederatedAuthRequestIssueReasonDisabledInSettings | AuditsFederatedAuthRequestIssueReasonDisabledInFlags | AuditsFederatedAuthRequestIssueReasonErrorFetchingSignin | AuditsFederatedAuthRequestIssueReasonInvalidSigninResponse | AuditsFederatedAuthRequestIssueReasonAccountsHttpNotFound | AuditsFederatedAuthRequestIssueReasonAccountsNoResponse | AuditsFederatedAuthRequestIssueReasonAccountsBlockedByConnectionAllowlist | AuditsFederatedAuthRequestIssueReasonAccountsInvalidResponse | AuditsFederatedAuthRequestIssueReasonAccountsListEmpty | AuditsFederatedAuthRequestIssueReasonAccountsInvalidContentType | AuditsFederatedAuthRequestIssueReasonIdTokenHttpNotFound | AuditsFederatedAuthRequestIssueReasonIdTokenNoResponse | AuditsFederatedAuthRequestIssueReasonIdTokenBlockedByConnectionAllowlist | AuditsFederatedAuthRequestIssueReasonIdTokenInvalidResponse | AuditsFederatedAuthRequestIssueReasonIdTokenIdpErrorResponse | AuditsFederatedAuthRequestIssueReasonIdTokenCrossSiteIdpErrorResponse | AuditsFederatedAuthRequestIssueReasonIdTokenInvalidRequest | AuditsFederatedAuthRequestIssueReasonIdTokenInvalidContentType | AuditsFederatedAuthRequestIssueReasonErrorIdToken | AuditsFederatedAuthRequestIssueReasonCanceled | AuditsFederatedAuthRequestIssueReasonRpPageNotVisible | AuditsFederatedAuthRequestIssueReasonSilentMediationFailure | AuditsFederatedAuthRequestIssueReasonNotSignedInWithIdp | AuditsFederatedAuthRequestIssueReasonMissingTransientUserActivation | AuditsFederatedAuthRequestIssueReasonReplacedByActiveMode | AuditsFederatedAuthRequestIssueReasonRelyingPartyOriginIsOpaque | AuditsFederatedAuthRequestIssueReasonTypeNotMatching | AuditsFederatedAuthRequestIssueReasonUiDismissedNoEmbargo | AuditsFederatedAuthRequestIssueReasonCorsError | AuditsFederatedAuthRequestIssueReasonSuppressedBySegmentationPlatform
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsFederatedAuthRequestIssueReason where
   parseJSON = A.withText "AuditsFederatedAuthRequestIssueReason" $ \v -> case v of
     "ShouldEmbargo" -> pure AuditsFederatedAuthRequestIssueReasonShouldEmbargo
     "TooManyRequests" -> pure AuditsFederatedAuthRequestIssueReasonTooManyRequests
-    "ManifestListHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonManifestListHttpNotFound
-    "ManifestListNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonManifestListNoResponse
-    "ManifestListInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonManifestListInvalidResponse
-    "ManifestNotInManifestList" -> pure AuditsFederatedAuthRequestIssueReasonManifestNotInManifestList
-    "ManifestListTooBig" -> pure AuditsFederatedAuthRequestIssueReasonManifestListTooBig
-    "ManifestHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonManifestHttpNotFound
-    "ManifestNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonManifestNoResponse
-    "ManifestInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonManifestInvalidResponse
-    "ClientMetadataHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonClientMetadataHttpNotFound
-    "ClientMetadataNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonClientMetadataNoResponse
-    "ClientMetadataInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonClientMetadataInvalidResponse
+    "WellKnownHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownHttpNotFound
+    "WellKnownNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownNoResponse
+    "WellKnownBlockedByConnectionAllowlist" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownBlockedByConnectionAllowlist
+    "WellKnownInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownInvalidResponse
+    "WellKnownListEmpty" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownListEmpty
+    "WellKnownInvalidContentType" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownInvalidContentType
+    "ConfigNotInWellKnown" -> pure AuditsFederatedAuthRequestIssueReasonConfigNotInWellKnown
+    "WellKnownTooBig" -> pure AuditsFederatedAuthRequestIssueReasonWellKnownTooBig
+    "ConfigHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonConfigHttpNotFound
+    "ConfigNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonConfigNoResponse
+    "ConfigBlockedByConnectionAllowlist" -> pure AuditsFederatedAuthRequestIssueReasonConfigBlockedByConnectionAllowlist
+    "ConfigInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonConfigInvalidResponse
+    "ConfigInvalidContentType" -> pure AuditsFederatedAuthRequestIssueReasonConfigInvalidContentType
+    "IdpNotPotentiallyTrustworthy" -> pure AuditsFederatedAuthRequestIssueReasonIdpNotPotentiallyTrustworthy
     "DisabledInSettings" -> pure AuditsFederatedAuthRequestIssueReasonDisabledInSettings
+    "DisabledInFlags" -> pure AuditsFederatedAuthRequestIssueReasonDisabledInFlags
     "ErrorFetchingSignin" -> pure AuditsFederatedAuthRequestIssueReasonErrorFetchingSignin
     "InvalidSigninResponse" -> pure AuditsFederatedAuthRequestIssueReasonInvalidSigninResponse
     "AccountsHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonAccountsHttpNotFound
     "AccountsNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonAccountsNoResponse
+    "AccountsBlockedByConnectionAllowlist" -> pure AuditsFederatedAuthRequestIssueReasonAccountsBlockedByConnectionAllowlist
     "AccountsInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonAccountsInvalidResponse
+    "AccountsListEmpty" -> pure AuditsFederatedAuthRequestIssueReasonAccountsListEmpty
+    "AccountsInvalidContentType" -> pure AuditsFederatedAuthRequestIssueReasonAccountsInvalidContentType
     "IdTokenHttpNotFound" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenHttpNotFound
     "IdTokenNoResponse" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenNoResponse
+    "IdTokenBlockedByConnectionAllowlist" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenBlockedByConnectionAllowlist
     "IdTokenInvalidResponse" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenInvalidResponse
+    "IdTokenIdpErrorResponse" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenIdpErrorResponse
+    "IdTokenCrossSiteIdpErrorResponse" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenCrossSiteIdpErrorResponse
     "IdTokenInvalidRequest" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenInvalidRequest
+    "IdTokenInvalidContentType" -> pure AuditsFederatedAuthRequestIssueReasonIdTokenInvalidContentType
     "ErrorIdToken" -> pure AuditsFederatedAuthRequestIssueReasonErrorIdToken
     "Canceled" -> pure AuditsFederatedAuthRequestIssueReasonCanceled
     "RpPageNotVisible" -> pure AuditsFederatedAuthRequestIssueReasonRpPageNotVisible
+    "SilentMediationFailure" -> pure AuditsFederatedAuthRequestIssueReasonSilentMediationFailure
+    "NotSignedInWithIdp" -> pure AuditsFederatedAuthRequestIssueReasonNotSignedInWithIdp
+    "MissingTransientUserActivation" -> pure AuditsFederatedAuthRequestIssueReasonMissingTransientUserActivation
+    "ReplacedByActiveMode" -> pure AuditsFederatedAuthRequestIssueReasonReplacedByActiveMode
+    "RelyingPartyOriginIsOpaque" -> pure AuditsFederatedAuthRequestIssueReasonRelyingPartyOriginIsOpaque
+    "TypeNotMatching" -> pure AuditsFederatedAuthRequestIssueReasonTypeNotMatching
+    "UiDismissedNoEmbargo" -> pure AuditsFederatedAuthRequestIssueReasonUiDismissedNoEmbargo
+    "CorsError" -> pure AuditsFederatedAuthRequestIssueReasonCorsError
+    "SuppressedBySegmentationPlatform" -> pure AuditsFederatedAuthRequestIssueReasonSuppressedBySegmentationPlatform
     "_" -> fail "failed to parse AuditsFederatedAuthRequestIssueReason"
 instance ToJSON AuditsFederatedAuthRequestIssueReason where
   toJSON v = A.String $ case v of
     AuditsFederatedAuthRequestIssueReasonShouldEmbargo -> "ShouldEmbargo"
     AuditsFederatedAuthRequestIssueReasonTooManyRequests -> "TooManyRequests"
-    AuditsFederatedAuthRequestIssueReasonManifestListHttpNotFound -> "ManifestListHttpNotFound"
-    AuditsFederatedAuthRequestIssueReasonManifestListNoResponse -> "ManifestListNoResponse"
-    AuditsFederatedAuthRequestIssueReasonManifestListInvalidResponse -> "ManifestListInvalidResponse"
-    AuditsFederatedAuthRequestIssueReasonManifestNotInManifestList -> "ManifestNotInManifestList"
-    AuditsFederatedAuthRequestIssueReasonManifestListTooBig -> "ManifestListTooBig"
-    AuditsFederatedAuthRequestIssueReasonManifestHttpNotFound -> "ManifestHttpNotFound"
-    AuditsFederatedAuthRequestIssueReasonManifestNoResponse -> "ManifestNoResponse"
-    AuditsFederatedAuthRequestIssueReasonManifestInvalidResponse -> "ManifestInvalidResponse"
-    AuditsFederatedAuthRequestIssueReasonClientMetadataHttpNotFound -> "ClientMetadataHttpNotFound"
-    AuditsFederatedAuthRequestIssueReasonClientMetadataNoResponse -> "ClientMetadataNoResponse"
-    AuditsFederatedAuthRequestIssueReasonClientMetadataInvalidResponse -> "ClientMetadataInvalidResponse"
+    AuditsFederatedAuthRequestIssueReasonWellKnownHttpNotFound -> "WellKnownHttpNotFound"
+    AuditsFederatedAuthRequestIssueReasonWellKnownNoResponse -> "WellKnownNoResponse"
+    AuditsFederatedAuthRequestIssueReasonWellKnownBlockedByConnectionAllowlist -> "WellKnownBlockedByConnectionAllowlist"
+    AuditsFederatedAuthRequestIssueReasonWellKnownInvalidResponse -> "WellKnownInvalidResponse"
+    AuditsFederatedAuthRequestIssueReasonWellKnownListEmpty -> "WellKnownListEmpty"
+    AuditsFederatedAuthRequestIssueReasonWellKnownInvalidContentType -> "WellKnownInvalidContentType"
+    AuditsFederatedAuthRequestIssueReasonConfigNotInWellKnown -> "ConfigNotInWellKnown"
+    AuditsFederatedAuthRequestIssueReasonWellKnownTooBig -> "WellKnownTooBig"
+    AuditsFederatedAuthRequestIssueReasonConfigHttpNotFound -> "ConfigHttpNotFound"
+    AuditsFederatedAuthRequestIssueReasonConfigNoResponse -> "ConfigNoResponse"
+    AuditsFederatedAuthRequestIssueReasonConfigBlockedByConnectionAllowlist -> "ConfigBlockedByConnectionAllowlist"
+    AuditsFederatedAuthRequestIssueReasonConfigInvalidResponse -> "ConfigInvalidResponse"
+    AuditsFederatedAuthRequestIssueReasonConfigInvalidContentType -> "ConfigInvalidContentType"
+    AuditsFederatedAuthRequestIssueReasonIdpNotPotentiallyTrustworthy -> "IdpNotPotentiallyTrustworthy"
     AuditsFederatedAuthRequestIssueReasonDisabledInSettings -> "DisabledInSettings"
+    AuditsFederatedAuthRequestIssueReasonDisabledInFlags -> "DisabledInFlags"
     AuditsFederatedAuthRequestIssueReasonErrorFetchingSignin -> "ErrorFetchingSignin"
     AuditsFederatedAuthRequestIssueReasonInvalidSigninResponse -> "InvalidSigninResponse"
     AuditsFederatedAuthRequestIssueReasonAccountsHttpNotFound -> "AccountsHttpNotFound"
     AuditsFederatedAuthRequestIssueReasonAccountsNoResponse -> "AccountsNoResponse"
+    AuditsFederatedAuthRequestIssueReasonAccountsBlockedByConnectionAllowlist -> "AccountsBlockedByConnectionAllowlist"
     AuditsFederatedAuthRequestIssueReasonAccountsInvalidResponse -> "AccountsInvalidResponse"
+    AuditsFederatedAuthRequestIssueReasonAccountsListEmpty -> "AccountsListEmpty"
+    AuditsFederatedAuthRequestIssueReasonAccountsInvalidContentType -> "AccountsInvalidContentType"
     AuditsFederatedAuthRequestIssueReasonIdTokenHttpNotFound -> "IdTokenHttpNotFound"
     AuditsFederatedAuthRequestIssueReasonIdTokenNoResponse -> "IdTokenNoResponse"
+    AuditsFederatedAuthRequestIssueReasonIdTokenBlockedByConnectionAllowlist -> "IdTokenBlockedByConnectionAllowlist"
     AuditsFederatedAuthRequestIssueReasonIdTokenInvalidResponse -> "IdTokenInvalidResponse"
+    AuditsFederatedAuthRequestIssueReasonIdTokenIdpErrorResponse -> "IdTokenIdpErrorResponse"
+    AuditsFederatedAuthRequestIssueReasonIdTokenCrossSiteIdpErrorResponse -> "IdTokenCrossSiteIdpErrorResponse"
     AuditsFederatedAuthRequestIssueReasonIdTokenInvalidRequest -> "IdTokenInvalidRequest"
+    AuditsFederatedAuthRequestIssueReasonIdTokenInvalidContentType -> "IdTokenInvalidContentType"
     AuditsFederatedAuthRequestIssueReasonErrorIdToken -> "ErrorIdToken"
     AuditsFederatedAuthRequestIssueReasonCanceled -> "Canceled"
     AuditsFederatedAuthRequestIssueReasonRpPageNotVisible -> "RpPageNotVisible"
+    AuditsFederatedAuthRequestIssueReasonSilentMediationFailure -> "SilentMediationFailure"
+    AuditsFederatedAuthRequestIssueReasonNotSignedInWithIdp -> "NotSignedInWithIdp"
+    AuditsFederatedAuthRequestIssueReasonMissingTransientUserActivation -> "MissingTransientUserActivation"
+    AuditsFederatedAuthRequestIssueReasonReplacedByActiveMode -> "ReplacedByActiveMode"
+    AuditsFederatedAuthRequestIssueReasonRelyingPartyOriginIsOpaque -> "RelyingPartyOriginIsOpaque"
+    AuditsFederatedAuthRequestIssueReasonTypeNotMatching -> "TypeNotMatching"
+    AuditsFederatedAuthRequestIssueReasonUiDismissedNoEmbargo -> "UiDismissedNoEmbargo"
+    AuditsFederatedAuthRequestIssueReasonCorsError -> "CorsError"
+    AuditsFederatedAuthRequestIssueReasonSuppressedBySegmentationPlatform -> "SuppressedBySegmentationPlatform"
+
+-- | Type 'Audits.FederatedAuthUserInfoRequestIssueDetails'.
+data AuditsFederatedAuthUserInfoRequestIssueDetails = AuditsFederatedAuthUserInfoRequestIssueDetails
+  {
+    auditsFederatedAuthUserInfoRequestIssueDetailsFederatedAuthUserInfoRequestIssueReason :: AuditsFederatedAuthUserInfoRequestIssueReason
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsFederatedAuthUserInfoRequestIssueDetails where
+  parseJSON = A.withObject "AuditsFederatedAuthUserInfoRequestIssueDetails" $ \o -> AuditsFederatedAuthUserInfoRequestIssueDetails
+    <$> o A..: "federatedAuthUserInfoRequestIssueReason"
+instance ToJSON AuditsFederatedAuthUserInfoRequestIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("federatedAuthUserInfoRequestIssueReason" A..=) <$> Just (auditsFederatedAuthUserInfoRequestIssueDetailsFederatedAuthUserInfoRequestIssueReason p)
+    ]
+
+-- | Type 'Audits.FederatedAuthUserInfoRequestIssueReason'.
+--   Represents the failure reason when a getUserInfo() call fails.
+--   Should be updated alongside FederatedAuthUserInfoRequestResult in
+--   third_party/blink/public/mojom/devtools/inspector_issue.mojom.
+data AuditsFederatedAuthUserInfoRequestIssueReason = AuditsFederatedAuthUserInfoRequestIssueReasonNotSameOrigin | AuditsFederatedAuthUserInfoRequestIssueReasonNotIframe | AuditsFederatedAuthUserInfoRequestIssueReasonNotPotentiallyTrustworthy | AuditsFederatedAuthUserInfoRequestIssueReasonNoApiPermission | AuditsFederatedAuthUserInfoRequestIssueReasonNotSignedInWithIdp | AuditsFederatedAuthUserInfoRequestIssueReasonNoAccountSharingPermission | AuditsFederatedAuthUserInfoRequestIssueReasonInvalidConfigOrWellKnown | AuditsFederatedAuthUserInfoRequestIssueReasonInvalidAccountsResponse | AuditsFederatedAuthUserInfoRequestIssueReasonNoReturningUserFromFetchedAccounts
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsFederatedAuthUserInfoRequestIssueReason where
+  parseJSON = A.withText "AuditsFederatedAuthUserInfoRequestIssueReason" $ \v -> case v of
+    "NotSameOrigin" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNotSameOrigin
+    "NotIframe" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNotIframe
+    "NotPotentiallyTrustworthy" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNotPotentiallyTrustworthy
+    "NoApiPermission" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNoApiPermission
+    "NotSignedInWithIdp" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNotSignedInWithIdp
+    "NoAccountSharingPermission" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNoAccountSharingPermission
+    "InvalidConfigOrWellKnown" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonInvalidConfigOrWellKnown
+    "InvalidAccountsResponse" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonInvalidAccountsResponse
+    "NoReturningUserFromFetchedAccounts" -> pure AuditsFederatedAuthUserInfoRequestIssueReasonNoReturningUserFromFetchedAccounts
+    "_" -> fail "failed to parse AuditsFederatedAuthUserInfoRequestIssueReason"
+instance ToJSON AuditsFederatedAuthUserInfoRequestIssueReason where
+  toJSON v = A.String $ case v of
+    AuditsFederatedAuthUserInfoRequestIssueReasonNotSameOrigin -> "NotSameOrigin"
+    AuditsFederatedAuthUserInfoRequestIssueReasonNotIframe -> "NotIframe"
+    AuditsFederatedAuthUserInfoRequestIssueReasonNotPotentiallyTrustworthy -> "NotPotentiallyTrustworthy"
+    AuditsFederatedAuthUserInfoRequestIssueReasonNoApiPermission -> "NoApiPermission"
+    AuditsFederatedAuthUserInfoRequestIssueReasonNotSignedInWithIdp -> "NotSignedInWithIdp"
+    AuditsFederatedAuthUserInfoRequestIssueReasonNoAccountSharingPermission -> "NoAccountSharingPermission"
+    AuditsFederatedAuthUserInfoRequestIssueReasonInvalidConfigOrWellKnown -> "InvalidConfigOrWellKnown"
+    AuditsFederatedAuthUserInfoRequestIssueReasonInvalidAccountsResponse -> "InvalidAccountsResponse"
+    AuditsFederatedAuthUserInfoRequestIssueReasonNoReturningUserFromFetchedAccounts -> "NoReturningUserFromFetchedAccounts"
+
+-- | Type 'Audits.EmailVerificationRequestIssueDetails'.
+data AuditsEmailVerificationRequestIssueDetails = AuditsEmailVerificationRequestIssueDetails
+  {
+    auditsEmailVerificationRequestIssueDetailsEmailVerificationRequestIssueReason :: AuditsEmailVerificationRequestIssueReason
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsEmailVerificationRequestIssueDetails where
+  parseJSON = A.withObject "AuditsEmailVerificationRequestIssueDetails" $ \o -> AuditsEmailVerificationRequestIssueDetails
+    <$> o A..: "emailVerificationRequestIssueReason"
+instance ToJSON AuditsEmailVerificationRequestIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("emailVerificationRequestIssueReason" A..=) <$> Just (auditsEmailVerificationRequestIssueDetailsEmailVerificationRequestIssueReason p)
+    ]
+
+-- | Type 'Audits.EmailVerificationRequestIssueReason'.
+--   Represents the failure reason when an email verification request fails.
+--   Should be updated alongside EmailVerificationRequestResult in
+--   third_party/blink/public/mojom/devtools/inspector_issue.mojom.
+data AuditsEmailVerificationRequestIssueReason = AuditsEmailVerificationRequestIssueReasonInvalidEmail | AuditsEmailVerificationRequestIssueReasonDnsFetchFailed | AuditsEmailVerificationRequestIssueReasonDnsInvalidRecord | AuditsEmailVerificationRequestIssueReasonWellKnownHttpNotFound | AuditsEmailVerificationRequestIssueReasonWellKnownNoResponse | AuditsEmailVerificationRequestIssueReasonWellKnownInvalidResponse | AuditsEmailVerificationRequestIssueReasonWellKnownListEmpty | AuditsEmailVerificationRequestIssueReasonWellKnownInvalidContentType | AuditsEmailVerificationRequestIssueReasonWellKnownMissingIssuanceEndpoint | AuditsEmailVerificationRequestIssueReasonWellKnownIssuanceEndpointCrossOrigin | AuditsEmailVerificationRequestIssueReasonWellKnownUnsupportedSigningAlgorithm | AuditsEmailVerificationRequestIssueReasonTokenHttpNotFound | AuditsEmailVerificationRequestIssueReasonTokenNoResponse | AuditsEmailVerificationRequestIssueReasonTokenInvalidResponse | AuditsEmailVerificationRequestIssueReasonTokenInvalidContentType | AuditsEmailVerificationRequestIssueReasonTokenMalformedSdJwt | AuditsEmailVerificationRequestIssueReasonTokenInvalidSdJwt | AuditsEmailVerificationRequestIssueReasonKeyBindingSigningFailed | AuditsEmailVerificationRequestIssueReasonRpOriginIsOpaque | AuditsEmailVerificationRequestIssueReasonWellKnownMissingAccountsEndpoint | AuditsEmailVerificationRequestIssueReasonUserLoggedOut | AuditsEmailVerificationRequestIssueReasonWellKnownAccountsEndpointCrossOrigin | AuditsEmailVerificationRequestIssueReasonAccountsHttpNotFound | AuditsEmailVerificationRequestIssueReasonAccountsNoResponse | AuditsEmailVerificationRequestIssueReasonAccountsInvalidResponse | AuditsEmailVerificationRequestIssueReasonAccountsInvalidContentType | AuditsEmailVerificationRequestIssueReasonAccountsEmptyList | AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownHttpNotFound | AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownNoResponse | AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownInvalidResponse | AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownInvalidContentType | AuditsEmailVerificationRequestIssueReasonJwksHttpNotFound | AuditsEmailVerificationRequestIssueReasonJwksInvalidResponse | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtUnsupportedHeaderAlg | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidTyp | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingIss | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingIat | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingCnf | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingEmail | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidIssuedAt | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidIssuer | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtJwksMissingKeys | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtSignatureFailed | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidEmailVerified | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidEmail | AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidHolderKey | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidTyp | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingAud | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingNonce | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingIat | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingSdHash | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidIssuedAt | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidAudience | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidNonce | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidSdHash | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingCnf | AuditsEmailVerificationRequestIssueReasonTokenVerificationKbSignatureFailed
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsEmailVerificationRequestIssueReason where
+  parseJSON = A.withText "AuditsEmailVerificationRequestIssueReason" $ \v -> case v of
+    "InvalidEmail" -> pure AuditsEmailVerificationRequestIssueReasonInvalidEmail
+    "DnsFetchFailed" -> pure AuditsEmailVerificationRequestIssueReasonDnsFetchFailed
+    "DnsInvalidRecord" -> pure AuditsEmailVerificationRequestIssueReasonDnsInvalidRecord
+    "WellKnownHttpNotFound" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownHttpNotFound
+    "WellKnownNoResponse" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownNoResponse
+    "WellKnownInvalidResponse" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownInvalidResponse
+    "WellKnownListEmpty" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownListEmpty
+    "WellKnownInvalidContentType" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownInvalidContentType
+    "WellKnownMissingIssuanceEndpoint" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownMissingIssuanceEndpoint
+    "WellKnownIssuanceEndpointCrossOrigin" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownIssuanceEndpointCrossOrigin
+    "WellKnownUnsupportedSigningAlgorithm" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownUnsupportedSigningAlgorithm
+    "TokenHttpNotFound" -> pure AuditsEmailVerificationRequestIssueReasonTokenHttpNotFound
+    "TokenNoResponse" -> pure AuditsEmailVerificationRequestIssueReasonTokenNoResponse
+    "TokenInvalidResponse" -> pure AuditsEmailVerificationRequestIssueReasonTokenInvalidResponse
+    "TokenInvalidContentType" -> pure AuditsEmailVerificationRequestIssueReasonTokenInvalidContentType
+    "TokenMalformedSdJwt" -> pure AuditsEmailVerificationRequestIssueReasonTokenMalformedSdJwt
+    "TokenInvalidSdJwt" -> pure AuditsEmailVerificationRequestIssueReasonTokenInvalidSdJwt
+    "KeyBindingSigningFailed" -> pure AuditsEmailVerificationRequestIssueReasonKeyBindingSigningFailed
+    "RpOriginIsOpaque" -> pure AuditsEmailVerificationRequestIssueReasonRpOriginIsOpaque
+    "WellKnownMissingAccountsEndpoint" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownMissingAccountsEndpoint
+    "UserLoggedOut" -> pure AuditsEmailVerificationRequestIssueReasonUserLoggedOut
+    "WellKnownAccountsEndpointCrossOrigin" -> pure AuditsEmailVerificationRequestIssueReasonWellKnownAccountsEndpointCrossOrigin
+    "AccountsHttpNotFound" -> pure AuditsEmailVerificationRequestIssueReasonAccountsHttpNotFound
+    "AccountsNoResponse" -> pure AuditsEmailVerificationRequestIssueReasonAccountsNoResponse
+    "AccountsInvalidResponse" -> pure AuditsEmailVerificationRequestIssueReasonAccountsInvalidResponse
+    "AccountsInvalidContentType" -> pure AuditsEmailVerificationRequestIssueReasonAccountsInvalidContentType
+    "AccountsEmptyList" -> pure AuditsEmailVerificationRequestIssueReasonAccountsEmptyList
+    "EmailVerificationWellKnownHttpNotFound" -> pure AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownHttpNotFound
+    "EmailVerificationWellKnownNoResponse" -> pure AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownNoResponse
+    "EmailVerificationWellKnownInvalidResponse" -> pure AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownInvalidResponse
+    "EmailVerificationWellKnownInvalidContentType" -> pure AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownInvalidContentType
+    "JwksHttpNotFound" -> pure AuditsEmailVerificationRequestIssueReasonJwksHttpNotFound
+    "JwksInvalidResponse" -> pure AuditsEmailVerificationRequestIssueReasonJwksInvalidResponse
+    "TokenVerificationSdJwtUnsupportedHeaderAlg" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtUnsupportedHeaderAlg
+    "TokenVerificationSdJwtInvalidTyp" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidTyp
+    "TokenVerificationSdJwtMissingIss" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingIss
+    "TokenVerificationSdJwtMissingIat" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingIat
+    "TokenVerificationSdJwtMissingCnf" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingCnf
+    "TokenVerificationSdJwtMissingEmail" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingEmail
+    "TokenVerificationSdJwtInvalidIssuedAt" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidIssuedAt
+    "TokenVerificationSdJwtInvalidIssuer" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidIssuer
+    "TokenVerificationSdJwtJwksMissingKeys" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtJwksMissingKeys
+    "TokenVerificationSdJwtSignatureFailed" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtSignatureFailed
+    "TokenVerificationSdJwtInvalidEmailVerified" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidEmailVerified
+    "TokenVerificationSdJwtInvalidEmail" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidEmail
+    "TokenVerificationSdJwtInvalidHolderKey" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidHolderKey
+    "TokenVerificationKbInvalidTyp" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidTyp
+    "TokenVerificationKbMissingAud" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingAud
+    "TokenVerificationKbMissingNonce" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingNonce
+    "TokenVerificationKbMissingIat" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingIat
+    "TokenVerificationKbMissingSdHash" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingSdHash
+    "TokenVerificationKbInvalidIssuedAt" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidIssuedAt
+    "TokenVerificationKbInvalidAudience" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidAudience
+    "TokenVerificationKbInvalidNonce" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidNonce
+    "TokenVerificationKbInvalidSdHash" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidSdHash
+    "TokenVerificationKbMissingCnf" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingCnf
+    "TokenVerificationKbSignatureFailed" -> pure AuditsEmailVerificationRequestIssueReasonTokenVerificationKbSignatureFailed
+    "_" -> fail "failed to parse AuditsEmailVerificationRequestIssueReason"
+instance ToJSON AuditsEmailVerificationRequestIssueReason where
+  toJSON v = A.String $ case v of
+    AuditsEmailVerificationRequestIssueReasonInvalidEmail -> "InvalidEmail"
+    AuditsEmailVerificationRequestIssueReasonDnsFetchFailed -> "DnsFetchFailed"
+    AuditsEmailVerificationRequestIssueReasonDnsInvalidRecord -> "DnsInvalidRecord"
+    AuditsEmailVerificationRequestIssueReasonWellKnownHttpNotFound -> "WellKnownHttpNotFound"
+    AuditsEmailVerificationRequestIssueReasonWellKnownNoResponse -> "WellKnownNoResponse"
+    AuditsEmailVerificationRequestIssueReasonWellKnownInvalidResponse -> "WellKnownInvalidResponse"
+    AuditsEmailVerificationRequestIssueReasonWellKnownListEmpty -> "WellKnownListEmpty"
+    AuditsEmailVerificationRequestIssueReasonWellKnownInvalidContentType -> "WellKnownInvalidContentType"
+    AuditsEmailVerificationRequestIssueReasonWellKnownMissingIssuanceEndpoint -> "WellKnownMissingIssuanceEndpoint"
+    AuditsEmailVerificationRequestIssueReasonWellKnownIssuanceEndpointCrossOrigin -> "WellKnownIssuanceEndpointCrossOrigin"
+    AuditsEmailVerificationRequestIssueReasonWellKnownUnsupportedSigningAlgorithm -> "WellKnownUnsupportedSigningAlgorithm"
+    AuditsEmailVerificationRequestIssueReasonTokenHttpNotFound -> "TokenHttpNotFound"
+    AuditsEmailVerificationRequestIssueReasonTokenNoResponse -> "TokenNoResponse"
+    AuditsEmailVerificationRequestIssueReasonTokenInvalidResponse -> "TokenInvalidResponse"
+    AuditsEmailVerificationRequestIssueReasonTokenInvalidContentType -> "TokenInvalidContentType"
+    AuditsEmailVerificationRequestIssueReasonTokenMalformedSdJwt -> "TokenMalformedSdJwt"
+    AuditsEmailVerificationRequestIssueReasonTokenInvalidSdJwt -> "TokenInvalidSdJwt"
+    AuditsEmailVerificationRequestIssueReasonKeyBindingSigningFailed -> "KeyBindingSigningFailed"
+    AuditsEmailVerificationRequestIssueReasonRpOriginIsOpaque -> "RpOriginIsOpaque"
+    AuditsEmailVerificationRequestIssueReasonWellKnownMissingAccountsEndpoint -> "WellKnownMissingAccountsEndpoint"
+    AuditsEmailVerificationRequestIssueReasonUserLoggedOut -> "UserLoggedOut"
+    AuditsEmailVerificationRequestIssueReasonWellKnownAccountsEndpointCrossOrigin -> "WellKnownAccountsEndpointCrossOrigin"
+    AuditsEmailVerificationRequestIssueReasonAccountsHttpNotFound -> "AccountsHttpNotFound"
+    AuditsEmailVerificationRequestIssueReasonAccountsNoResponse -> "AccountsNoResponse"
+    AuditsEmailVerificationRequestIssueReasonAccountsInvalidResponse -> "AccountsInvalidResponse"
+    AuditsEmailVerificationRequestIssueReasonAccountsInvalidContentType -> "AccountsInvalidContentType"
+    AuditsEmailVerificationRequestIssueReasonAccountsEmptyList -> "AccountsEmptyList"
+    AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownHttpNotFound -> "EmailVerificationWellKnownHttpNotFound"
+    AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownNoResponse -> "EmailVerificationWellKnownNoResponse"
+    AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownInvalidResponse -> "EmailVerificationWellKnownInvalidResponse"
+    AuditsEmailVerificationRequestIssueReasonEmailVerificationWellKnownInvalidContentType -> "EmailVerificationWellKnownInvalidContentType"
+    AuditsEmailVerificationRequestIssueReasonJwksHttpNotFound -> "JwksHttpNotFound"
+    AuditsEmailVerificationRequestIssueReasonJwksInvalidResponse -> "JwksInvalidResponse"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtUnsupportedHeaderAlg -> "TokenVerificationSdJwtUnsupportedHeaderAlg"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidTyp -> "TokenVerificationSdJwtInvalidTyp"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingIss -> "TokenVerificationSdJwtMissingIss"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingIat -> "TokenVerificationSdJwtMissingIat"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingCnf -> "TokenVerificationSdJwtMissingCnf"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtMissingEmail -> "TokenVerificationSdJwtMissingEmail"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidIssuedAt -> "TokenVerificationSdJwtInvalidIssuedAt"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidIssuer -> "TokenVerificationSdJwtInvalidIssuer"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtJwksMissingKeys -> "TokenVerificationSdJwtJwksMissingKeys"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtSignatureFailed -> "TokenVerificationSdJwtSignatureFailed"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidEmailVerified -> "TokenVerificationSdJwtInvalidEmailVerified"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidEmail -> "TokenVerificationSdJwtInvalidEmail"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationSdJwtInvalidHolderKey -> "TokenVerificationSdJwtInvalidHolderKey"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidTyp -> "TokenVerificationKbInvalidTyp"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingAud -> "TokenVerificationKbMissingAud"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingNonce -> "TokenVerificationKbMissingNonce"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingIat -> "TokenVerificationKbMissingIat"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingSdHash -> "TokenVerificationKbMissingSdHash"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidIssuedAt -> "TokenVerificationKbInvalidIssuedAt"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidAudience -> "TokenVerificationKbInvalidAudience"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidNonce -> "TokenVerificationKbInvalidNonce"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbInvalidSdHash -> "TokenVerificationKbInvalidSdHash"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbMissingCnf -> "TokenVerificationKbMissingCnf"
+    AuditsEmailVerificationRequestIssueReasonTokenVerificationKbSignatureFailed -> "TokenVerificationKbSignatureFailed"
 
 -- | Type 'Audits.ClientHintIssueDetails'.
 --   This issue tracks client hints related issues. It's used to deprecate old
@@ -1040,11 +1413,373 @@ instance ToJSON AuditsClientHintIssueDetails where
     ("clientHintIssueReason" A..=) <$> Just (auditsClientHintIssueDetailsClientHintIssueReason p)
     ]
 
+-- | Type 'Audits.FailedRequestInfo'.
+data AuditsFailedRequestInfo = AuditsFailedRequestInfo
+  {
+    -- | The URL that failed to load.
+    auditsFailedRequestInfoUrl :: T.Text,
+    -- | The failure message for the failed request.
+    auditsFailedRequestInfoFailureMessage :: T.Text,
+    auditsFailedRequestInfoRequestId :: Maybe DOMNetworkEmulationPageSecurity.NetworkRequestId
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsFailedRequestInfo where
+  parseJSON = A.withObject "AuditsFailedRequestInfo" $ \o -> AuditsFailedRequestInfo
+    <$> o A..: "url"
+    <*> o A..: "failureMessage"
+    <*> o A..:? "requestId"
+instance ToJSON AuditsFailedRequestInfo where
+  toJSON p = A.object $ catMaybes [
+    ("url" A..=) <$> Just (auditsFailedRequestInfoUrl p),
+    ("failureMessage" A..=) <$> Just (auditsFailedRequestInfoFailureMessage p),
+    ("requestId" A..=) <$> (auditsFailedRequestInfoRequestId p)
+    ]
+
+-- | Type 'Audits.PartitioningBlobURLInfo'.
+data AuditsPartitioningBlobURLInfo = AuditsPartitioningBlobURLInfoBlockedCrossPartitionFetching | AuditsPartitioningBlobURLInfoEnforceNoopenerForNavigation
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsPartitioningBlobURLInfo where
+  parseJSON = A.withText "AuditsPartitioningBlobURLInfo" $ \v -> case v of
+    "BlockedCrossPartitionFetching" -> pure AuditsPartitioningBlobURLInfoBlockedCrossPartitionFetching
+    "EnforceNoopenerForNavigation" -> pure AuditsPartitioningBlobURLInfoEnforceNoopenerForNavigation
+    "_" -> fail "failed to parse AuditsPartitioningBlobURLInfo"
+instance ToJSON AuditsPartitioningBlobURLInfo where
+  toJSON v = A.String $ case v of
+    AuditsPartitioningBlobURLInfoBlockedCrossPartitionFetching -> "BlockedCrossPartitionFetching"
+    AuditsPartitioningBlobURLInfoEnforceNoopenerForNavigation -> "EnforceNoopenerForNavigation"
+
+-- | Type 'Audits.PartitioningBlobURLIssueDetails'.
+data AuditsPartitioningBlobURLIssueDetails = AuditsPartitioningBlobURLIssueDetails
+  {
+    -- | The BlobURL that failed to load.
+    auditsPartitioningBlobURLIssueDetailsUrl :: T.Text,
+    -- | Additional information about the Partitioning Blob URL issue.
+    auditsPartitioningBlobURLIssueDetailsPartitioningBlobURLInfo :: AuditsPartitioningBlobURLInfo
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsPartitioningBlobURLIssueDetails where
+  parseJSON = A.withObject "AuditsPartitioningBlobURLIssueDetails" $ \o -> AuditsPartitioningBlobURLIssueDetails
+    <$> o A..: "url"
+    <*> o A..: "partitioningBlobURLInfo"
+instance ToJSON AuditsPartitioningBlobURLIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("url" A..=) <$> Just (auditsPartitioningBlobURLIssueDetailsUrl p),
+    ("partitioningBlobURLInfo" A..=) <$> Just (auditsPartitioningBlobURLIssueDetailsPartitioningBlobURLInfo p)
+    ]
+
+-- | Type 'Audits.ElementAccessibilityIssueReason'.
+data AuditsElementAccessibilityIssueReason = AuditsElementAccessibilityIssueReasonDisallowedSelectChild | AuditsElementAccessibilityIssueReasonDisallowedOptGroupChild | AuditsElementAccessibilityIssueReasonNonPhrasingContentOptionChild | AuditsElementAccessibilityIssueReasonInteractiveContentOptionChild | AuditsElementAccessibilityIssueReasonInteractiveContentLegendChild | AuditsElementAccessibilityIssueReasonInteractiveContentSummaryDescendant
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsElementAccessibilityIssueReason where
+  parseJSON = A.withText "AuditsElementAccessibilityIssueReason" $ \v -> case v of
+    "DisallowedSelectChild" -> pure AuditsElementAccessibilityIssueReasonDisallowedSelectChild
+    "DisallowedOptGroupChild" -> pure AuditsElementAccessibilityIssueReasonDisallowedOptGroupChild
+    "NonPhrasingContentOptionChild" -> pure AuditsElementAccessibilityIssueReasonNonPhrasingContentOptionChild
+    "InteractiveContentOptionChild" -> pure AuditsElementAccessibilityIssueReasonInteractiveContentOptionChild
+    "InteractiveContentLegendChild" -> pure AuditsElementAccessibilityIssueReasonInteractiveContentLegendChild
+    "InteractiveContentSummaryDescendant" -> pure AuditsElementAccessibilityIssueReasonInteractiveContentSummaryDescendant
+    "_" -> fail "failed to parse AuditsElementAccessibilityIssueReason"
+instance ToJSON AuditsElementAccessibilityIssueReason where
+  toJSON v = A.String $ case v of
+    AuditsElementAccessibilityIssueReasonDisallowedSelectChild -> "DisallowedSelectChild"
+    AuditsElementAccessibilityIssueReasonDisallowedOptGroupChild -> "DisallowedOptGroupChild"
+    AuditsElementAccessibilityIssueReasonNonPhrasingContentOptionChild -> "NonPhrasingContentOptionChild"
+    AuditsElementAccessibilityIssueReasonInteractiveContentOptionChild -> "InteractiveContentOptionChild"
+    AuditsElementAccessibilityIssueReasonInteractiveContentLegendChild -> "InteractiveContentLegendChild"
+    AuditsElementAccessibilityIssueReasonInteractiveContentSummaryDescendant -> "InteractiveContentSummaryDescendant"
+
+-- | Type 'Audits.ElementAccessibilityIssueDetails'.
+--   This issue warns about errors in the select or summary element content model.
+data AuditsElementAccessibilityIssueDetails = AuditsElementAccessibilityIssueDetails
+  {
+    auditsElementAccessibilityIssueDetailsNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
+    auditsElementAccessibilityIssueDetailsElementAccessibilityIssueReason :: AuditsElementAccessibilityIssueReason,
+    auditsElementAccessibilityIssueDetailsHasDisallowedAttributes :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsElementAccessibilityIssueDetails where
+  parseJSON = A.withObject "AuditsElementAccessibilityIssueDetails" $ \o -> AuditsElementAccessibilityIssueDetails
+    <$> o A..: "nodeId"
+    <*> o A..: "elementAccessibilityIssueReason"
+    <*> o A..: "hasDisallowedAttributes"
+instance ToJSON AuditsElementAccessibilityIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (auditsElementAccessibilityIssueDetailsNodeId p),
+    ("elementAccessibilityIssueReason" A..=) <$> Just (auditsElementAccessibilityIssueDetailsElementAccessibilityIssueReason p),
+    ("hasDisallowedAttributes" A..=) <$> Just (auditsElementAccessibilityIssueDetailsHasDisallowedAttributes p)
+    ]
+
+-- | Type 'Audits.StyleSheetLoadingIssueReason'.
+data AuditsStyleSheetLoadingIssueReason = AuditsStyleSheetLoadingIssueReasonLateImportRule | AuditsStyleSheetLoadingIssueReasonRequestFailed
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsStyleSheetLoadingIssueReason where
+  parseJSON = A.withText "AuditsStyleSheetLoadingIssueReason" $ \v -> case v of
+    "LateImportRule" -> pure AuditsStyleSheetLoadingIssueReasonLateImportRule
+    "RequestFailed" -> pure AuditsStyleSheetLoadingIssueReasonRequestFailed
+    "_" -> fail "failed to parse AuditsStyleSheetLoadingIssueReason"
+instance ToJSON AuditsStyleSheetLoadingIssueReason where
+  toJSON v = A.String $ case v of
+    AuditsStyleSheetLoadingIssueReasonLateImportRule -> "LateImportRule"
+    AuditsStyleSheetLoadingIssueReasonRequestFailed -> "RequestFailed"
+
+-- | Type 'Audits.StylesheetLoadingIssueDetails'.
+--   This issue warns when a referenced stylesheet couldn't be loaded.
+data AuditsStylesheetLoadingIssueDetails = AuditsStylesheetLoadingIssueDetails
+  {
+    -- | Source code position that referenced the failing stylesheet.
+    auditsStylesheetLoadingIssueDetailsSourceCodeLocation :: AuditsSourceCodeLocation,
+    -- | Reason why the stylesheet couldn't be loaded.
+    auditsStylesheetLoadingIssueDetailsStyleSheetLoadingIssueReason :: AuditsStyleSheetLoadingIssueReason,
+    -- | Contains additional info when the failure was due to a request.
+    auditsStylesheetLoadingIssueDetailsFailedRequestInfo :: Maybe AuditsFailedRequestInfo
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsStylesheetLoadingIssueDetails where
+  parseJSON = A.withObject "AuditsStylesheetLoadingIssueDetails" $ \o -> AuditsStylesheetLoadingIssueDetails
+    <$> o A..: "sourceCodeLocation"
+    <*> o A..: "styleSheetLoadingIssueReason"
+    <*> o A..:? "failedRequestInfo"
+instance ToJSON AuditsStylesheetLoadingIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("sourceCodeLocation" A..=) <$> Just (auditsStylesheetLoadingIssueDetailsSourceCodeLocation p),
+    ("styleSheetLoadingIssueReason" A..=) <$> Just (auditsStylesheetLoadingIssueDetailsStyleSheetLoadingIssueReason p),
+    ("failedRequestInfo" A..=) <$> (auditsStylesheetLoadingIssueDetailsFailedRequestInfo p)
+    ]
+
+-- | Type 'Audits.PropertyRuleIssueReason'.
+data AuditsPropertyRuleIssueReason = AuditsPropertyRuleIssueReasonInvalidSyntax | AuditsPropertyRuleIssueReasonInvalidInitialValue | AuditsPropertyRuleIssueReasonInvalidInherits | AuditsPropertyRuleIssueReasonInvalidName
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsPropertyRuleIssueReason where
+  parseJSON = A.withText "AuditsPropertyRuleIssueReason" $ \v -> case v of
+    "InvalidSyntax" -> pure AuditsPropertyRuleIssueReasonInvalidSyntax
+    "InvalidInitialValue" -> pure AuditsPropertyRuleIssueReasonInvalidInitialValue
+    "InvalidInherits" -> pure AuditsPropertyRuleIssueReasonInvalidInherits
+    "InvalidName" -> pure AuditsPropertyRuleIssueReasonInvalidName
+    "_" -> fail "failed to parse AuditsPropertyRuleIssueReason"
+instance ToJSON AuditsPropertyRuleIssueReason where
+  toJSON v = A.String $ case v of
+    AuditsPropertyRuleIssueReasonInvalidSyntax -> "InvalidSyntax"
+    AuditsPropertyRuleIssueReasonInvalidInitialValue -> "InvalidInitialValue"
+    AuditsPropertyRuleIssueReasonInvalidInherits -> "InvalidInherits"
+    AuditsPropertyRuleIssueReasonInvalidName -> "InvalidName"
+
+-- | Type 'Audits.PropertyRuleIssueDetails'.
+--   This issue warns about errors in property rules that lead to property
+--   registrations being ignored.
+data AuditsPropertyRuleIssueDetails = AuditsPropertyRuleIssueDetails
+  {
+    -- | Source code position of the property rule.
+    auditsPropertyRuleIssueDetailsSourceCodeLocation :: AuditsSourceCodeLocation,
+    -- | Reason why the property rule was discarded.
+    auditsPropertyRuleIssueDetailsPropertyRuleIssueReason :: AuditsPropertyRuleIssueReason,
+    -- | The value of the property rule property that failed to parse
+    auditsPropertyRuleIssueDetailsPropertyValue :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsPropertyRuleIssueDetails where
+  parseJSON = A.withObject "AuditsPropertyRuleIssueDetails" $ \o -> AuditsPropertyRuleIssueDetails
+    <$> o A..: "sourceCodeLocation"
+    <*> o A..: "propertyRuleIssueReason"
+    <*> o A..:? "propertyValue"
+instance ToJSON AuditsPropertyRuleIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("sourceCodeLocation" A..=) <$> Just (auditsPropertyRuleIssueDetailsSourceCodeLocation p),
+    ("propertyRuleIssueReason" A..=) <$> Just (auditsPropertyRuleIssueDetailsPropertyRuleIssueReason p),
+    ("propertyValue" A..=) <$> (auditsPropertyRuleIssueDetailsPropertyValue p)
+    ]
+
+-- | Type 'Audits.UserReidentificationIssueType'.
+data AuditsUserReidentificationIssueType = AuditsUserReidentificationIssueTypeBlockedFrameNavigation | AuditsUserReidentificationIssueTypeBlockedSubresource | AuditsUserReidentificationIssueTypeNoisedCanvasReadback
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsUserReidentificationIssueType where
+  parseJSON = A.withText "AuditsUserReidentificationIssueType" $ \v -> case v of
+    "BlockedFrameNavigation" -> pure AuditsUserReidentificationIssueTypeBlockedFrameNavigation
+    "BlockedSubresource" -> pure AuditsUserReidentificationIssueTypeBlockedSubresource
+    "NoisedCanvasReadback" -> pure AuditsUserReidentificationIssueTypeNoisedCanvasReadback
+    "_" -> fail "failed to parse AuditsUserReidentificationIssueType"
+instance ToJSON AuditsUserReidentificationIssueType where
+  toJSON v = A.String $ case v of
+    AuditsUserReidentificationIssueTypeBlockedFrameNavigation -> "BlockedFrameNavigation"
+    AuditsUserReidentificationIssueTypeBlockedSubresource -> "BlockedSubresource"
+    AuditsUserReidentificationIssueTypeNoisedCanvasReadback -> "NoisedCanvasReadback"
+
+-- | Type 'Audits.UserReidentificationIssueDetails'.
+--   This issue warns about uses of APIs that may be considered misuse to
+--   re-identify users.
+data AuditsUserReidentificationIssueDetails = AuditsUserReidentificationIssueDetails
+  {
+    auditsUserReidentificationIssueDetailsType :: AuditsUserReidentificationIssueType,
+    -- | Applies to BlockedFrameNavigation and BlockedSubresource issue types.
+    auditsUserReidentificationIssueDetailsRequest :: Maybe AuditsAffectedRequest,
+    -- | Applies to NoisedCanvasReadback issue type.
+    auditsUserReidentificationIssueDetailsSourceCodeLocation :: Maybe AuditsSourceCodeLocation
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsUserReidentificationIssueDetails where
+  parseJSON = A.withObject "AuditsUserReidentificationIssueDetails" $ \o -> AuditsUserReidentificationIssueDetails
+    <$> o A..: "type"
+    <*> o A..:? "request"
+    <*> o A..:? "sourceCodeLocation"
+instance ToJSON AuditsUserReidentificationIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("type" A..=) <$> Just (auditsUserReidentificationIssueDetailsType p),
+    ("request" A..=) <$> (auditsUserReidentificationIssueDetailsRequest p),
+    ("sourceCodeLocation" A..=) <$> (auditsUserReidentificationIssueDetailsSourceCodeLocation p)
+    ]
+
+-- | Type 'Audits.PermissionElementIssueType'.
+data AuditsPermissionElementIssueType = AuditsPermissionElementIssueTypeInvalidType | AuditsPermissionElementIssueTypeFencedFrameDisallowed | AuditsPermissionElementIssueTypeCspFrameAncestorsMissing | AuditsPermissionElementIssueTypePermissionsPolicyBlocked | AuditsPermissionElementIssueTypePaddingRightUnsupported | AuditsPermissionElementIssueTypePaddingBottomUnsupported | AuditsPermissionElementIssueTypeInsetBoxShadowUnsupported | AuditsPermissionElementIssueTypeRequestInProgress | AuditsPermissionElementIssueTypeUntrustedEvent | AuditsPermissionElementIssueTypeRegistrationFailed | AuditsPermissionElementIssueTypeTypeNotSupported | AuditsPermissionElementIssueTypeInvalidTypeActivation | AuditsPermissionElementIssueTypeSecurityChecksFailed | AuditsPermissionElementIssueTypeActivationDisabled | AuditsPermissionElementIssueTypeGeolocationDeprecated | AuditsPermissionElementIssueTypeInvalidDisplayStyle | AuditsPermissionElementIssueTypeNonOpaqueColor | AuditsPermissionElementIssueTypeLowContrast | AuditsPermissionElementIssueTypeFontSizeTooSmall | AuditsPermissionElementIssueTypeFontSizeTooLarge | AuditsPermissionElementIssueTypeInvalidSizeValue | AuditsPermissionElementIssueTypeNonSecureContext | AuditsPermissionElementIssueTypeMissingTransientUserActivation
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON AuditsPermissionElementIssueType where
+  parseJSON = A.withText "AuditsPermissionElementIssueType" $ \v -> case v of
+    "InvalidType" -> pure AuditsPermissionElementIssueTypeInvalidType
+    "FencedFrameDisallowed" -> pure AuditsPermissionElementIssueTypeFencedFrameDisallowed
+    "CspFrameAncestorsMissing" -> pure AuditsPermissionElementIssueTypeCspFrameAncestorsMissing
+    "PermissionsPolicyBlocked" -> pure AuditsPermissionElementIssueTypePermissionsPolicyBlocked
+    "PaddingRightUnsupported" -> pure AuditsPermissionElementIssueTypePaddingRightUnsupported
+    "PaddingBottomUnsupported" -> pure AuditsPermissionElementIssueTypePaddingBottomUnsupported
+    "InsetBoxShadowUnsupported" -> pure AuditsPermissionElementIssueTypeInsetBoxShadowUnsupported
+    "RequestInProgress" -> pure AuditsPermissionElementIssueTypeRequestInProgress
+    "UntrustedEvent" -> pure AuditsPermissionElementIssueTypeUntrustedEvent
+    "RegistrationFailed" -> pure AuditsPermissionElementIssueTypeRegistrationFailed
+    "TypeNotSupported" -> pure AuditsPermissionElementIssueTypeTypeNotSupported
+    "InvalidTypeActivation" -> pure AuditsPermissionElementIssueTypeInvalidTypeActivation
+    "SecurityChecksFailed" -> pure AuditsPermissionElementIssueTypeSecurityChecksFailed
+    "ActivationDisabled" -> pure AuditsPermissionElementIssueTypeActivationDisabled
+    "GeolocationDeprecated" -> pure AuditsPermissionElementIssueTypeGeolocationDeprecated
+    "InvalidDisplayStyle" -> pure AuditsPermissionElementIssueTypeInvalidDisplayStyle
+    "NonOpaqueColor" -> pure AuditsPermissionElementIssueTypeNonOpaqueColor
+    "LowContrast" -> pure AuditsPermissionElementIssueTypeLowContrast
+    "FontSizeTooSmall" -> pure AuditsPermissionElementIssueTypeFontSizeTooSmall
+    "FontSizeTooLarge" -> pure AuditsPermissionElementIssueTypeFontSizeTooLarge
+    "InvalidSizeValue" -> pure AuditsPermissionElementIssueTypeInvalidSizeValue
+    "NonSecureContext" -> pure AuditsPermissionElementIssueTypeNonSecureContext
+    "MissingTransientUserActivation" -> pure AuditsPermissionElementIssueTypeMissingTransientUserActivation
+    "_" -> fail "failed to parse AuditsPermissionElementIssueType"
+instance ToJSON AuditsPermissionElementIssueType where
+  toJSON v = A.String $ case v of
+    AuditsPermissionElementIssueTypeInvalidType -> "InvalidType"
+    AuditsPermissionElementIssueTypeFencedFrameDisallowed -> "FencedFrameDisallowed"
+    AuditsPermissionElementIssueTypeCspFrameAncestorsMissing -> "CspFrameAncestorsMissing"
+    AuditsPermissionElementIssueTypePermissionsPolicyBlocked -> "PermissionsPolicyBlocked"
+    AuditsPermissionElementIssueTypePaddingRightUnsupported -> "PaddingRightUnsupported"
+    AuditsPermissionElementIssueTypePaddingBottomUnsupported -> "PaddingBottomUnsupported"
+    AuditsPermissionElementIssueTypeInsetBoxShadowUnsupported -> "InsetBoxShadowUnsupported"
+    AuditsPermissionElementIssueTypeRequestInProgress -> "RequestInProgress"
+    AuditsPermissionElementIssueTypeUntrustedEvent -> "UntrustedEvent"
+    AuditsPermissionElementIssueTypeRegistrationFailed -> "RegistrationFailed"
+    AuditsPermissionElementIssueTypeTypeNotSupported -> "TypeNotSupported"
+    AuditsPermissionElementIssueTypeInvalidTypeActivation -> "InvalidTypeActivation"
+    AuditsPermissionElementIssueTypeSecurityChecksFailed -> "SecurityChecksFailed"
+    AuditsPermissionElementIssueTypeActivationDisabled -> "ActivationDisabled"
+    AuditsPermissionElementIssueTypeGeolocationDeprecated -> "GeolocationDeprecated"
+    AuditsPermissionElementIssueTypeInvalidDisplayStyle -> "InvalidDisplayStyle"
+    AuditsPermissionElementIssueTypeNonOpaqueColor -> "NonOpaqueColor"
+    AuditsPermissionElementIssueTypeLowContrast -> "LowContrast"
+    AuditsPermissionElementIssueTypeFontSizeTooSmall -> "FontSizeTooSmall"
+    AuditsPermissionElementIssueTypeFontSizeTooLarge -> "FontSizeTooLarge"
+    AuditsPermissionElementIssueTypeInvalidSizeValue -> "InvalidSizeValue"
+    AuditsPermissionElementIssueTypeNonSecureContext -> "NonSecureContext"
+    AuditsPermissionElementIssueTypeMissingTransientUserActivation -> "MissingTransientUserActivation"
+
+-- | Type 'Audits.PermissionElementIssueDetails'.
+--   This issue warns about improper usage of the <permission> element.
+data AuditsPermissionElementIssueDetails = AuditsPermissionElementIssueDetails
+  {
+    auditsPermissionElementIssueDetailsIssueType :: AuditsPermissionElementIssueType,
+    -- | The value of the type attribute.
+    auditsPermissionElementIssueDetailsType :: Maybe T.Text,
+    -- | The node ID of the <permission> element.
+    auditsPermissionElementIssueDetailsNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
+    -- | True if the issue is a warning, false if it is an error.
+    auditsPermissionElementIssueDetailsIsWarning :: Maybe Bool,
+    -- | Fields for message construction:
+    --   Used for messages that reference a specific permission name
+    auditsPermissionElementIssueDetailsPermissionName :: Maybe T.Text,
+    -- | Used for messages about occlusion
+    auditsPermissionElementIssueDetailsOccluderNodeInfo :: Maybe T.Text,
+    -- | Used for messages about occluder's parent
+    auditsPermissionElementIssueDetailsOccluderParentNodeInfo :: Maybe T.Text,
+    -- | Used for messages about activation disabled reason
+    auditsPermissionElementIssueDetailsDisableReason :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsPermissionElementIssueDetails where
+  parseJSON = A.withObject "AuditsPermissionElementIssueDetails" $ \o -> AuditsPermissionElementIssueDetails
+    <$> o A..: "issueType"
+    <*> o A..:? "type"
+    <*> o A..:? "nodeId"
+    <*> o A..:? "isWarning"
+    <*> o A..:? "permissionName"
+    <*> o A..:? "occluderNodeInfo"
+    <*> o A..:? "occluderParentNodeInfo"
+    <*> o A..:? "disableReason"
+instance ToJSON AuditsPermissionElementIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("issueType" A..=) <$> Just (auditsPermissionElementIssueDetailsIssueType p),
+    ("type" A..=) <$> (auditsPermissionElementIssueDetailsType p),
+    ("nodeId" A..=) <$> (auditsPermissionElementIssueDetailsNodeId p),
+    ("isWarning" A..=) <$> (auditsPermissionElementIssueDetailsIsWarning p),
+    ("permissionName" A..=) <$> (auditsPermissionElementIssueDetailsPermissionName p),
+    ("occluderNodeInfo" A..=) <$> (auditsPermissionElementIssueDetailsOccluderNodeInfo p),
+    ("occluderParentNodeInfo" A..=) <$> (auditsPermissionElementIssueDetailsOccluderParentNodeInfo p),
+    ("disableReason" A..=) <$> (auditsPermissionElementIssueDetailsDisableReason p)
+    ]
+
+-- | Type 'Audits.SelectivePermissionsInterventionIssueDetails'.
+--   The issue warns about blocked calls to privacy sensitive APIs via the
+--   Selective Permissions Intervention.
+data AuditsSelectivePermissionsInterventionIssueDetails = AuditsSelectivePermissionsInterventionIssueDetails
+  {
+    -- | Which API was intervened on.
+    auditsSelectivePermissionsInterventionIssueDetailsApiName :: T.Text,
+    -- | Why the ad script using the API is considered an ad.
+    auditsSelectivePermissionsInterventionIssueDetailsAdAncestry :: DOMNetworkEmulationPageSecurity.NetworkAdAncestry,
+    -- | The stack trace at the time of the intervention.
+    auditsSelectivePermissionsInterventionIssueDetailsStackTrace :: Maybe Runtime.RuntimeStackTrace
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsSelectivePermissionsInterventionIssueDetails where
+  parseJSON = A.withObject "AuditsSelectivePermissionsInterventionIssueDetails" $ \o -> AuditsSelectivePermissionsInterventionIssueDetails
+    <$> o A..: "apiName"
+    <*> o A..: "adAncestry"
+    <*> o A..:? "stackTrace"
+instance ToJSON AuditsSelectivePermissionsInterventionIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("apiName" A..=) <$> Just (auditsSelectivePermissionsInterventionIssueDetailsApiName p),
+    ("adAncestry" A..=) <$> Just (auditsSelectivePermissionsInterventionIssueDetailsAdAncestry p),
+    ("stackTrace" A..=) <$> (auditsSelectivePermissionsInterventionIssueDetailsStackTrace p)
+    ]
+
+-- | Type 'Audits.LazyLoadImageIssueDetails'.
+--   Details for issues about lazy-loaded images without explicit dimensions.
+data AuditsLazyLoadImageIssueDetails = AuditsLazyLoadImageIssueDetails
+  {
+    -- | DOM node of the problematic HTMLImageElement.
+    auditsLazyLoadImageIssueDetailsNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
+    -- | URL or src attribute of the image.
+    auditsLazyLoadImageIssueDetailsUrl :: T.Text,
+    -- | Frame containing the image.
+    auditsLazyLoadImageIssueDetailsFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId
+  }
+  deriving (Eq, Show)
+instance FromJSON AuditsLazyLoadImageIssueDetails where
+  parseJSON = A.withObject "AuditsLazyLoadImageIssueDetails" $ \o -> AuditsLazyLoadImageIssueDetails
+    <$> o A..: "nodeId"
+    <*> o A..: "url"
+    <*> o A..: "frameId"
+instance ToJSON AuditsLazyLoadImageIssueDetails where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (auditsLazyLoadImageIssueDetailsNodeId p),
+    ("url" A..=) <$> Just (auditsLazyLoadImageIssueDetailsUrl p),
+    ("frameId" A..=) <$> Just (auditsLazyLoadImageIssueDetailsFrameId p)
+    ]
+
 -- | Type 'Audits.InspectorIssueCode'.
 --   A unique identifier for the type of issue. Each type may use one of the
 --   optional fields in InspectorIssueDetails to convey more specific
 --   information about the kind of issue.
-data AuditsInspectorIssueCode = AuditsInspectorIssueCodeCookieIssue | AuditsInspectorIssueCodeMixedContentIssue | AuditsInspectorIssueCodeBlockedByResponseIssue | AuditsInspectorIssueCodeHeavyAdIssue | AuditsInspectorIssueCodeContentSecurityPolicyIssue | AuditsInspectorIssueCodeSharedArrayBufferIssue | AuditsInspectorIssueCodeTrustedWebActivityIssue | AuditsInspectorIssueCodeLowTextContrastIssue | AuditsInspectorIssueCodeCorsIssue | AuditsInspectorIssueCodeAttributionReportingIssue | AuditsInspectorIssueCodeQuirksModeIssue | AuditsInspectorIssueCodeNavigatorUserAgentIssue | AuditsInspectorIssueCodeGenericIssue | AuditsInspectorIssueCodeDeprecationIssue | AuditsInspectorIssueCodeClientHintIssue | AuditsInspectorIssueCodeFederatedAuthRequestIssue
+data AuditsInspectorIssueCode = AuditsInspectorIssueCodeCookieIssue | AuditsInspectorIssueCodeMixedContentIssue | AuditsInspectorIssueCodeBlockedByResponseIssue | AuditsInspectorIssueCodeHeavyAdIssue | AuditsInspectorIssueCodeContentSecurityPolicyIssue | AuditsInspectorIssueCodeSharedArrayBufferIssue | AuditsInspectorIssueCodeCorsIssue | AuditsInspectorIssueCodeQuirksModeIssue | AuditsInspectorIssueCodePartitioningBlobURLIssue | AuditsInspectorIssueCodeNavigatorUserAgentIssue | AuditsInspectorIssueCodeGenericIssue | AuditsInspectorIssueCodeDeprecationIssue | AuditsInspectorIssueCodeClientHintIssue | AuditsInspectorIssueCodeFederatedAuthRequestIssue | AuditsInspectorIssueCodeBounceTrackingIssue | AuditsInspectorIssueCodeCookieDeprecationMetadataIssue | AuditsInspectorIssueCodeStylesheetLoadingIssue | AuditsInspectorIssueCodeFederatedAuthUserInfoRequestIssue | AuditsInspectorIssueCodePropertyRuleIssue | AuditsInspectorIssueCodeSharedDictionaryIssue | AuditsInspectorIssueCodeElementAccessibilityIssue | AuditsInspectorIssueCodeSRIMessageSignatureIssue | AuditsInspectorIssueCodeUnencodedDigestIssue | AuditsInspectorIssueCodeConnectionAllowlistIssue | AuditsInspectorIssueCodeUserReidentificationIssue | AuditsInspectorIssueCodePermissionElementIssue | AuditsInspectorIssueCodePerformanceIssue | AuditsInspectorIssueCodeSelectivePermissionsInterventionIssue | AuditsInspectorIssueCodeEmailVerificationRequestIssue | AuditsInspectorIssueCodeLazyLoadImageIssue
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AuditsInspectorIssueCode where
   parseJSON = A.withText "AuditsInspectorIssueCode" $ \v -> case v of
@@ -1054,16 +1789,30 @@ instance FromJSON AuditsInspectorIssueCode where
     "HeavyAdIssue" -> pure AuditsInspectorIssueCodeHeavyAdIssue
     "ContentSecurityPolicyIssue" -> pure AuditsInspectorIssueCodeContentSecurityPolicyIssue
     "SharedArrayBufferIssue" -> pure AuditsInspectorIssueCodeSharedArrayBufferIssue
-    "TrustedWebActivityIssue" -> pure AuditsInspectorIssueCodeTrustedWebActivityIssue
-    "LowTextContrastIssue" -> pure AuditsInspectorIssueCodeLowTextContrastIssue
     "CorsIssue" -> pure AuditsInspectorIssueCodeCorsIssue
-    "AttributionReportingIssue" -> pure AuditsInspectorIssueCodeAttributionReportingIssue
     "QuirksModeIssue" -> pure AuditsInspectorIssueCodeQuirksModeIssue
+    "PartitioningBlobURLIssue" -> pure AuditsInspectorIssueCodePartitioningBlobURLIssue
     "NavigatorUserAgentIssue" -> pure AuditsInspectorIssueCodeNavigatorUserAgentIssue
     "GenericIssue" -> pure AuditsInspectorIssueCodeGenericIssue
     "DeprecationIssue" -> pure AuditsInspectorIssueCodeDeprecationIssue
     "ClientHintIssue" -> pure AuditsInspectorIssueCodeClientHintIssue
     "FederatedAuthRequestIssue" -> pure AuditsInspectorIssueCodeFederatedAuthRequestIssue
+    "BounceTrackingIssue" -> pure AuditsInspectorIssueCodeBounceTrackingIssue
+    "CookieDeprecationMetadataIssue" -> pure AuditsInspectorIssueCodeCookieDeprecationMetadataIssue
+    "StylesheetLoadingIssue" -> pure AuditsInspectorIssueCodeStylesheetLoadingIssue
+    "FederatedAuthUserInfoRequestIssue" -> pure AuditsInspectorIssueCodeFederatedAuthUserInfoRequestIssue
+    "PropertyRuleIssue" -> pure AuditsInspectorIssueCodePropertyRuleIssue
+    "SharedDictionaryIssue" -> pure AuditsInspectorIssueCodeSharedDictionaryIssue
+    "ElementAccessibilityIssue" -> pure AuditsInspectorIssueCodeElementAccessibilityIssue
+    "SRIMessageSignatureIssue" -> pure AuditsInspectorIssueCodeSRIMessageSignatureIssue
+    "UnencodedDigestIssue" -> pure AuditsInspectorIssueCodeUnencodedDigestIssue
+    "ConnectionAllowlistIssue" -> pure AuditsInspectorIssueCodeConnectionAllowlistIssue
+    "UserReidentificationIssue" -> pure AuditsInspectorIssueCodeUserReidentificationIssue
+    "PermissionElementIssue" -> pure AuditsInspectorIssueCodePermissionElementIssue
+    "PerformanceIssue" -> pure AuditsInspectorIssueCodePerformanceIssue
+    "SelectivePermissionsInterventionIssue" -> pure AuditsInspectorIssueCodeSelectivePermissionsInterventionIssue
+    "EmailVerificationRequestIssue" -> pure AuditsInspectorIssueCodeEmailVerificationRequestIssue
+    "LazyLoadImageIssue" -> pure AuditsInspectorIssueCodeLazyLoadImageIssue
     "_" -> fail "failed to parse AuditsInspectorIssueCode"
 instance ToJSON AuditsInspectorIssueCode where
   toJSON v = A.String $ case v of
@@ -1073,16 +1822,30 @@ instance ToJSON AuditsInspectorIssueCode where
     AuditsInspectorIssueCodeHeavyAdIssue -> "HeavyAdIssue"
     AuditsInspectorIssueCodeContentSecurityPolicyIssue -> "ContentSecurityPolicyIssue"
     AuditsInspectorIssueCodeSharedArrayBufferIssue -> "SharedArrayBufferIssue"
-    AuditsInspectorIssueCodeTrustedWebActivityIssue -> "TrustedWebActivityIssue"
-    AuditsInspectorIssueCodeLowTextContrastIssue -> "LowTextContrastIssue"
     AuditsInspectorIssueCodeCorsIssue -> "CorsIssue"
-    AuditsInspectorIssueCodeAttributionReportingIssue -> "AttributionReportingIssue"
     AuditsInspectorIssueCodeQuirksModeIssue -> "QuirksModeIssue"
+    AuditsInspectorIssueCodePartitioningBlobURLIssue -> "PartitioningBlobURLIssue"
     AuditsInspectorIssueCodeNavigatorUserAgentIssue -> "NavigatorUserAgentIssue"
     AuditsInspectorIssueCodeGenericIssue -> "GenericIssue"
     AuditsInspectorIssueCodeDeprecationIssue -> "DeprecationIssue"
     AuditsInspectorIssueCodeClientHintIssue -> "ClientHintIssue"
     AuditsInspectorIssueCodeFederatedAuthRequestIssue -> "FederatedAuthRequestIssue"
+    AuditsInspectorIssueCodeBounceTrackingIssue -> "BounceTrackingIssue"
+    AuditsInspectorIssueCodeCookieDeprecationMetadataIssue -> "CookieDeprecationMetadataIssue"
+    AuditsInspectorIssueCodeStylesheetLoadingIssue -> "StylesheetLoadingIssue"
+    AuditsInspectorIssueCodeFederatedAuthUserInfoRequestIssue -> "FederatedAuthUserInfoRequestIssue"
+    AuditsInspectorIssueCodePropertyRuleIssue -> "PropertyRuleIssue"
+    AuditsInspectorIssueCodeSharedDictionaryIssue -> "SharedDictionaryIssue"
+    AuditsInspectorIssueCodeElementAccessibilityIssue -> "ElementAccessibilityIssue"
+    AuditsInspectorIssueCodeSRIMessageSignatureIssue -> "SRIMessageSignatureIssue"
+    AuditsInspectorIssueCodeUnencodedDigestIssue -> "UnencodedDigestIssue"
+    AuditsInspectorIssueCodeConnectionAllowlistIssue -> "ConnectionAllowlistIssue"
+    AuditsInspectorIssueCodeUserReidentificationIssue -> "UserReidentificationIssue"
+    AuditsInspectorIssueCodePermissionElementIssue -> "PermissionElementIssue"
+    AuditsInspectorIssueCodePerformanceIssue -> "PerformanceIssue"
+    AuditsInspectorIssueCodeSelectivePermissionsInterventionIssue -> "SelectivePermissionsInterventionIssue"
+    AuditsInspectorIssueCodeEmailVerificationRequestIssue -> "EmailVerificationRequestIssue"
+    AuditsInspectorIssueCodeLazyLoadImageIssue -> "LazyLoadImageIssue"
 
 -- | Type 'Audits.InspectorIssueDetails'.
 --   This struct holds a list of optional fields with additional information
@@ -1096,16 +1859,29 @@ data AuditsInspectorIssueDetails = AuditsInspectorIssueDetails
     auditsInspectorIssueDetailsHeavyAdIssueDetails :: Maybe AuditsHeavyAdIssueDetails,
     auditsInspectorIssueDetailsContentSecurityPolicyIssueDetails :: Maybe AuditsContentSecurityPolicyIssueDetails,
     auditsInspectorIssueDetailsSharedArrayBufferIssueDetails :: Maybe AuditsSharedArrayBufferIssueDetails,
-    auditsInspectorIssueDetailsTwaQualityEnforcementDetails :: Maybe AuditsTrustedWebActivityIssueDetails,
-    auditsInspectorIssueDetailsLowTextContrastIssueDetails :: Maybe AuditsLowTextContrastIssueDetails,
     auditsInspectorIssueDetailsCorsIssueDetails :: Maybe AuditsCorsIssueDetails,
-    auditsInspectorIssueDetailsAttributionReportingIssueDetails :: Maybe AuditsAttributionReportingIssueDetails,
     auditsInspectorIssueDetailsQuirksModeIssueDetails :: Maybe AuditsQuirksModeIssueDetails,
-    auditsInspectorIssueDetailsNavigatorUserAgentIssueDetails :: Maybe AuditsNavigatorUserAgentIssueDetails,
+    auditsInspectorIssueDetailsPartitioningBlobURLIssueDetails :: Maybe AuditsPartitioningBlobURLIssueDetails,
     auditsInspectorIssueDetailsGenericIssueDetails :: Maybe AuditsGenericIssueDetails,
     auditsInspectorIssueDetailsDeprecationIssueDetails :: Maybe AuditsDeprecationIssueDetails,
     auditsInspectorIssueDetailsClientHintIssueDetails :: Maybe AuditsClientHintIssueDetails,
-    auditsInspectorIssueDetailsFederatedAuthRequestIssueDetails :: Maybe AuditsFederatedAuthRequestIssueDetails
+    auditsInspectorIssueDetailsFederatedAuthRequestIssueDetails :: Maybe AuditsFederatedAuthRequestIssueDetails,
+    auditsInspectorIssueDetailsBounceTrackingIssueDetails :: Maybe AuditsBounceTrackingIssueDetails,
+    auditsInspectorIssueDetailsCookieDeprecationMetadataIssueDetails :: Maybe AuditsCookieDeprecationMetadataIssueDetails,
+    auditsInspectorIssueDetailsStylesheetLoadingIssueDetails :: Maybe AuditsStylesheetLoadingIssueDetails,
+    auditsInspectorIssueDetailsPropertyRuleIssueDetails :: Maybe AuditsPropertyRuleIssueDetails,
+    auditsInspectorIssueDetailsFederatedAuthUserInfoRequestIssueDetails :: Maybe AuditsFederatedAuthUserInfoRequestIssueDetails,
+    auditsInspectorIssueDetailsSharedDictionaryIssueDetails :: Maybe AuditsSharedDictionaryIssueDetails,
+    auditsInspectorIssueDetailsElementAccessibilityIssueDetails :: Maybe AuditsElementAccessibilityIssueDetails,
+    auditsInspectorIssueDetailsSriMessageSignatureIssueDetails :: Maybe AuditsSRIMessageSignatureIssueDetails,
+    auditsInspectorIssueDetailsUnencodedDigestIssueDetails :: Maybe AuditsUnencodedDigestIssueDetails,
+    auditsInspectorIssueDetailsConnectionAllowlistIssueDetails :: Maybe AuditsConnectionAllowlistIssueDetails,
+    auditsInspectorIssueDetailsUserReidentificationIssueDetails :: Maybe AuditsUserReidentificationIssueDetails,
+    auditsInspectorIssueDetailsPermissionElementIssueDetails :: Maybe AuditsPermissionElementIssueDetails,
+    auditsInspectorIssueDetailsPerformanceIssueDetails :: Maybe AuditsPerformanceIssueDetails,
+    auditsInspectorIssueDetailsSelectivePermissionsInterventionIssueDetails :: Maybe AuditsSelectivePermissionsInterventionIssueDetails,
+    auditsInspectorIssueDetailsEmailVerificationRequestIssueDetails :: Maybe AuditsEmailVerificationRequestIssueDetails,
+    auditsInspectorIssueDetailsLazyLoadImageIssueDetails :: Maybe AuditsLazyLoadImageIssueDetails
   }
   deriving (Eq, Show)
 instance FromJSON AuditsInspectorIssueDetails where
@@ -1116,16 +1892,29 @@ instance FromJSON AuditsInspectorIssueDetails where
     <*> o A..:? "heavyAdIssueDetails"
     <*> o A..:? "contentSecurityPolicyIssueDetails"
     <*> o A..:? "sharedArrayBufferIssueDetails"
-    <*> o A..:? "twaQualityEnforcementDetails"
-    <*> o A..:? "lowTextContrastIssueDetails"
     <*> o A..:? "corsIssueDetails"
-    <*> o A..:? "attributionReportingIssueDetails"
     <*> o A..:? "quirksModeIssueDetails"
-    <*> o A..:? "navigatorUserAgentIssueDetails"
+    <*> o A..:? "partitioningBlobURLIssueDetails"
     <*> o A..:? "genericIssueDetails"
     <*> o A..:? "deprecationIssueDetails"
     <*> o A..:? "clientHintIssueDetails"
     <*> o A..:? "federatedAuthRequestIssueDetails"
+    <*> o A..:? "bounceTrackingIssueDetails"
+    <*> o A..:? "cookieDeprecationMetadataIssueDetails"
+    <*> o A..:? "stylesheetLoadingIssueDetails"
+    <*> o A..:? "propertyRuleIssueDetails"
+    <*> o A..:? "federatedAuthUserInfoRequestIssueDetails"
+    <*> o A..:? "sharedDictionaryIssueDetails"
+    <*> o A..:? "elementAccessibilityIssueDetails"
+    <*> o A..:? "sriMessageSignatureIssueDetails"
+    <*> o A..:? "unencodedDigestIssueDetails"
+    <*> o A..:? "connectionAllowlistIssueDetails"
+    <*> o A..:? "userReidentificationIssueDetails"
+    <*> o A..:? "permissionElementIssueDetails"
+    <*> o A..:? "performanceIssueDetails"
+    <*> o A..:? "selectivePermissionsInterventionIssueDetails"
+    <*> o A..:? "emailVerificationRequestIssueDetails"
+    <*> o A..:? "lazyLoadImageIssueDetails"
 instance ToJSON AuditsInspectorIssueDetails where
   toJSON p = A.object $ catMaybes [
     ("cookieIssueDetails" A..=) <$> (auditsInspectorIssueDetailsCookieIssueDetails p),
@@ -1134,16 +1923,29 @@ instance ToJSON AuditsInspectorIssueDetails where
     ("heavyAdIssueDetails" A..=) <$> (auditsInspectorIssueDetailsHeavyAdIssueDetails p),
     ("contentSecurityPolicyIssueDetails" A..=) <$> (auditsInspectorIssueDetailsContentSecurityPolicyIssueDetails p),
     ("sharedArrayBufferIssueDetails" A..=) <$> (auditsInspectorIssueDetailsSharedArrayBufferIssueDetails p),
-    ("twaQualityEnforcementDetails" A..=) <$> (auditsInspectorIssueDetailsTwaQualityEnforcementDetails p),
-    ("lowTextContrastIssueDetails" A..=) <$> (auditsInspectorIssueDetailsLowTextContrastIssueDetails p),
     ("corsIssueDetails" A..=) <$> (auditsInspectorIssueDetailsCorsIssueDetails p),
-    ("attributionReportingIssueDetails" A..=) <$> (auditsInspectorIssueDetailsAttributionReportingIssueDetails p),
     ("quirksModeIssueDetails" A..=) <$> (auditsInspectorIssueDetailsQuirksModeIssueDetails p),
-    ("navigatorUserAgentIssueDetails" A..=) <$> (auditsInspectorIssueDetailsNavigatorUserAgentIssueDetails p),
+    ("partitioningBlobURLIssueDetails" A..=) <$> (auditsInspectorIssueDetailsPartitioningBlobURLIssueDetails p),
     ("genericIssueDetails" A..=) <$> (auditsInspectorIssueDetailsGenericIssueDetails p),
     ("deprecationIssueDetails" A..=) <$> (auditsInspectorIssueDetailsDeprecationIssueDetails p),
     ("clientHintIssueDetails" A..=) <$> (auditsInspectorIssueDetailsClientHintIssueDetails p),
-    ("federatedAuthRequestIssueDetails" A..=) <$> (auditsInspectorIssueDetailsFederatedAuthRequestIssueDetails p)
+    ("federatedAuthRequestIssueDetails" A..=) <$> (auditsInspectorIssueDetailsFederatedAuthRequestIssueDetails p),
+    ("bounceTrackingIssueDetails" A..=) <$> (auditsInspectorIssueDetailsBounceTrackingIssueDetails p),
+    ("cookieDeprecationMetadataIssueDetails" A..=) <$> (auditsInspectorIssueDetailsCookieDeprecationMetadataIssueDetails p),
+    ("stylesheetLoadingIssueDetails" A..=) <$> (auditsInspectorIssueDetailsStylesheetLoadingIssueDetails p),
+    ("propertyRuleIssueDetails" A..=) <$> (auditsInspectorIssueDetailsPropertyRuleIssueDetails p),
+    ("federatedAuthUserInfoRequestIssueDetails" A..=) <$> (auditsInspectorIssueDetailsFederatedAuthUserInfoRequestIssueDetails p),
+    ("sharedDictionaryIssueDetails" A..=) <$> (auditsInspectorIssueDetailsSharedDictionaryIssueDetails p),
+    ("elementAccessibilityIssueDetails" A..=) <$> (auditsInspectorIssueDetailsElementAccessibilityIssueDetails p),
+    ("sriMessageSignatureIssueDetails" A..=) <$> (auditsInspectorIssueDetailsSriMessageSignatureIssueDetails p),
+    ("unencodedDigestIssueDetails" A..=) <$> (auditsInspectorIssueDetailsUnencodedDigestIssueDetails p),
+    ("connectionAllowlistIssueDetails" A..=) <$> (auditsInspectorIssueDetailsConnectionAllowlistIssueDetails p),
+    ("userReidentificationIssueDetails" A..=) <$> (auditsInspectorIssueDetailsUserReidentificationIssueDetails p),
+    ("permissionElementIssueDetails" A..=) <$> (auditsInspectorIssueDetailsPermissionElementIssueDetails p),
+    ("performanceIssueDetails" A..=) <$> (auditsInspectorIssueDetailsPerformanceIssueDetails p),
+    ("selectivePermissionsInterventionIssueDetails" A..=) <$> (auditsInspectorIssueDetailsSelectivePermissionsInterventionIssueDetails p),
+    ("emailVerificationRequestIssueDetails" A..=) <$> (auditsInspectorIssueDetailsEmailVerificationRequestIssueDetails p),
+    ("lazyLoadImageIssueDetails" A..=) <$> (auditsInspectorIssueDetailsLazyLoadImageIssueDetails p)
     ]
 
 -- | Type 'Audits.IssueId'.
@@ -1206,7 +2008,7 @@ instance ToJSON PAuditsGetEncodedResponseEncoding where
 data PAuditsGetEncodedResponse = PAuditsGetEncodedResponse
   {
     -- | Identifier of the network request to get content for.
-    pAuditsGetEncodedResponseRequestId :: DOMPageNetworkEmulationSecurity.NetworkRequestId,
+    pAuditsGetEncodedResponseRequestId :: DOMNetworkEmulationPageSecurity.NetworkRequestId,
     -- | The encoding to use.
     pAuditsGetEncodedResponseEncoding :: PAuditsGetEncodedResponseEncoding,
     -- | The quality of the encoding (0-1). (defaults to 1)
@@ -1219,7 +2021,7 @@ pAuditsGetEncodedResponse
   {-
   -- | Identifier of the network request to get content for.
   -}
-  :: DOMPageNetworkEmulationSecurity.NetworkRequestId
+  :: DOMNetworkEmulationPageSecurity.NetworkRequestId
   {-
   -- | The encoding to use.
   -}
@@ -1292,27 +2094,27 @@ instance Command PAuditsEnable where
   commandName _ = "Audits.enable"
   fromJSON = const . A.Success . const ()
 
--- | Runs the contrast check for the target page. Found issues are reported
+-- | Runs the form issues check for the target page. Found issues are reported
 --   using Audits.issueAdded event.
 
--- | Parameters of the 'Audits.checkContrast' command.
-data PAuditsCheckContrast = PAuditsCheckContrast
+-- | Parameters of the 'Audits.checkFormsIssues' command.
+data PAuditsCheckFormsIssues = PAuditsCheckFormsIssues
+  deriving (Eq, Show)
+pAuditsCheckFormsIssues
+  :: PAuditsCheckFormsIssues
+pAuditsCheckFormsIssues
+  = PAuditsCheckFormsIssues
+instance ToJSON PAuditsCheckFormsIssues where
+  toJSON _ = A.Null
+data AuditsCheckFormsIssues = AuditsCheckFormsIssues
   {
-    -- | Whether to report WCAG AAA level issues. Default is false.
-    pAuditsCheckContrastReportAAA :: Maybe Bool
+    auditsCheckFormsIssuesFormIssues :: [AuditsGenericIssueDetails]
   }
   deriving (Eq, Show)
-pAuditsCheckContrast
-  :: PAuditsCheckContrast
-pAuditsCheckContrast
-  = PAuditsCheckContrast
-    Nothing
-instance ToJSON PAuditsCheckContrast where
-  toJSON p = A.object $ catMaybes [
-    ("reportAAA" A..=) <$> (pAuditsCheckContrastReportAAA p)
-    ]
-instance Command PAuditsCheckContrast where
-  type CommandResponse PAuditsCheckContrast = ()
-  commandName _ = "Audits.checkContrast"
-  fromJSON = const . A.Success . const ()
+instance FromJSON AuditsCheckFormsIssues where
+  parseJSON = A.withObject "AuditsCheckFormsIssues" $ \o -> AuditsCheckFormsIssues
+    <$> o A..: "formIssues"
+instance Command PAuditsCheckFormsIssues where
+  type CommandResponse PAuditsCheckFormsIssues = AuditsCheckFormsIssues
+  commandName _ = "Audits.checkFormsIssues"
 

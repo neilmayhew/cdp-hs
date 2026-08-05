@@ -132,6 +132,28 @@ instance ToJSON MemoryModule where
     ("size" A..=) <$> Just (memoryModuleSize p)
     ]
 
+-- | Type 'Memory.DOMCounter'.
+--   DOM object counter data.
+data MemoryDOMCounter = MemoryDOMCounter
+  {
+    -- | Object name. Note: object names should be presumed volatile and clients should not expect
+    --   the returned names to be consistent across runs.
+    memoryDOMCounterName :: T.Text,
+    -- | Object count.
+    memoryDOMCounterCount :: Int
+  }
+  deriving (Eq, Show)
+instance FromJSON MemoryDOMCounter where
+  parseJSON = A.withObject "MemoryDOMCounter" $ \o -> MemoryDOMCounter
+    <$> o A..: "name"
+    <*> o A..: "count"
+instance ToJSON MemoryDOMCounter where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> Just (memoryDOMCounterName p),
+    ("count" A..=) <$> Just (memoryDOMCounterCount p)
+    ]
+
+-- | Retruns current DOM object counters.
 
 -- | Parameters of the 'Memory.getDOMCounters' command.
 data PMemoryGetDOMCounters = PMemoryGetDOMCounters
@@ -158,6 +180,32 @@ instance Command PMemoryGetDOMCounters where
   type CommandResponse PMemoryGetDOMCounters = MemoryGetDOMCounters
   commandName _ = "Memory.getDOMCounters"
 
+-- | Retruns DOM object counters after preparing renderer for leak detection.
+
+-- | Parameters of the 'Memory.getDOMCountersForLeakDetection' command.
+data PMemoryGetDOMCountersForLeakDetection = PMemoryGetDOMCountersForLeakDetection
+  deriving (Eq, Show)
+pMemoryGetDOMCountersForLeakDetection
+  :: PMemoryGetDOMCountersForLeakDetection
+pMemoryGetDOMCountersForLeakDetection
+  = PMemoryGetDOMCountersForLeakDetection
+instance ToJSON PMemoryGetDOMCountersForLeakDetection where
+  toJSON _ = A.Null
+data MemoryGetDOMCountersForLeakDetection = MemoryGetDOMCountersForLeakDetection
+  {
+    -- | DOM object counters.
+    memoryGetDOMCountersForLeakDetectionCounters :: [MemoryDOMCounter]
+  }
+  deriving (Eq, Show)
+instance FromJSON MemoryGetDOMCountersForLeakDetection where
+  parseJSON = A.withObject "MemoryGetDOMCountersForLeakDetection" $ \o -> MemoryGetDOMCountersForLeakDetection
+    <$> o A..: "counters"
+instance Command PMemoryGetDOMCountersForLeakDetection where
+  type CommandResponse PMemoryGetDOMCountersForLeakDetection = MemoryGetDOMCountersForLeakDetection
+  commandName _ = "Memory.getDOMCountersForLeakDetection"
+
+-- | Prepares for leak detection by terminating workers, stopping spellcheckers,
+--   dropping non-essential internal caches, running garbage collections, etc.
 
 -- | Parameters of the 'Memory.prepareForLeakDetection' command.
 data PMemoryPrepareForLeakDetection = PMemoryPrepareForLeakDetection

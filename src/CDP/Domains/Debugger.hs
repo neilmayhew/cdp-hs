@@ -322,18 +322,16 @@ instance ToJSON DebuggerScriptLanguage where
 
 -- | Type 'Debugger.DebugSymbols'.
 --   Debug symbols available for a wasm script.
-data DebuggerDebugSymbolsType = DebuggerDebugSymbolsTypeNone | DebuggerDebugSymbolsTypeSourceMap | DebuggerDebugSymbolsTypeEmbeddedDWARF | DebuggerDebugSymbolsTypeExternalDWARF
+data DebuggerDebugSymbolsType = DebuggerDebugSymbolsTypeSourceMap | DebuggerDebugSymbolsTypeEmbeddedDWARF | DebuggerDebugSymbolsTypeExternalDWARF
   deriving (Ord, Eq, Show, Read)
 instance FromJSON DebuggerDebugSymbolsType where
   parseJSON = A.withText "DebuggerDebugSymbolsType" $ \v -> case v of
-    "None" -> pure DebuggerDebugSymbolsTypeNone
     "SourceMap" -> pure DebuggerDebugSymbolsTypeSourceMap
     "EmbeddedDWARF" -> pure DebuggerDebugSymbolsTypeEmbeddedDWARF
     "ExternalDWARF" -> pure DebuggerDebugSymbolsTypeExternalDWARF
     "_" -> fail "failed to parse DebuggerDebugSymbolsType"
 instance ToJSON DebuggerDebugSymbolsType where
   toJSON v = A.String $ case v of
-    DebuggerDebugSymbolsTypeNone -> "None"
     DebuggerDebugSymbolsTypeSourceMap -> "SourceMap"
     DebuggerDebugSymbolsTypeEmbeddedDWARF -> "EmbeddedDWARF"
     DebuggerDebugSymbolsTypeExternalDWARF -> "ExternalDWARF"
@@ -355,24 +353,27 @@ instance ToJSON DebuggerDebugSymbols where
     ("externalURL" A..=) <$> (debuggerDebugSymbolsExternalURL p)
     ]
 
--- | Type of the 'Debugger.breakpointResolved' event.
-data DebuggerBreakpointResolved = DebuggerBreakpointResolved
+-- | Type 'Debugger.ResolvedBreakpoint'.
+data DebuggerResolvedBreakpoint = DebuggerResolvedBreakpoint
   {
     -- | Breakpoint unique identifier.
-    debuggerBreakpointResolvedBreakpointId :: DebuggerBreakpointId,
+    debuggerResolvedBreakpointBreakpointId :: DebuggerBreakpointId,
     -- | Actual breakpoint location.
-    debuggerBreakpointResolvedLocation :: DebuggerLocation
+    debuggerResolvedBreakpointLocation :: DebuggerLocation
   }
   deriving (Eq, Show)
-instance FromJSON DebuggerBreakpointResolved where
-  parseJSON = A.withObject "DebuggerBreakpointResolved" $ \o -> DebuggerBreakpointResolved
+instance FromJSON DebuggerResolvedBreakpoint where
+  parseJSON = A.withObject "DebuggerResolvedBreakpoint" $ \o -> DebuggerResolvedBreakpoint
     <$> o A..: "breakpointId"
     <*> o A..: "location"
-instance Event DebuggerBreakpointResolved where
-  eventName _ = "Debugger.breakpointResolved"
+instance ToJSON DebuggerResolvedBreakpoint where
+  toJSON p = A.object $ catMaybes [
+    ("breakpointId" A..=) <$> Just (debuggerResolvedBreakpointBreakpointId p),
+    ("location" A..=) <$> Just (debuggerResolvedBreakpointLocation p)
+    ]
 
 -- | Type of the 'Debugger.paused' event.
-data DebuggerPausedReason = DebuggerPausedReasonAmbiguous | DebuggerPausedReasonAssert | DebuggerPausedReasonCSPViolation | DebuggerPausedReasonDebugCommand | DebuggerPausedReasonDOM | DebuggerPausedReasonEventListener | DebuggerPausedReasonException | DebuggerPausedReasonInstrumentation | DebuggerPausedReasonOOM | DebuggerPausedReasonOther | DebuggerPausedReasonPromiseRejection | DebuggerPausedReasonXHR
+data DebuggerPausedReason = DebuggerPausedReasonAmbiguous | DebuggerPausedReasonAssert | DebuggerPausedReasonCSPViolation | DebuggerPausedReasonDebugCommand | DebuggerPausedReasonDOM | DebuggerPausedReasonEventListener | DebuggerPausedReasonException | DebuggerPausedReasonInstrumentation | DebuggerPausedReasonOOM | DebuggerPausedReasonOther | DebuggerPausedReasonPromiseRejection | DebuggerPausedReasonXHR | DebuggerPausedReasonStep
   deriving (Ord, Eq, Show, Read)
 instance FromJSON DebuggerPausedReason where
   parseJSON = A.withText "DebuggerPausedReason" $ \v -> case v of
@@ -388,6 +389,7 @@ instance FromJSON DebuggerPausedReason where
     "other" -> pure DebuggerPausedReasonOther
     "promiseRejection" -> pure DebuggerPausedReasonPromiseRejection
     "XHR" -> pure DebuggerPausedReasonXHR
+    "step" -> pure DebuggerPausedReasonStep
     "_" -> fail "failed to parse DebuggerPausedReason"
 instance ToJSON DebuggerPausedReason where
   toJSON v = A.String $ case v of
@@ -403,6 +405,7 @@ instance ToJSON DebuggerPausedReason where
     DebuggerPausedReasonOther -> "other"
     DebuggerPausedReasonPromiseRejection -> "promiseRejection"
     DebuggerPausedReasonXHR -> "XHR"
+    DebuggerPausedReasonStep -> "step"
 data DebuggerPaused = DebuggerPaused
   {
     -- | Call stack the virtual machine stopped on.
@@ -457,7 +460,9 @@ data DebuggerScriptFailedToParse = DebuggerScriptFailedToParse
     debuggerScriptFailedToParseExecutionContextId :: Runtime.RuntimeExecutionContextId,
     -- | Content hash of the script, SHA-256.
     debuggerScriptFailedToParseHash :: T.Text,
-    -- | Embedder-specific auxiliary data.
+    -- | For Wasm modules, the content of the `build_id` custom section. For JavaScript the `debugId` magic comment.
+    debuggerScriptFailedToParseBuildId :: T.Text,
+    -- | Embedder-specific auxiliary data likely matching {isDefault: boolean, type: 'default'|'isolated'|'worker', frameId: string}
     debuggerScriptFailedToParseExecutionContextAuxData :: Maybe [(T.Text, T.Text)],
     -- | URL of source map associated with script (if any).
     debuggerScriptFailedToParseSourceMapURL :: Maybe T.Text,
@@ -487,6 +492,7 @@ instance FromJSON DebuggerScriptFailedToParse where
     <*> o A..: "endColumn"
     <*> o A..: "executionContextId"
     <*> o A..: "hash"
+    <*> o A..: "buildId"
     <*> o A..:? "executionContextAuxData"
     <*> o A..:? "sourceMapURL"
     <*> o A..:? "hasSourceURL"
@@ -518,7 +524,9 @@ data DebuggerScriptParsed = DebuggerScriptParsed
     debuggerScriptParsedExecutionContextId :: Runtime.RuntimeExecutionContextId,
     -- | Content hash of the script, SHA-256.
     debuggerScriptParsedHash :: T.Text,
-    -- | Embedder-specific auxiliary data.
+    -- | For Wasm modules, the content of the `build_id` custom section. For JavaScript the `debugId` magic comment.
+    debuggerScriptParsedBuildId :: T.Text,
+    -- | Embedder-specific auxiliary data likely matching {isDefault: boolean, type: 'default'|'isolated'|'worker', frameId: string}
     debuggerScriptParsedExecutionContextAuxData :: Maybe [(T.Text, T.Text)],
     -- | True, if this script is generated as a result of the live edit operation.
     debuggerScriptParsedIsLiveEdit :: Maybe Bool,
@@ -536,10 +544,14 @@ data DebuggerScriptParsed = DebuggerScriptParsed
     debuggerScriptParsedCodeOffset :: Maybe Int,
     -- | The language of the script.
     debuggerScriptParsedScriptLanguage :: Maybe DebuggerScriptLanguage,
-    -- | If the scriptLanguage is WebASsembly, the source of debug symbols for the module.
-    debuggerScriptParsedDebugSymbols :: Maybe DebuggerDebugSymbols,
+    -- | If the scriptLanguage is WebAssembly, the source of debug symbols for the module.
+    debuggerScriptParsedDebugSymbols :: Maybe [DebuggerDebugSymbols],
     -- | The name the embedder supplied for this script.
-    debuggerScriptParsedEmbedderName :: Maybe T.Text
+    debuggerScriptParsedEmbedderName :: Maybe T.Text,
+    -- | The list of set breakpoints in this script if calls to `setBreakpointByUrl`
+    --   matches this script's URL or hash. Clients that use this list can ignore the
+    --   `breakpointResolved` event. They are equivalent.
+    debuggerScriptParsedResolvedBreakpoints :: Maybe [DebuggerResolvedBreakpoint]
   }
   deriving (Eq, Show)
 instance FromJSON DebuggerScriptParsed where
@@ -552,6 +564,7 @@ instance FromJSON DebuggerScriptParsed where
     <*> o A..: "endColumn"
     <*> o A..: "executionContextId"
     <*> o A..: "hash"
+    <*> o A..: "buildId"
     <*> o A..:? "executionContextAuxData"
     <*> o A..:? "isLiveEdit"
     <*> o A..:? "sourceMapURL"
@@ -563,6 +576,7 @@ instance FromJSON DebuggerScriptParsed where
     <*> o A..:? "scriptLanguage"
     <*> o A..:? "debugSymbols"
     <*> o A..:? "embedderName"
+    <*> o A..:? "resolvedBreakpoints"
 instance Event DebuggerScriptParsed where
   eventName _ = "Debugger.scriptParsed"
 
@@ -1137,6 +1151,36 @@ instance Command PDebuggerSetAsyncCallStackDepth where
   commandName _ = "Debugger.setAsyncCallStackDepth"
   fromJSON = const . A.Success . const ()
 
+-- | Replace previous blackbox execution contexts with passed ones. Forces backend to skip
+--   stepping/pausing in scripts in these execution contexts. VM will try to leave blackboxed script by
+--   performing 'step in' several times, finally resorting to 'step out' if unsuccessful.
+
+-- | Parameters of the 'Debugger.setBlackboxExecutionContexts' command.
+data PDebuggerSetBlackboxExecutionContexts = PDebuggerSetBlackboxExecutionContexts
+  {
+    -- | Array of execution context unique ids for the debugger to ignore.
+    pDebuggerSetBlackboxExecutionContextsUniqueIds :: [T.Text]
+  }
+  deriving (Eq, Show)
+pDebuggerSetBlackboxExecutionContexts
+  {-
+  -- | Array of execution context unique ids for the debugger to ignore.
+  -}
+  :: [T.Text]
+  -> PDebuggerSetBlackboxExecutionContexts
+pDebuggerSetBlackboxExecutionContexts
+  arg_pDebuggerSetBlackboxExecutionContextsUniqueIds
+  = PDebuggerSetBlackboxExecutionContexts
+    arg_pDebuggerSetBlackboxExecutionContextsUniqueIds
+instance ToJSON PDebuggerSetBlackboxExecutionContexts where
+  toJSON p = A.object $ catMaybes [
+    ("uniqueIds" A..=) <$> Just (pDebuggerSetBlackboxExecutionContextsUniqueIds p)
+    ]
+instance Command PDebuggerSetBlackboxExecutionContexts where
+  type CommandResponse PDebuggerSetBlackboxExecutionContexts = ()
+  commandName _ = "Debugger.setBlackboxExecutionContexts"
+  fromJSON = const . A.Success . const ()
+
 -- | Replace previous blackbox patterns with passed ones. Forces backend to skip stepping/pausing in
 --   scripts with url matching one of the patterns. VM will try to leave blackboxed script by
 --   performing 'step in' several times, finally resorting to 'step out' if unsuccessful.
@@ -1145,7 +1189,9 @@ instance Command PDebuggerSetAsyncCallStackDepth where
 data PDebuggerSetBlackboxPatterns = PDebuggerSetBlackboxPatterns
   {
     -- | Array of regexps that will be used to check script url for blackbox state.
-    pDebuggerSetBlackboxPatternsPatterns :: [T.Text]
+    pDebuggerSetBlackboxPatternsPatterns :: [T.Text],
+    -- | If true, also ignore scripts with no source url.
+    pDebuggerSetBlackboxPatternsSkipAnonymous :: Maybe Bool
   }
   deriving (Eq, Show)
 pDebuggerSetBlackboxPatterns
@@ -1158,9 +1204,11 @@ pDebuggerSetBlackboxPatterns
   arg_pDebuggerSetBlackboxPatternsPatterns
   = PDebuggerSetBlackboxPatterns
     arg_pDebuggerSetBlackboxPatternsPatterns
+    Nothing
 instance ToJSON PDebuggerSetBlackboxPatterns where
   toJSON p = A.object $ catMaybes [
-    ("patterns" A..=) <$> Just (pDebuggerSetBlackboxPatternsPatterns p)
+    ("patterns" A..=) <$> Just (pDebuggerSetBlackboxPatternsPatterns p),
+    ("skipAnonymous" A..=) <$> (pDebuggerSetBlackboxPatternsSkipAnonymous p)
     ]
 instance Command PDebuggerSetBlackboxPatterns where
   type CommandResponse PDebuggerSetBlackboxPatterns = ()
@@ -1429,21 +1477,23 @@ instance Command PDebuggerSetBreakpointsActive where
   commandName _ = "Debugger.setBreakpointsActive"
   fromJSON = const . A.Success . const ()
 
--- | Defines pause on exceptions state. Can be set to stop on all exceptions, uncaught exceptions or
---   no exceptions. Initial pause on exceptions state is `none`.
+-- | Defines pause on exceptions state. Can be set to stop on all exceptions, uncaught exceptions,
+--   or caught exceptions, no exceptions. Initial pause on exceptions state is `none`.
 
 -- | Parameters of the 'Debugger.setPauseOnExceptions' command.
-data PDebuggerSetPauseOnExceptionsState = PDebuggerSetPauseOnExceptionsStateNone | PDebuggerSetPauseOnExceptionsStateUncaught | PDebuggerSetPauseOnExceptionsStateAll
+data PDebuggerSetPauseOnExceptionsState = PDebuggerSetPauseOnExceptionsStateNone | PDebuggerSetPauseOnExceptionsStateCaught | PDebuggerSetPauseOnExceptionsStateUncaught | PDebuggerSetPauseOnExceptionsStateAll
   deriving (Ord, Eq, Show, Read)
 instance FromJSON PDebuggerSetPauseOnExceptionsState where
   parseJSON = A.withText "PDebuggerSetPauseOnExceptionsState" $ \v -> case v of
     "none" -> pure PDebuggerSetPauseOnExceptionsStateNone
+    "caught" -> pure PDebuggerSetPauseOnExceptionsStateCaught
     "uncaught" -> pure PDebuggerSetPauseOnExceptionsStateUncaught
     "all" -> pure PDebuggerSetPauseOnExceptionsStateAll
     "_" -> fail "failed to parse PDebuggerSetPauseOnExceptionsState"
 instance ToJSON PDebuggerSetPauseOnExceptionsState where
   toJSON v = A.String $ case v of
     PDebuggerSetPauseOnExceptionsStateNone -> "none"
+    PDebuggerSetPauseOnExceptionsStateCaught -> "caught"
     PDebuggerSetPauseOnExceptionsStateUncaught -> "uncaught"
     PDebuggerSetPauseOnExceptionsStateAll -> "all"
 data PDebuggerSetPauseOnExceptions = PDebuggerSetPauseOnExceptions
@@ -1547,7 +1597,7 @@ instance ToJSON PDebuggerSetScriptSource where
     ("dryRun" A..=) <$> (pDebuggerSetScriptSourceDryRun p),
     ("allowTopFrameEditing" A..=) <$> (pDebuggerSetScriptSourceAllowTopFrameEditing p)
     ]
-data DebuggerSetScriptSourceStatus = DebuggerSetScriptSourceStatusOk | DebuggerSetScriptSourceStatusCompileError | DebuggerSetScriptSourceStatusBlockedByActiveGenerator | DebuggerSetScriptSourceStatusBlockedByActiveFunction
+data DebuggerSetScriptSourceStatus = DebuggerSetScriptSourceStatusOk | DebuggerSetScriptSourceStatusCompileError | DebuggerSetScriptSourceStatusBlockedByActiveGenerator | DebuggerSetScriptSourceStatusBlockedByActiveFunction | DebuggerSetScriptSourceStatusBlockedByTopLevelEsModuleChange
   deriving (Ord, Eq, Show, Read)
 instance FromJSON DebuggerSetScriptSourceStatus where
   parseJSON = A.withText "DebuggerSetScriptSourceStatus" $ \v -> case v of
@@ -1555,6 +1605,7 @@ instance FromJSON DebuggerSetScriptSourceStatus where
     "CompileError" -> pure DebuggerSetScriptSourceStatusCompileError
     "BlockedByActiveGenerator" -> pure DebuggerSetScriptSourceStatusBlockedByActiveGenerator
     "BlockedByActiveFunction" -> pure DebuggerSetScriptSourceStatusBlockedByActiveFunction
+    "BlockedByTopLevelEsModuleChange" -> pure DebuggerSetScriptSourceStatusBlockedByTopLevelEsModuleChange
     "_" -> fail "failed to parse DebuggerSetScriptSourceStatus"
 instance ToJSON DebuggerSetScriptSourceStatus where
   toJSON v = A.String $ case v of
@@ -1562,6 +1613,7 @@ instance ToJSON DebuggerSetScriptSourceStatus where
     DebuggerSetScriptSourceStatusCompileError -> "CompileError"
     DebuggerSetScriptSourceStatusBlockedByActiveGenerator -> "BlockedByActiveGenerator"
     DebuggerSetScriptSourceStatusBlockedByActiveFunction -> "BlockedByActiveFunction"
+    DebuggerSetScriptSourceStatusBlockedByTopLevelEsModuleChange -> "BlockedByTopLevelEsModuleChange"
 data DebuggerSetScriptSource = DebuggerSetScriptSource
   {
     -- | Whether the operation was successful or not. Only `Ok` denotes a

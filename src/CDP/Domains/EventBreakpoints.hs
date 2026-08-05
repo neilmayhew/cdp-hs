@@ -10,10 +10,9 @@
 {- |
 = EventBreakpoints
 
-EventBreakpoints permits setting breakpoints on particular operations and
-events in targets that run JavaScript but do not have a DOM.
-JavaScript execution will stop on these operations as if there was a regular
-breakpoint set.
+EventBreakpoints permits setting JavaScript breakpoints on operations and events
+occurring in native code invoked from JavaScript. Once breakpoint is hit, it is
+reported through Debugger domain, similarly to regular breakpoints being hit.
 -}
 
 
@@ -105,5 +104,21 @@ instance ToJSON PEventBreakpointsRemoveInstrumentationBreakpoint where
 instance Command PEventBreakpointsRemoveInstrumentationBreakpoint where
   type CommandResponse PEventBreakpointsRemoveInstrumentationBreakpoint = ()
   commandName _ = "EventBreakpoints.removeInstrumentationBreakpoint"
+  fromJSON = const . A.Success . const ()
+
+-- | Removes all breakpoints
+
+-- | Parameters of the 'EventBreakpoints.disable' command.
+data PEventBreakpointsDisable = PEventBreakpointsDisable
+  deriving (Eq, Show)
+pEventBreakpointsDisable
+  :: PEventBreakpointsDisable
+pEventBreakpointsDisable
+  = PEventBreakpointsDisable
+instance ToJSON PEventBreakpointsDisable where
+  toJSON _ = A.Null
+instance Command PEventBreakpointsDisable where
+  type CommandResponse PEventBreakpointsDisable = ()
+  commandName _ = "EventBreakpoints.disable"
   fromJSON = const . A.Success . const ()
 

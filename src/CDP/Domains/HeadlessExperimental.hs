@@ -50,33 +50,39 @@ import CDP.Internal.Utils
 
 -- | Type 'HeadlessExperimental.ScreenshotParams'.
 --   Encoding options for a screenshot.
-data HeadlessExperimentalScreenshotParamsFormat = HeadlessExperimentalScreenshotParamsFormatJpeg | HeadlessExperimentalScreenshotParamsFormatPng
+data HeadlessExperimentalScreenshotParamsFormat = HeadlessExperimentalScreenshotParamsFormatJpeg | HeadlessExperimentalScreenshotParamsFormatPng | HeadlessExperimentalScreenshotParamsFormatWebp
   deriving (Ord, Eq, Show, Read)
 instance FromJSON HeadlessExperimentalScreenshotParamsFormat where
   parseJSON = A.withText "HeadlessExperimentalScreenshotParamsFormat" $ \v -> case v of
     "jpeg" -> pure HeadlessExperimentalScreenshotParamsFormatJpeg
     "png" -> pure HeadlessExperimentalScreenshotParamsFormatPng
+    "webp" -> pure HeadlessExperimentalScreenshotParamsFormatWebp
     "_" -> fail "failed to parse HeadlessExperimentalScreenshotParamsFormat"
 instance ToJSON HeadlessExperimentalScreenshotParamsFormat where
   toJSON v = A.String $ case v of
     HeadlessExperimentalScreenshotParamsFormatJpeg -> "jpeg"
     HeadlessExperimentalScreenshotParamsFormatPng -> "png"
+    HeadlessExperimentalScreenshotParamsFormatWebp -> "webp"
 data HeadlessExperimentalScreenshotParams = HeadlessExperimentalScreenshotParams
   {
     -- | Image compression format (defaults to png).
     headlessExperimentalScreenshotParamsFormat :: Maybe HeadlessExperimentalScreenshotParamsFormat,
-    -- | Compression quality from range [0..100] (jpeg only).
-    headlessExperimentalScreenshotParamsQuality :: Maybe Int
+    -- | Compression quality from range [0..100] (jpeg and webp only).
+    headlessExperimentalScreenshotParamsQuality :: Maybe Int,
+    -- | Optimize image encoding for speed, not for resulting size (defaults to false)
+    headlessExperimentalScreenshotParamsOptimizeForSpeed :: Maybe Bool
   }
   deriving (Eq, Show)
 instance FromJSON HeadlessExperimentalScreenshotParams where
   parseJSON = A.withObject "HeadlessExperimentalScreenshotParams" $ \o -> HeadlessExperimentalScreenshotParams
     <$> o A..:? "format"
     <*> o A..:? "quality"
+    <*> o A..:? "optimizeForSpeed"
 instance ToJSON HeadlessExperimentalScreenshotParams where
   toJSON p = A.object $ catMaybes [
     ("format" A..=) <$> (headlessExperimentalScreenshotParamsFormat p),
-    ("quality" A..=) <$> (headlessExperimentalScreenshotParamsQuality p)
+    ("quality" A..=) <$> (headlessExperimentalScreenshotParamsQuality p),
+    ("optimizeForSpeed" A..=) <$> (headlessExperimentalScreenshotParamsOptimizeForSpeed p)
     ]
 
 -- | Sends a BeginFrame to the target and returns when the frame was completed. Optionally captures a
@@ -134,36 +140,4 @@ instance FromJSON HeadlessExperimentalBeginFrame where
 instance Command PHeadlessExperimentalBeginFrame where
   type CommandResponse PHeadlessExperimentalBeginFrame = HeadlessExperimentalBeginFrame
   commandName _ = "HeadlessExperimental.beginFrame"
-
--- | Disables headless events for the target.
-
--- | Parameters of the 'HeadlessExperimental.disable' command.
-data PHeadlessExperimentalDisable = PHeadlessExperimentalDisable
-  deriving (Eq, Show)
-pHeadlessExperimentalDisable
-  :: PHeadlessExperimentalDisable
-pHeadlessExperimentalDisable
-  = PHeadlessExperimentalDisable
-instance ToJSON PHeadlessExperimentalDisable where
-  toJSON _ = A.Null
-instance Command PHeadlessExperimentalDisable where
-  type CommandResponse PHeadlessExperimentalDisable = ()
-  commandName _ = "HeadlessExperimental.disable"
-  fromJSON = const . A.Success . const ()
-
--- | Enables headless events for the target.
-
--- | Parameters of the 'HeadlessExperimental.enable' command.
-data PHeadlessExperimentalEnable = PHeadlessExperimentalEnable
-  deriving (Eq, Show)
-pHeadlessExperimentalEnable
-  :: PHeadlessExperimentalEnable
-pHeadlessExperimentalEnable
-  = PHeadlessExperimentalEnable
-instance ToJSON PHeadlessExperimentalEnable where
-  toJSON _ = A.Null
-instance Command PHeadlessExperimentalEnable where
-  type CommandResponse PHeadlessExperimentalEnable = ()
-  commandName _ = "HeadlessExperimental.enable"
-  fromJSON = const . A.Success . const ()
 

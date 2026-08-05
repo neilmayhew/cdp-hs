@@ -56,79 +56,124 @@ import CDP.Internal.Utils
 --   Unique script identifier.
 type RuntimeScriptId = T.Text
 
--- | Type 'Runtime.WebDriverValue'.
---   Represents the value serialiazed by the WebDriver BiDi specification
---   https://w3c.github.io/webdriver-bidi.
-data RuntimeWebDriverValueType = RuntimeWebDriverValueTypeUndefined | RuntimeWebDriverValueTypeNull | RuntimeWebDriverValueTypeString | RuntimeWebDriverValueTypeNumber | RuntimeWebDriverValueTypeBoolean | RuntimeWebDriverValueTypeBigint | RuntimeWebDriverValueTypeRegexp | RuntimeWebDriverValueTypeDate | RuntimeWebDriverValueTypeSymbol | RuntimeWebDriverValueTypeArray | RuntimeWebDriverValueTypeObject | RuntimeWebDriverValueTypeFunction | RuntimeWebDriverValueTypeMap | RuntimeWebDriverValueTypeSet | RuntimeWebDriverValueTypeWeakmap | RuntimeWebDriverValueTypeWeakset | RuntimeWebDriverValueTypeError | RuntimeWebDriverValueTypeProxy | RuntimeWebDriverValueTypePromise | RuntimeWebDriverValueTypeTypedarray | RuntimeWebDriverValueTypeArraybuffer | RuntimeWebDriverValueTypeNode | RuntimeWebDriverValueTypeWindow
+-- | Type 'Runtime.SerializationOptions'.
+--   Represents options for serialization. Overrides `generatePreview` and `returnByValue`.
+data RuntimeSerializationOptionsSerialization = RuntimeSerializationOptionsSerializationDeep | RuntimeSerializationOptionsSerializationJson | RuntimeSerializationOptionsSerializationIdOnly
   deriving (Ord, Eq, Show, Read)
-instance FromJSON RuntimeWebDriverValueType where
-  parseJSON = A.withText "RuntimeWebDriverValueType" $ \v -> case v of
-    "undefined" -> pure RuntimeWebDriverValueTypeUndefined
-    "null" -> pure RuntimeWebDriverValueTypeNull
-    "string" -> pure RuntimeWebDriverValueTypeString
-    "number" -> pure RuntimeWebDriverValueTypeNumber
-    "boolean" -> pure RuntimeWebDriverValueTypeBoolean
-    "bigint" -> pure RuntimeWebDriverValueTypeBigint
-    "regexp" -> pure RuntimeWebDriverValueTypeRegexp
-    "date" -> pure RuntimeWebDriverValueTypeDate
-    "symbol" -> pure RuntimeWebDriverValueTypeSymbol
-    "array" -> pure RuntimeWebDriverValueTypeArray
-    "object" -> pure RuntimeWebDriverValueTypeObject
-    "function" -> pure RuntimeWebDriverValueTypeFunction
-    "map" -> pure RuntimeWebDriverValueTypeMap
-    "set" -> pure RuntimeWebDriverValueTypeSet
-    "weakmap" -> pure RuntimeWebDriverValueTypeWeakmap
-    "weakset" -> pure RuntimeWebDriverValueTypeWeakset
-    "error" -> pure RuntimeWebDriverValueTypeError
-    "proxy" -> pure RuntimeWebDriverValueTypeProxy
-    "promise" -> pure RuntimeWebDriverValueTypePromise
-    "typedarray" -> pure RuntimeWebDriverValueTypeTypedarray
-    "arraybuffer" -> pure RuntimeWebDriverValueTypeArraybuffer
-    "node" -> pure RuntimeWebDriverValueTypeNode
-    "window" -> pure RuntimeWebDriverValueTypeWindow
-    "_" -> fail "failed to parse RuntimeWebDriverValueType"
-instance ToJSON RuntimeWebDriverValueType where
+instance FromJSON RuntimeSerializationOptionsSerialization where
+  parseJSON = A.withText "RuntimeSerializationOptionsSerialization" $ \v -> case v of
+    "deep" -> pure RuntimeSerializationOptionsSerializationDeep
+    "json" -> pure RuntimeSerializationOptionsSerializationJson
+    "idOnly" -> pure RuntimeSerializationOptionsSerializationIdOnly
+    "_" -> fail "failed to parse RuntimeSerializationOptionsSerialization"
+instance ToJSON RuntimeSerializationOptionsSerialization where
   toJSON v = A.String $ case v of
-    RuntimeWebDriverValueTypeUndefined -> "undefined"
-    RuntimeWebDriverValueTypeNull -> "null"
-    RuntimeWebDriverValueTypeString -> "string"
-    RuntimeWebDriverValueTypeNumber -> "number"
-    RuntimeWebDriverValueTypeBoolean -> "boolean"
-    RuntimeWebDriverValueTypeBigint -> "bigint"
-    RuntimeWebDriverValueTypeRegexp -> "regexp"
-    RuntimeWebDriverValueTypeDate -> "date"
-    RuntimeWebDriverValueTypeSymbol -> "symbol"
-    RuntimeWebDriverValueTypeArray -> "array"
-    RuntimeWebDriverValueTypeObject -> "object"
-    RuntimeWebDriverValueTypeFunction -> "function"
-    RuntimeWebDriverValueTypeMap -> "map"
-    RuntimeWebDriverValueTypeSet -> "set"
-    RuntimeWebDriverValueTypeWeakmap -> "weakmap"
-    RuntimeWebDriverValueTypeWeakset -> "weakset"
-    RuntimeWebDriverValueTypeError -> "error"
-    RuntimeWebDriverValueTypeProxy -> "proxy"
-    RuntimeWebDriverValueTypePromise -> "promise"
-    RuntimeWebDriverValueTypeTypedarray -> "typedarray"
-    RuntimeWebDriverValueTypeArraybuffer -> "arraybuffer"
-    RuntimeWebDriverValueTypeNode -> "node"
-    RuntimeWebDriverValueTypeWindow -> "window"
-data RuntimeWebDriverValue = RuntimeWebDriverValue
+    RuntimeSerializationOptionsSerializationDeep -> "deep"
+    RuntimeSerializationOptionsSerializationJson -> "json"
+    RuntimeSerializationOptionsSerializationIdOnly -> "idOnly"
+data RuntimeSerializationOptions = RuntimeSerializationOptions
   {
-    runtimeWebDriverValueType :: RuntimeWebDriverValueType,
-    runtimeWebDriverValueValue :: Maybe A.Value,
-    runtimeWebDriverValueObjectId :: Maybe T.Text
+    runtimeSerializationOptionsSerialization :: RuntimeSerializationOptionsSerialization,
+    -- | Deep serialization depth. Default is full depth. Respected only in `deep` serialization mode.
+    runtimeSerializationOptionsMaxDepth :: Maybe Int,
+    -- | Embedder-specific parameters. For example if connected to V8 in Chrome these control DOM
+    --   serialization via `maxNodeDepth: integer` and `includeShadowTree: "none" | "open" | "all"`.
+    --   Values can be only of type string or integer.
+    runtimeSerializationOptionsAdditionalParameters :: Maybe [(T.Text, T.Text)]
   }
   deriving (Eq, Show)
-instance FromJSON RuntimeWebDriverValue where
-  parseJSON = A.withObject "RuntimeWebDriverValue" $ \o -> RuntimeWebDriverValue
+instance FromJSON RuntimeSerializationOptions where
+  parseJSON = A.withObject "RuntimeSerializationOptions" $ \o -> RuntimeSerializationOptions
+    <$> o A..: "serialization"
+    <*> o A..:? "maxDepth"
+    <*> o A..:? "additionalParameters"
+instance ToJSON RuntimeSerializationOptions where
+  toJSON p = A.object $ catMaybes [
+    ("serialization" A..=) <$> Just (runtimeSerializationOptionsSerialization p),
+    ("maxDepth" A..=) <$> (runtimeSerializationOptionsMaxDepth p),
+    ("additionalParameters" A..=) <$> (runtimeSerializationOptionsAdditionalParameters p)
+    ]
+
+-- | Type 'Runtime.DeepSerializedValue'.
+--   Represents deep serialized value.
+data RuntimeDeepSerializedValueType = RuntimeDeepSerializedValueTypeUndefined | RuntimeDeepSerializedValueTypeNull | RuntimeDeepSerializedValueTypeString | RuntimeDeepSerializedValueTypeNumber | RuntimeDeepSerializedValueTypeBoolean | RuntimeDeepSerializedValueTypeBigint | RuntimeDeepSerializedValueTypeRegexp | RuntimeDeepSerializedValueTypeDate | RuntimeDeepSerializedValueTypeSymbol | RuntimeDeepSerializedValueTypeArray | RuntimeDeepSerializedValueTypeObject | RuntimeDeepSerializedValueTypeFunction | RuntimeDeepSerializedValueTypeMap | RuntimeDeepSerializedValueTypeSet | RuntimeDeepSerializedValueTypeWeakmap | RuntimeDeepSerializedValueTypeWeakset | RuntimeDeepSerializedValueTypeError | RuntimeDeepSerializedValueTypeProxy | RuntimeDeepSerializedValueTypePromise | RuntimeDeepSerializedValueTypeTypedarray | RuntimeDeepSerializedValueTypeArraybuffer | RuntimeDeepSerializedValueTypeNode | RuntimeDeepSerializedValueTypeWindow | RuntimeDeepSerializedValueTypeGenerator
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON RuntimeDeepSerializedValueType where
+  parseJSON = A.withText "RuntimeDeepSerializedValueType" $ \v -> case v of
+    "undefined" -> pure RuntimeDeepSerializedValueTypeUndefined
+    "null" -> pure RuntimeDeepSerializedValueTypeNull
+    "string" -> pure RuntimeDeepSerializedValueTypeString
+    "number" -> pure RuntimeDeepSerializedValueTypeNumber
+    "boolean" -> pure RuntimeDeepSerializedValueTypeBoolean
+    "bigint" -> pure RuntimeDeepSerializedValueTypeBigint
+    "regexp" -> pure RuntimeDeepSerializedValueTypeRegexp
+    "date" -> pure RuntimeDeepSerializedValueTypeDate
+    "symbol" -> pure RuntimeDeepSerializedValueTypeSymbol
+    "array" -> pure RuntimeDeepSerializedValueTypeArray
+    "object" -> pure RuntimeDeepSerializedValueTypeObject
+    "function" -> pure RuntimeDeepSerializedValueTypeFunction
+    "map" -> pure RuntimeDeepSerializedValueTypeMap
+    "set" -> pure RuntimeDeepSerializedValueTypeSet
+    "weakmap" -> pure RuntimeDeepSerializedValueTypeWeakmap
+    "weakset" -> pure RuntimeDeepSerializedValueTypeWeakset
+    "error" -> pure RuntimeDeepSerializedValueTypeError
+    "proxy" -> pure RuntimeDeepSerializedValueTypeProxy
+    "promise" -> pure RuntimeDeepSerializedValueTypePromise
+    "typedarray" -> pure RuntimeDeepSerializedValueTypeTypedarray
+    "arraybuffer" -> pure RuntimeDeepSerializedValueTypeArraybuffer
+    "node" -> pure RuntimeDeepSerializedValueTypeNode
+    "window" -> pure RuntimeDeepSerializedValueTypeWindow
+    "generator" -> pure RuntimeDeepSerializedValueTypeGenerator
+    "_" -> fail "failed to parse RuntimeDeepSerializedValueType"
+instance ToJSON RuntimeDeepSerializedValueType where
+  toJSON v = A.String $ case v of
+    RuntimeDeepSerializedValueTypeUndefined -> "undefined"
+    RuntimeDeepSerializedValueTypeNull -> "null"
+    RuntimeDeepSerializedValueTypeString -> "string"
+    RuntimeDeepSerializedValueTypeNumber -> "number"
+    RuntimeDeepSerializedValueTypeBoolean -> "boolean"
+    RuntimeDeepSerializedValueTypeBigint -> "bigint"
+    RuntimeDeepSerializedValueTypeRegexp -> "regexp"
+    RuntimeDeepSerializedValueTypeDate -> "date"
+    RuntimeDeepSerializedValueTypeSymbol -> "symbol"
+    RuntimeDeepSerializedValueTypeArray -> "array"
+    RuntimeDeepSerializedValueTypeObject -> "object"
+    RuntimeDeepSerializedValueTypeFunction -> "function"
+    RuntimeDeepSerializedValueTypeMap -> "map"
+    RuntimeDeepSerializedValueTypeSet -> "set"
+    RuntimeDeepSerializedValueTypeWeakmap -> "weakmap"
+    RuntimeDeepSerializedValueTypeWeakset -> "weakset"
+    RuntimeDeepSerializedValueTypeError -> "error"
+    RuntimeDeepSerializedValueTypeProxy -> "proxy"
+    RuntimeDeepSerializedValueTypePromise -> "promise"
+    RuntimeDeepSerializedValueTypeTypedarray -> "typedarray"
+    RuntimeDeepSerializedValueTypeArraybuffer -> "arraybuffer"
+    RuntimeDeepSerializedValueTypeNode -> "node"
+    RuntimeDeepSerializedValueTypeWindow -> "window"
+    RuntimeDeepSerializedValueTypeGenerator -> "generator"
+data RuntimeDeepSerializedValue = RuntimeDeepSerializedValue
+  {
+    runtimeDeepSerializedValueType :: RuntimeDeepSerializedValueType,
+    runtimeDeepSerializedValueValue :: Maybe A.Value,
+    runtimeDeepSerializedValueObjectId :: Maybe T.Text,
+    -- | Set if value reference met more then once during serialization. In such
+    --   case, value is provided only to one of the serialized values. Unique
+    --   per value in the scope of one CDP call.
+    runtimeDeepSerializedValueWeakLocalObjectReference :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON RuntimeDeepSerializedValue where
+  parseJSON = A.withObject "RuntimeDeepSerializedValue" $ \o -> RuntimeDeepSerializedValue
     <$> o A..: "type"
     <*> o A..:? "value"
     <*> o A..:? "objectId"
-instance ToJSON RuntimeWebDriverValue where
+    <*> o A..:? "weakLocalObjectReference"
+instance ToJSON RuntimeDeepSerializedValue where
   toJSON p = A.object $ catMaybes [
-    ("type" A..=) <$> Just (runtimeWebDriverValueType p),
-    ("value" A..=) <$> (runtimeWebDriverValueValue p),
-    ("objectId" A..=) <$> (runtimeWebDriverValueObjectId p)
+    ("type" A..=) <$> Just (runtimeDeepSerializedValueType p),
+    ("value" A..=) <$> (runtimeDeepSerializedValueValue p),
+    ("objectId" A..=) <$> (runtimeDeepSerializedValueObjectId p),
+    ("weakLocalObjectReference" A..=) <$> (runtimeDeepSerializedValueWeakLocalObjectReference p)
     ]
 
 -- | Type 'Runtime.RemoteObjectId'.
@@ -165,7 +210,7 @@ instance ToJSON RuntimeRemoteObjectType where
     RuntimeRemoteObjectTypeBoolean -> "boolean"
     RuntimeRemoteObjectTypeSymbol -> "symbol"
     RuntimeRemoteObjectTypeBigint -> "bigint"
-data RuntimeRemoteObjectSubtype = RuntimeRemoteObjectSubtypeArray | RuntimeRemoteObjectSubtypeNull | RuntimeRemoteObjectSubtypeNode | RuntimeRemoteObjectSubtypeRegexp | RuntimeRemoteObjectSubtypeDate | RuntimeRemoteObjectSubtypeMap | RuntimeRemoteObjectSubtypeSet | RuntimeRemoteObjectSubtypeWeakmap | RuntimeRemoteObjectSubtypeWeakset | RuntimeRemoteObjectSubtypeIterator | RuntimeRemoteObjectSubtypeGenerator | RuntimeRemoteObjectSubtypeError | RuntimeRemoteObjectSubtypeProxy | RuntimeRemoteObjectSubtypePromise | RuntimeRemoteObjectSubtypeTypedarray | RuntimeRemoteObjectSubtypeArraybuffer | RuntimeRemoteObjectSubtypeDataview | RuntimeRemoteObjectSubtypeWebassemblymemory | RuntimeRemoteObjectSubtypeWasmvalue
+data RuntimeRemoteObjectSubtype = RuntimeRemoteObjectSubtypeArray | RuntimeRemoteObjectSubtypeNull | RuntimeRemoteObjectSubtypeNode | RuntimeRemoteObjectSubtypeRegexp | RuntimeRemoteObjectSubtypeDate | RuntimeRemoteObjectSubtypeMap | RuntimeRemoteObjectSubtypeSet | RuntimeRemoteObjectSubtypeWeakmap | RuntimeRemoteObjectSubtypeWeakset | RuntimeRemoteObjectSubtypeIterator | RuntimeRemoteObjectSubtypeGenerator | RuntimeRemoteObjectSubtypeError | RuntimeRemoteObjectSubtypeProxy | RuntimeRemoteObjectSubtypePromise | RuntimeRemoteObjectSubtypeTypedarray | RuntimeRemoteObjectSubtypeArraybuffer | RuntimeRemoteObjectSubtypeDataview | RuntimeRemoteObjectSubtypeWebassemblymemory | RuntimeRemoteObjectSubtypeWasmvalue | RuntimeRemoteObjectSubtypeTrustedtype
   deriving (Ord, Eq, Show, Read)
 instance FromJSON RuntimeRemoteObjectSubtype where
   parseJSON = A.withText "RuntimeRemoteObjectSubtype" $ \v -> case v of
@@ -188,6 +233,7 @@ instance FromJSON RuntimeRemoteObjectSubtype where
     "dataview" -> pure RuntimeRemoteObjectSubtypeDataview
     "webassemblymemory" -> pure RuntimeRemoteObjectSubtypeWebassemblymemory
     "wasmvalue" -> pure RuntimeRemoteObjectSubtypeWasmvalue
+    "trustedtype" -> pure RuntimeRemoteObjectSubtypeTrustedtype
     "_" -> fail "failed to parse RuntimeRemoteObjectSubtype"
 instance ToJSON RuntimeRemoteObjectSubtype where
   toJSON v = A.String $ case v of
@@ -210,6 +256,7 @@ instance ToJSON RuntimeRemoteObjectSubtype where
     RuntimeRemoteObjectSubtypeDataview -> "dataview"
     RuntimeRemoteObjectSubtypeWebassemblymemory -> "webassemblymemory"
     RuntimeRemoteObjectSubtypeWasmvalue -> "wasmvalue"
+    RuntimeRemoteObjectSubtypeTrustedtype -> "trustedtype"
 data RuntimeRemoteObject = RuntimeRemoteObject
   {
     -- | Object type.
@@ -227,8 +274,8 @@ data RuntimeRemoteObject = RuntimeRemoteObject
     runtimeRemoteObjectUnserializableValue :: Maybe RuntimeUnserializableValue,
     -- | String representation of the object.
     runtimeRemoteObjectDescription :: Maybe T.Text,
-    -- | WebDriver BiDi representation of the value.
-    runtimeRemoteObjectWebDriverValue :: Maybe RuntimeWebDriverValue,
+    -- | Deep serialized value.
+    runtimeRemoteObjectDeepSerializedValue :: Maybe RuntimeDeepSerializedValue,
     -- | Unique object identifier (for non-primitive values).
     runtimeRemoteObjectObjectId :: Maybe RuntimeRemoteObjectId,
     -- | Preview containing abbreviated property values. Specified for `object` type values only.
@@ -244,7 +291,7 @@ instance FromJSON RuntimeRemoteObject where
     <*> o A..:? "value"
     <*> o A..:? "unserializableValue"
     <*> o A..:? "description"
-    <*> o A..:? "webDriverValue"
+    <*> o A..:? "deepSerializedValue"
     <*> o A..:? "objectId"
     <*> o A..:? "preview"
     <*> o A..:? "customPreview"
@@ -256,7 +303,7 @@ instance ToJSON RuntimeRemoteObject where
     ("value" A..=) <$> (runtimeRemoteObjectValue p),
     ("unserializableValue" A..=) <$> (runtimeRemoteObjectUnserializableValue p),
     ("description" A..=) <$> (runtimeRemoteObjectDescription p),
-    ("webDriverValue" A..=) <$> (runtimeRemoteObjectWebDriverValue p),
+    ("deepSerializedValue" A..=) <$> (runtimeRemoteObjectDeepSerializedValue p),
     ("objectId" A..=) <$> (runtimeRemoteObjectObjectId p),
     ("preview" A..=) <$> (runtimeRemoteObjectPreview p),
     ("customPreview" A..=) <$> (runtimeRemoteObjectCustomPreview p)
@@ -309,7 +356,7 @@ instance ToJSON RuntimeObjectPreviewType where
     RuntimeObjectPreviewTypeBoolean -> "boolean"
     RuntimeObjectPreviewTypeSymbol -> "symbol"
     RuntimeObjectPreviewTypeBigint -> "bigint"
-data RuntimeObjectPreviewSubtype = RuntimeObjectPreviewSubtypeArray | RuntimeObjectPreviewSubtypeNull | RuntimeObjectPreviewSubtypeNode | RuntimeObjectPreviewSubtypeRegexp | RuntimeObjectPreviewSubtypeDate | RuntimeObjectPreviewSubtypeMap | RuntimeObjectPreviewSubtypeSet | RuntimeObjectPreviewSubtypeWeakmap | RuntimeObjectPreviewSubtypeWeakset | RuntimeObjectPreviewSubtypeIterator | RuntimeObjectPreviewSubtypeGenerator | RuntimeObjectPreviewSubtypeError | RuntimeObjectPreviewSubtypeProxy | RuntimeObjectPreviewSubtypePromise | RuntimeObjectPreviewSubtypeTypedarray | RuntimeObjectPreviewSubtypeArraybuffer | RuntimeObjectPreviewSubtypeDataview | RuntimeObjectPreviewSubtypeWebassemblymemory | RuntimeObjectPreviewSubtypeWasmvalue
+data RuntimeObjectPreviewSubtype = RuntimeObjectPreviewSubtypeArray | RuntimeObjectPreviewSubtypeNull | RuntimeObjectPreviewSubtypeNode | RuntimeObjectPreviewSubtypeRegexp | RuntimeObjectPreviewSubtypeDate | RuntimeObjectPreviewSubtypeMap | RuntimeObjectPreviewSubtypeSet | RuntimeObjectPreviewSubtypeWeakmap | RuntimeObjectPreviewSubtypeWeakset | RuntimeObjectPreviewSubtypeIterator | RuntimeObjectPreviewSubtypeGenerator | RuntimeObjectPreviewSubtypeError | RuntimeObjectPreviewSubtypeProxy | RuntimeObjectPreviewSubtypePromise | RuntimeObjectPreviewSubtypeTypedarray | RuntimeObjectPreviewSubtypeArraybuffer | RuntimeObjectPreviewSubtypeDataview | RuntimeObjectPreviewSubtypeWebassemblymemory | RuntimeObjectPreviewSubtypeWasmvalue | RuntimeObjectPreviewSubtypeTrustedtype
   deriving (Ord, Eq, Show, Read)
 instance FromJSON RuntimeObjectPreviewSubtype where
   parseJSON = A.withText "RuntimeObjectPreviewSubtype" $ \v -> case v of
@@ -332,6 +379,7 @@ instance FromJSON RuntimeObjectPreviewSubtype where
     "dataview" -> pure RuntimeObjectPreviewSubtypeDataview
     "webassemblymemory" -> pure RuntimeObjectPreviewSubtypeWebassemblymemory
     "wasmvalue" -> pure RuntimeObjectPreviewSubtypeWasmvalue
+    "trustedtype" -> pure RuntimeObjectPreviewSubtypeTrustedtype
     "_" -> fail "failed to parse RuntimeObjectPreviewSubtype"
 instance ToJSON RuntimeObjectPreviewSubtype where
   toJSON v = A.String $ case v of
@@ -354,6 +402,7 @@ instance ToJSON RuntimeObjectPreviewSubtype where
     RuntimeObjectPreviewSubtypeDataview -> "dataview"
     RuntimeObjectPreviewSubtypeWebassemblymemory -> "webassemblymemory"
     RuntimeObjectPreviewSubtypeWasmvalue -> "wasmvalue"
+    RuntimeObjectPreviewSubtypeTrustedtype -> "trustedtype"
 data RuntimeObjectPreview = RuntimeObjectPreview
   {
     -- | Object type.
@@ -414,7 +463,7 @@ instance ToJSON RuntimePropertyPreviewType where
     RuntimePropertyPreviewTypeSymbol -> "symbol"
     RuntimePropertyPreviewTypeAccessor -> "accessor"
     RuntimePropertyPreviewTypeBigint -> "bigint"
-data RuntimePropertyPreviewSubtype = RuntimePropertyPreviewSubtypeArray | RuntimePropertyPreviewSubtypeNull | RuntimePropertyPreviewSubtypeNode | RuntimePropertyPreviewSubtypeRegexp | RuntimePropertyPreviewSubtypeDate | RuntimePropertyPreviewSubtypeMap | RuntimePropertyPreviewSubtypeSet | RuntimePropertyPreviewSubtypeWeakmap | RuntimePropertyPreviewSubtypeWeakset | RuntimePropertyPreviewSubtypeIterator | RuntimePropertyPreviewSubtypeGenerator | RuntimePropertyPreviewSubtypeError | RuntimePropertyPreviewSubtypeProxy | RuntimePropertyPreviewSubtypePromise | RuntimePropertyPreviewSubtypeTypedarray | RuntimePropertyPreviewSubtypeArraybuffer | RuntimePropertyPreviewSubtypeDataview | RuntimePropertyPreviewSubtypeWebassemblymemory | RuntimePropertyPreviewSubtypeWasmvalue
+data RuntimePropertyPreviewSubtype = RuntimePropertyPreviewSubtypeArray | RuntimePropertyPreviewSubtypeNull | RuntimePropertyPreviewSubtypeNode | RuntimePropertyPreviewSubtypeRegexp | RuntimePropertyPreviewSubtypeDate | RuntimePropertyPreviewSubtypeMap | RuntimePropertyPreviewSubtypeSet | RuntimePropertyPreviewSubtypeWeakmap | RuntimePropertyPreviewSubtypeWeakset | RuntimePropertyPreviewSubtypeIterator | RuntimePropertyPreviewSubtypeGenerator | RuntimePropertyPreviewSubtypeError | RuntimePropertyPreviewSubtypeProxy | RuntimePropertyPreviewSubtypePromise | RuntimePropertyPreviewSubtypeTypedarray | RuntimePropertyPreviewSubtypeArraybuffer | RuntimePropertyPreviewSubtypeDataview | RuntimePropertyPreviewSubtypeWebassemblymemory | RuntimePropertyPreviewSubtypeWasmvalue | RuntimePropertyPreviewSubtypeTrustedtype
   deriving (Ord, Eq, Show, Read)
 instance FromJSON RuntimePropertyPreviewSubtype where
   parseJSON = A.withText "RuntimePropertyPreviewSubtype" $ \v -> case v of
@@ -437,6 +486,7 @@ instance FromJSON RuntimePropertyPreviewSubtype where
     "dataview" -> pure RuntimePropertyPreviewSubtypeDataview
     "webassemblymemory" -> pure RuntimePropertyPreviewSubtypeWebassemblymemory
     "wasmvalue" -> pure RuntimePropertyPreviewSubtypeWasmvalue
+    "trustedtype" -> pure RuntimePropertyPreviewSubtypeTrustedtype
     "_" -> fail "failed to parse RuntimePropertyPreviewSubtype"
 instance ToJSON RuntimePropertyPreviewSubtype where
   toJSON v = A.String $ case v of
@@ -459,6 +509,7 @@ instance ToJSON RuntimePropertyPreviewSubtype where
     RuntimePropertyPreviewSubtypeDataview -> "dataview"
     RuntimePropertyPreviewSubtypeWebassemblymemory -> "webassemblymemory"
     RuntimePropertyPreviewSubtypeWasmvalue -> "wasmvalue"
+    RuntimePropertyPreviewSubtypeTrustedtype -> "trustedtype"
 data RuntimePropertyPreview = RuntimePropertyPreview
   {
     -- | Property name.
@@ -658,7 +709,7 @@ data RuntimeExecutionContextDescription = RuntimeExecutionContextDescription
     --   multiple processes, so can be reliably used to identify specific context while backend
     --   performs a cross-process navigation.
     runtimeExecutionContextDescriptionUniqueId :: T.Text,
-    -- | Embedder-specific auxiliary data.
+    -- | Embedder-specific auxiliary data likely matching {isDefault: boolean, type: 'default'|'isolated'|'worker', frameId: string}
     runtimeExecutionContextDescriptionAuxData :: Maybe [(T.Text, T.Text)]
   }
   deriving (Eq, Show)
@@ -964,13 +1015,13 @@ instance Event RuntimeExecutionContextCreated where
 -- | Type of the 'Runtime.executionContextDestroyed' event.
 data RuntimeExecutionContextDestroyed = RuntimeExecutionContextDestroyed
   {
-    -- | Id of the destroyed context
-    runtimeExecutionContextDestroyedExecutionContextId :: RuntimeExecutionContextId
+    -- | Unique Id of the destroyed context
+    runtimeExecutionContextDestroyedExecutionContextUniqueId :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON RuntimeExecutionContextDestroyed where
   parseJSON = A.withObject "RuntimeExecutionContextDestroyed" $ \o -> RuntimeExecutionContextDestroyed
-    <$> o A..: "executionContextId"
+    <$> o A..: "executionContextUniqueId"
 instance Event RuntimeExecutionContextDestroyed where
   eventName _ = "Runtime.executionContextDestroyed"
 
@@ -1064,6 +1115,7 @@ data PRuntimeCallFunctionOn = PRuntimeCallFunctionOn
     --   execution. Overrides `setPauseOnException` state.
     pRuntimeCallFunctionOnSilent :: Maybe Bool,
     -- | Whether the result is expected to be a JSON object which should be sent by value.
+    --   Can be overriden by `serializationOptions`.
     pRuntimeCallFunctionOnReturnByValue :: Maybe Bool,
     -- | Whether preview should be generated for the result.
     pRuntimeCallFunctionOnGeneratePreview :: Maybe Bool,
@@ -1080,10 +1132,16 @@ data PRuntimeCallFunctionOn = PRuntimeCallFunctionOn
     pRuntimeCallFunctionOnObjectGroup :: Maybe T.Text,
     -- | Whether to throw an exception if side effect cannot be ruled out during evaluation.
     pRuntimeCallFunctionOnThrowOnSideEffect :: Maybe Bool,
-    -- | Whether the result should contain `webDriverValue`, serialized according to
-    --   https://w3c.github.io/webdriver-bidi. This is mutually exclusive with `returnByValue`, but
-    --   resulting `objectId` is still provided.
-    pRuntimeCallFunctionOnGenerateWebDriverValue :: Maybe Bool
+    -- | An alternative way to specify the execution context to call function on.
+    --   Compared to contextId that may be reused across processes, this is guaranteed to be
+    --   system-unique, so it can be used to prevent accidental function call
+    --   in context different than intended (e.g. as a result of navigation across process
+    --   boundaries).
+    --   This is mutually exclusive with `executionContextId`.
+    pRuntimeCallFunctionOnUniqueContextId :: Maybe T.Text,
+    -- | Specifies the result serialization. If provided, overrides
+    --   `generatePreview` and `returnByValue`.
+    pRuntimeCallFunctionOnSerializationOptions :: Maybe RuntimeSerializationOptions
   }
   deriving (Eq, Show)
 pRuntimeCallFunctionOn
@@ -1096,6 +1154,7 @@ pRuntimeCallFunctionOn
   arg_pRuntimeCallFunctionOnFunctionDeclaration
   = PRuntimeCallFunctionOn
     arg_pRuntimeCallFunctionOnFunctionDeclaration
+    Nothing
     Nothing
     Nothing
     Nothing
@@ -1120,7 +1179,8 @@ instance ToJSON PRuntimeCallFunctionOn where
     ("executionContextId" A..=) <$> (pRuntimeCallFunctionOnExecutionContextId p),
     ("objectGroup" A..=) <$> (pRuntimeCallFunctionOnObjectGroup p),
     ("throwOnSideEffect" A..=) <$> (pRuntimeCallFunctionOnThrowOnSideEffect p),
-    ("generateWebDriverValue" A..=) <$> (pRuntimeCallFunctionOnGenerateWebDriverValue p)
+    ("uniqueContextId" A..=) <$> (pRuntimeCallFunctionOnUniqueContextId p),
+    ("serializationOptions" A..=) <$> (pRuntimeCallFunctionOnSerializationOptions p)
     ]
 data RuntimeCallFunctionOn = RuntimeCallFunctionOn
   {
@@ -1302,8 +1362,9 @@ data PRuntimeEvaluate = PRuntimeEvaluate
     --   boundaries).
     --   This is mutually exclusive with `contextId`.
     pRuntimeEvaluateUniqueContextId :: Maybe T.Text,
-    -- | Whether the result should be serialized according to https://w3c.github.io/webdriver-bidi.
-    pRuntimeEvaluateGenerateWebDriverValue :: Maybe Bool
+    -- | Specifies the result serialization. If provided, overrides
+    --   `generatePreview` and `returnByValue`.
+    pRuntimeEvaluateSerializationOptions :: Maybe RuntimeSerializationOptions
   }
   deriving (Eq, Show)
 pRuntimeEvaluate
@@ -1348,7 +1409,7 @@ instance ToJSON PRuntimeEvaluate where
     ("replMode" A..=) <$> (pRuntimeEvaluateReplMode p),
     ("allowUnsafeEvalBlockedByCSP" A..=) <$> (pRuntimeEvaluateAllowUnsafeEvalBlockedByCSP p),
     ("uniqueContextId" A..=) <$> (pRuntimeEvaluateUniqueContextId p),
-    ("generateWebDriverValue" A..=) <$> (pRuntimeEvaluateGenerateWebDriverValue p)
+    ("serializationOptions" A..=) <$> (pRuntimeEvaluateSerializationOptions p)
     ]
 data RuntimeEvaluate = RuntimeEvaluate
   {
@@ -1404,16 +1465,22 @@ instance ToJSON PRuntimeGetHeapUsage where
   toJSON _ = A.Null
 data RuntimeGetHeapUsage = RuntimeGetHeapUsage
   {
-    -- | Used heap size in bytes.
+    -- | Used JavaScript heap size in bytes.
     runtimeGetHeapUsageUsedSize :: Double,
-    -- | Allocated heap size in bytes.
-    runtimeGetHeapUsageTotalSize :: Double
+    -- | Allocated JavaScript heap size in bytes.
+    runtimeGetHeapUsageTotalSize :: Double,
+    -- | Used size in bytes in the embedder's garbage-collected heap.
+    runtimeGetHeapUsageEmbedderHeapUsedSize :: Double,
+    -- | Size in bytes of backing storage for array buffers and external strings.
+    runtimeGetHeapUsageBackingStorageSize :: Double
   }
   deriving (Eq, Show)
 instance FromJSON RuntimeGetHeapUsage where
   parseJSON = A.withObject "RuntimeGetHeapUsage" $ \o -> RuntimeGetHeapUsage
     <$> o A..: "usedSize"
     <*> o A..: "totalSize"
+    <*> o A..: "embedderHeapUsedSize"
+    <*> o A..: "backingStorageSize"
 instance Command PRuntimeGetHeapUsage where
   type CommandResponse PRuntimeGetHeapUsage = RuntimeGetHeapUsage
   commandName _ = "Runtime.getHeapUsage"

@@ -47,7 +47,7 @@ import CDP.Internal.Utils
 
 
 import CDP.Domains.DOMDebugger as DOMDebugger
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
 
 -- | Type 'DOMSnapshot.DOMNode'.
@@ -69,7 +69,7 @@ data DOMSnapshotDOMNode = DOMSnapshotDOMNode
     -- | Only set for option elements, indicates if the element has been selected
     dOMSnapshotDOMNodeOptionSelected :: Maybe Bool,
     -- | `Node`'s id, corresponds to DOM.Node.backendNodeId.
-    dOMSnapshotDOMNodeBackendNodeId :: DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    dOMSnapshotDOMNodeBackendNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | The indexes of the node's child nodes in the `domNodes` array returned by `getSnapshot`, if
     --   any.
     dOMSnapshotDOMNodeChildNodeIndexes :: Maybe [Int],
@@ -94,14 +94,14 @@ data DOMSnapshotDOMNode = DOMSnapshotDOMNode
     -- | `DocumentType` node's systemId.
     dOMSnapshotDOMNodeSystemId :: Maybe T.Text,
     -- | Frame ID for frame owner elements and also for the document node.
-    dOMSnapshotDOMNodeFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId,
+    dOMSnapshotDOMNodeFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId,
     -- | The index of a frame owner element's content document in the `domNodes` array returned by
     --   `getSnapshot`, if any.
     dOMSnapshotDOMNodeContentDocumentIndex :: Maybe Int,
     -- | Type of a pseudo element node.
-    dOMSnapshotDOMNodePseudoType :: Maybe DOMPageNetworkEmulationSecurity.DOMPseudoType,
+    dOMSnapshotDOMNodePseudoType :: Maybe DOMNetworkEmulationPageSecurity.DOMPseudoType,
     -- | Shadow root type.
-    dOMSnapshotDOMNodeShadowRootType :: Maybe DOMPageNetworkEmulationSecurity.DOMShadowRootType,
+    dOMSnapshotDOMNodeShadowRootType :: Maybe DOMNetworkEmulationPageSecurity.DOMShadowRootType,
     -- | Whether this DOM node responds to mouse clicks. This includes nodes that have had click
     --   event listeners attached via JavaScript as well as anchor tags that naturally navigate when
     --   clicked.
@@ -185,7 +185,7 @@ instance ToJSON DOMSnapshotDOMNode where
 data DOMSnapshotInlineTextBox = DOMSnapshotInlineTextBox
   {
     -- | The bounding box in document coordinates. Note that scroll offset of the document is ignored.
-    dOMSnapshotInlineTextBoxBoundingBox :: DOMPageNetworkEmulationSecurity.DOMRect,
+    dOMSnapshotInlineTextBoxBoundingBox :: DOMNetworkEmulationPageSecurity.DOMRect,
     -- | The starting index in characters, for this post layout textbox substring. Characters that
     --   would be represented as a surrogate pair in UTF-16 have length 2.
     dOMSnapshotInlineTextBoxStartCharacterIndex :: Int,
@@ -213,7 +213,7 @@ data DOMSnapshotLayoutTreeNode = DOMSnapshotLayoutTreeNode
     -- | The index of the related DOM node in the `domNodes` array returned by `getSnapshot`.
     dOMSnapshotLayoutTreeNodeDomNodeIndex :: Int,
     -- | The bounding box in document coordinates. Note that scroll offset of the document is ignored.
-    dOMSnapshotLayoutTreeNodeBoundingBox :: DOMPageNetworkEmulationSecurity.DOMRect,
+    dOMSnapshotLayoutTreeNodeBoundingBox :: DOMNetworkEmulationPageSecurity.DOMRect,
     -- | Contents of the LayoutText, if any.
     dOMSnapshotLayoutTreeNodeLayoutText :: Maybe T.Text,
     -- | The post-layout inline text nodes, if any.
@@ -431,7 +431,7 @@ data DOMSnapshotNodeTreeSnapshot = DOMSnapshotNodeTreeSnapshot
     -- | `Node`'s nodeValue.
     dOMSnapshotNodeTreeSnapshotNodeValue :: Maybe [DOMSnapshotStringIndex],
     -- | `Node`'s id, corresponds to DOM.Node.backendNodeId.
-    dOMSnapshotNodeTreeSnapshotBackendNodeId :: Maybe [DOMPageNetworkEmulationSecurity.DOMBackendNodeId],
+    dOMSnapshotNodeTreeSnapshotBackendNodeId :: Maybe [DOMNetworkEmulationPageSecurity.DOMBackendNodeId],
     -- | Attributes of an `Element` node. Flatten name, value pairs.
     dOMSnapshotNodeTreeSnapshotAttributes :: Maybe [DOMSnapshotArrayOfStrings],
     -- | Only set for textarea elements, contains the text value.

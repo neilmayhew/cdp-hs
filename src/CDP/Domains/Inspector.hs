@@ -76,6 +76,14 @@ instance FromJSON InspectorTargetReloadedAfterCrash where
 instance Event InspectorTargetReloadedAfterCrash where
   eventName _ = "Inspector.targetReloadedAfterCrash"
 
+-- | Type of the 'Inspector.workerScriptLoaded' event.
+data InspectorWorkerScriptLoaded = InspectorWorkerScriptLoaded
+  deriving (Eq, Show, Read)
+instance FromJSON InspectorWorkerScriptLoaded where
+  parseJSON _ = pure InspectorWorkerScriptLoaded
+instance Event InspectorWorkerScriptLoaded where
+  eventName _ = "Inspector.workerScriptLoaded"
+
 -- | Disables inspector domain notifications.
 
 -- | Parameters of the 'Inspector.disable' command.
