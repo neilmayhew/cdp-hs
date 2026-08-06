@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
@@ -13,27 +14,29 @@ import qualified CDP as CDP
 main :: IO ()
 main = hspec $ do
     
+    let cfg = def
+    targetInfo <- runIO $ CDP.connectToTab cfg "https://haskell.foundation"
+    runIO $ threadDelay 100_000
+
     describe "Endpoints responses of the expected type are received" $ do
         it "sends requests to all endpoints" $ do
-            let cfg = def
-            targetId <- fmap CDP.tiId $ CDP.connectToTab cfg "https://haskell.foundation"
+            tempTarget <- fmap CDP.tiId $ CDP.connectToTab cfg "https://haskell.foundation/contact"
+            threadDelay 100_000
             void $ mapM (CDP.fromSomeEndpoint $ void . CDP.endpoint cfg)
                 [ CDP.SomeEndpoint CDP.EPBrowserVersion
                 , CDP.SomeEndpoint CDP.EPAllTargets
-                , CDP.SomeEndpoint CDP.EPCurrentProtocol
+                -- The protocol endpoint crashes headless Chrome so we can't test this
+                -- , CDP.SomeEndpoint CDP.EPCurrentProtocol
                 , CDP.SomeEndpoint CDP.EPFrontend
-                , CDP.SomeEndpoint $ CDP.EPCloseTarget targetId
+                , CDP.SomeEndpoint $ CDP.EPCloseTarget tempTarget
                 ]
 
-    targetInfo <- runIO $ CDP.connectToTab def "https://haskell.foundation"
-    runIO $ threadDelay 1
-    let cfg      = def
     describe "Command responses of the expected type are received" $ do
         it "sends commands: w/o params w/o results" $ do
             CDP.runClient cfg $ \handle -> do
                 sessionId <- CDP.targetAttachToTargetSessionId <$> 
                     (CDP.sendCommandWait handle $ CDP.PTargetAttachToTarget (CDP.tiId targetInfo) (Just True))
-                CDP.sendCommandForSessionWait handle sessionId CDP.PBrowserCrashGpuProcess
+                CDP.sendCommandForSessionWait handle sessionId CDP.PRuntimeRunIfWaitingForDebugger
         
         it "sends commands: w/o params w/ results" $ do
             void $ CDP.runClient cfg $ \handle -> do
@@ -85,7 +88,7 @@ main = hspec $ do
                 void $ CDP.sendCommandWait handle $
                     CDP.PPageNavigate "http://wikipedia.com" Nothing Nothing Nothing Nothing
                 -- wait for events
-                threadDelay 5000000
+                threadDelay 5_000_000
             
             -- check at least 1 event was received
             ids <- readMVar frameIdsM
