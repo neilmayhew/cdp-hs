@@ -46,7 +46,7 @@ import CDP.Internal.Utils
 
 
 import CDP.Domains.BrowserTarget as BrowserTarget
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
 
 -- | Type 'Storage.SerializedStorageKey'.
@@ -54,11 +54,10 @@ type StorageSerializedStorageKey = T.Text
 
 -- | Type 'Storage.StorageType'.
 --   Enum of possible storage types.
-data StorageStorageType = StorageStorageTypeAppcache | StorageStorageTypeCookies | StorageStorageTypeFile_systems | StorageStorageTypeIndexeddb | StorageStorageTypeLocal_storage | StorageStorageTypeShader_cache | StorageStorageTypeWebsql | StorageStorageTypeService_workers | StorageStorageTypeCache_storage | StorageStorageTypeInterest_groups | StorageStorageTypeAll | StorageStorageTypeOther
+data StorageStorageType = StorageStorageTypeCookies | StorageStorageTypeFile_systems | StorageStorageTypeIndexeddb | StorageStorageTypeLocal_storage | StorageStorageTypeShader_cache | StorageStorageTypeWebsql | StorageStorageTypeService_workers | StorageStorageTypeCache_storage | StorageStorageTypeShared_storage | StorageStorageTypeStorage_buckets | StorageStorageTypeAll | StorageStorageTypeOther
   deriving (Ord, Eq, Show, Read)
 instance FromJSON StorageStorageType where
   parseJSON = A.withText "StorageStorageType" $ \v -> case v of
-    "appcache" -> pure StorageStorageTypeAppcache
     "cookies" -> pure StorageStorageTypeCookies
     "file_systems" -> pure StorageStorageTypeFile_systems
     "indexeddb" -> pure StorageStorageTypeIndexeddb
@@ -67,13 +66,13 @@ instance FromJSON StorageStorageType where
     "websql" -> pure StorageStorageTypeWebsql
     "service_workers" -> pure StorageStorageTypeService_workers
     "cache_storage" -> pure StorageStorageTypeCache_storage
-    "interest_groups" -> pure StorageStorageTypeInterest_groups
+    "shared_storage" -> pure StorageStorageTypeShared_storage
+    "storage_buckets" -> pure StorageStorageTypeStorage_buckets
     "all" -> pure StorageStorageTypeAll
     "other" -> pure StorageStorageTypeOther
     "_" -> fail "failed to parse StorageStorageType"
 instance ToJSON StorageStorageType where
   toJSON v = A.String $ case v of
-    StorageStorageTypeAppcache -> "appcache"
     StorageStorageTypeCookies -> "cookies"
     StorageStorageTypeFile_systems -> "file_systems"
     StorageStorageTypeIndexeddb -> "indexeddb"
@@ -82,7 +81,8 @@ instance ToJSON StorageStorageType where
     StorageStorageTypeWebsql -> "websql"
     StorageStorageTypeService_workers -> "service_workers"
     StorageStorageTypeCache_storage -> "cache_storage"
-    StorageStorageTypeInterest_groups -> "interest_groups"
+    StorageStorageTypeShared_storage -> "shared_storage"
+    StorageStorageTypeStorage_buckets -> "storage_buckets"
     StorageStorageTypeAll -> "all"
     StorageStorageTypeOther -> "other"
 
@@ -125,90 +125,370 @@ instance ToJSON StorageTrustTokens where
     ("count" A..=) <$> Just (storageTrustTokensCount p)
     ]
 
--- | Type 'Storage.InterestGroupAccessType'.
---   Enum of interest group access types.
-data StorageInterestGroupAccessType = StorageInterestGroupAccessTypeJoin | StorageInterestGroupAccessTypeLeave | StorageInterestGroupAccessTypeUpdate | StorageInterestGroupAccessTypeBid | StorageInterestGroupAccessTypeWin
+-- | Type 'Storage.SharedStorageAccessScope'.
+--   Enum of shared storage access scopes.
+data StorageSharedStorageAccessScope = StorageSharedStorageAccessScopeWindow | StorageSharedStorageAccessScopeSharedStorageWorklet | StorageSharedStorageAccessScopeHeader
   deriving (Ord, Eq, Show, Read)
-instance FromJSON StorageInterestGroupAccessType where
-  parseJSON = A.withText "StorageInterestGroupAccessType" $ \v -> case v of
-    "join" -> pure StorageInterestGroupAccessTypeJoin
-    "leave" -> pure StorageInterestGroupAccessTypeLeave
-    "update" -> pure StorageInterestGroupAccessTypeUpdate
-    "bid" -> pure StorageInterestGroupAccessTypeBid
-    "win" -> pure StorageInterestGroupAccessTypeWin
-    "_" -> fail "failed to parse StorageInterestGroupAccessType"
-instance ToJSON StorageInterestGroupAccessType where
+instance FromJSON StorageSharedStorageAccessScope where
+  parseJSON = A.withText "StorageSharedStorageAccessScope" $ \v -> case v of
+    "window" -> pure StorageSharedStorageAccessScopeWindow
+    "sharedStorageWorklet" -> pure StorageSharedStorageAccessScopeSharedStorageWorklet
+    "header" -> pure StorageSharedStorageAccessScopeHeader
+    "_" -> fail "failed to parse StorageSharedStorageAccessScope"
+instance ToJSON StorageSharedStorageAccessScope where
   toJSON v = A.String $ case v of
-    StorageInterestGroupAccessTypeJoin -> "join"
-    StorageInterestGroupAccessTypeLeave -> "leave"
-    StorageInterestGroupAccessTypeUpdate -> "update"
-    StorageInterestGroupAccessTypeBid -> "bid"
-    StorageInterestGroupAccessTypeWin -> "win"
+    StorageSharedStorageAccessScopeWindow -> "window"
+    StorageSharedStorageAccessScopeSharedStorageWorklet -> "sharedStorageWorklet"
+    StorageSharedStorageAccessScopeHeader -> "header"
 
--- | Type 'Storage.InterestGroupAd'.
---   Ad advertising element inside an interest group.
-data StorageInterestGroupAd = StorageInterestGroupAd
+-- | Type 'Storage.SharedStorageAccessMethod'.
+--   Enum of shared storage access methods.
+data StorageSharedStorageAccessMethod = StorageSharedStorageAccessMethodAddModule | StorageSharedStorageAccessMethodCreateWorklet | StorageSharedStorageAccessMethodSelectURL | StorageSharedStorageAccessMethodRun | StorageSharedStorageAccessMethodBatchUpdate | StorageSharedStorageAccessMethodSet | StorageSharedStorageAccessMethodAppend | StorageSharedStorageAccessMethodDelete | StorageSharedStorageAccessMethodClear | StorageSharedStorageAccessMethodGet | StorageSharedStorageAccessMethodKeys | StorageSharedStorageAccessMethodValues | StorageSharedStorageAccessMethodEntries | StorageSharedStorageAccessMethodLength | StorageSharedStorageAccessMethodRemainingBudget
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON StorageSharedStorageAccessMethod where
+  parseJSON = A.withText "StorageSharedStorageAccessMethod" $ \v -> case v of
+    "addModule" -> pure StorageSharedStorageAccessMethodAddModule
+    "createWorklet" -> pure StorageSharedStorageAccessMethodCreateWorklet
+    "selectURL" -> pure StorageSharedStorageAccessMethodSelectURL
+    "run" -> pure StorageSharedStorageAccessMethodRun
+    "batchUpdate" -> pure StorageSharedStorageAccessMethodBatchUpdate
+    "set" -> pure StorageSharedStorageAccessMethodSet
+    "append" -> pure StorageSharedStorageAccessMethodAppend
+    "delete" -> pure StorageSharedStorageAccessMethodDelete
+    "clear" -> pure StorageSharedStorageAccessMethodClear
+    "get" -> pure StorageSharedStorageAccessMethodGet
+    "keys" -> pure StorageSharedStorageAccessMethodKeys
+    "values" -> pure StorageSharedStorageAccessMethodValues
+    "entries" -> pure StorageSharedStorageAccessMethodEntries
+    "length" -> pure StorageSharedStorageAccessMethodLength
+    "remainingBudget" -> pure StorageSharedStorageAccessMethodRemainingBudget
+    "_" -> fail "failed to parse StorageSharedStorageAccessMethod"
+instance ToJSON StorageSharedStorageAccessMethod where
+  toJSON v = A.String $ case v of
+    StorageSharedStorageAccessMethodAddModule -> "addModule"
+    StorageSharedStorageAccessMethodCreateWorklet -> "createWorklet"
+    StorageSharedStorageAccessMethodSelectURL -> "selectURL"
+    StorageSharedStorageAccessMethodRun -> "run"
+    StorageSharedStorageAccessMethodBatchUpdate -> "batchUpdate"
+    StorageSharedStorageAccessMethodSet -> "set"
+    StorageSharedStorageAccessMethodAppend -> "append"
+    StorageSharedStorageAccessMethodDelete -> "delete"
+    StorageSharedStorageAccessMethodClear -> "clear"
+    StorageSharedStorageAccessMethodGet -> "get"
+    StorageSharedStorageAccessMethodKeys -> "keys"
+    StorageSharedStorageAccessMethodValues -> "values"
+    StorageSharedStorageAccessMethodEntries -> "entries"
+    StorageSharedStorageAccessMethodLength -> "length"
+    StorageSharedStorageAccessMethodRemainingBudget -> "remainingBudget"
+
+-- | Type 'Storage.SharedStorageEntry'.
+--   Struct for a single key-value pair in an origin's shared storage.
+data StorageSharedStorageEntry = StorageSharedStorageEntry
   {
-    storageInterestGroupAdRenderUrl :: T.Text,
-    storageInterestGroupAdMetadata :: Maybe T.Text
+    storageSharedStorageEntryKey :: T.Text,
+    storageSharedStorageEntryValue :: T.Text
   }
   deriving (Eq, Show)
-instance FromJSON StorageInterestGroupAd where
-  parseJSON = A.withObject "StorageInterestGroupAd" $ \o -> StorageInterestGroupAd
-    <$> o A..: "renderUrl"
-    <*> o A..:? "metadata"
-instance ToJSON StorageInterestGroupAd where
+instance FromJSON StorageSharedStorageEntry where
+  parseJSON = A.withObject "StorageSharedStorageEntry" $ \o -> StorageSharedStorageEntry
+    <$> o A..: "key"
+    <*> o A..: "value"
+instance ToJSON StorageSharedStorageEntry where
   toJSON p = A.object $ catMaybes [
-    ("renderUrl" A..=) <$> Just (storageInterestGroupAdRenderUrl p),
-    ("metadata" A..=) <$> (storageInterestGroupAdMetadata p)
+    ("key" A..=) <$> Just (storageSharedStorageEntryKey p),
+    ("value" A..=) <$> Just (storageSharedStorageEntryValue p)
     ]
 
--- | Type 'Storage.InterestGroupDetails'.
---   The full details of an interest group.
-data StorageInterestGroupDetails = StorageInterestGroupDetails
+-- | Type 'Storage.SharedStorageMetadata'.
+--   Details for an origin's shared storage.
+data StorageSharedStorageMetadata = StorageSharedStorageMetadata
   {
-    storageInterestGroupDetailsOwnerOrigin :: T.Text,
-    storageInterestGroupDetailsName :: T.Text,
-    storageInterestGroupDetailsExpirationTime :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
-    storageInterestGroupDetailsJoiningOrigin :: T.Text,
-    storageInterestGroupDetailsBiddingUrl :: Maybe T.Text,
-    storageInterestGroupDetailsBiddingWasmHelperUrl :: Maybe T.Text,
-    storageInterestGroupDetailsUpdateUrl :: Maybe T.Text,
-    storageInterestGroupDetailsTrustedBiddingSignalsUrl :: Maybe T.Text,
-    storageInterestGroupDetailsTrustedBiddingSignalsKeys :: [T.Text],
-    storageInterestGroupDetailsUserBiddingSignals :: Maybe T.Text,
-    storageInterestGroupDetailsAds :: [StorageInterestGroupAd],
-    storageInterestGroupDetailsAdComponents :: [StorageInterestGroupAd]
+    -- | Time when the origin's shared storage was last created.
+    storageSharedStorageMetadataCreationTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
+    -- | Number of key-value pairs stored in origin's shared storage.
+    storageSharedStorageMetadataLength :: Int,
+    -- | Current amount of bits of entropy remaining in the navigation budget.
+    storageSharedStorageMetadataRemainingBudget :: Double,
+    -- | Total number of bytes stored as key-value pairs in origin's shared
+    --   storage.
+    storageSharedStorageMetadataBytesUsed :: Int
   }
   deriving (Eq, Show)
-instance FromJSON StorageInterestGroupDetails where
-  parseJSON = A.withObject "StorageInterestGroupDetails" $ \o -> StorageInterestGroupDetails
-    <$> o A..: "ownerOrigin"
-    <*> o A..: "name"
-    <*> o A..: "expirationTime"
-    <*> o A..: "joiningOrigin"
-    <*> o A..:? "biddingUrl"
-    <*> o A..:? "biddingWasmHelperUrl"
-    <*> o A..:? "updateUrl"
-    <*> o A..:? "trustedBiddingSignalsUrl"
-    <*> o A..: "trustedBiddingSignalsKeys"
-    <*> o A..:? "userBiddingSignals"
-    <*> o A..: "ads"
-    <*> o A..: "adComponents"
-instance ToJSON StorageInterestGroupDetails where
+instance FromJSON StorageSharedStorageMetadata where
+  parseJSON = A.withObject "StorageSharedStorageMetadata" $ \o -> StorageSharedStorageMetadata
+    <$> o A..: "creationTime"
+    <*> o A..: "length"
+    <*> o A..: "remainingBudget"
+    <*> o A..: "bytesUsed"
+instance ToJSON StorageSharedStorageMetadata where
   toJSON p = A.object $ catMaybes [
-    ("ownerOrigin" A..=) <$> Just (storageInterestGroupDetailsOwnerOrigin p),
-    ("name" A..=) <$> Just (storageInterestGroupDetailsName p),
-    ("expirationTime" A..=) <$> Just (storageInterestGroupDetailsExpirationTime p),
-    ("joiningOrigin" A..=) <$> Just (storageInterestGroupDetailsJoiningOrigin p),
-    ("biddingUrl" A..=) <$> (storageInterestGroupDetailsBiddingUrl p),
-    ("biddingWasmHelperUrl" A..=) <$> (storageInterestGroupDetailsBiddingWasmHelperUrl p),
-    ("updateUrl" A..=) <$> (storageInterestGroupDetailsUpdateUrl p),
-    ("trustedBiddingSignalsUrl" A..=) <$> (storageInterestGroupDetailsTrustedBiddingSignalsUrl p),
-    ("trustedBiddingSignalsKeys" A..=) <$> Just (storageInterestGroupDetailsTrustedBiddingSignalsKeys p),
-    ("userBiddingSignals" A..=) <$> (storageInterestGroupDetailsUserBiddingSignals p),
-    ("ads" A..=) <$> Just (storageInterestGroupDetailsAds p),
-    ("adComponents" A..=) <$> Just (storageInterestGroupDetailsAdComponents p)
+    ("creationTime" A..=) <$> Just (storageSharedStorageMetadataCreationTime p),
+    ("length" A..=) <$> Just (storageSharedStorageMetadataLength p),
+    ("remainingBudget" A..=) <$> Just (storageSharedStorageMetadataRemainingBudget p),
+    ("bytesUsed" A..=) <$> Just (storageSharedStorageMetadataBytesUsed p)
+    ]
+
+-- | Type 'Storage.SharedStoragePrivateAggregationConfig'.
+--   Represents a dictionary object passed in as privateAggregationConfig to
+--   run or selectURL.
+data StorageSharedStoragePrivateAggregationConfig = StorageSharedStoragePrivateAggregationConfig
+  {
+    -- | The chosen aggregation service deployment.
+    storageSharedStoragePrivateAggregationConfigAggregationCoordinatorOrigin :: Maybe T.Text,
+    -- | The context ID provided.
+    storageSharedStoragePrivateAggregationConfigContextId :: Maybe T.Text,
+    -- | Configures the maximum size allowed for filtering IDs.
+    storageSharedStoragePrivateAggregationConfigFilteringIdMaxBytes :: Int,
+    -- | The limit on the number of contributions in the final report.
+    storageSharedStoragePrivateAggregationConfigMaxContributions :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageSharedStoragePrivateAggregationConfig where
+  parseJSON = A.withObject "StorageSharedStoragePrivateAggregationConfig" $ \o -> StorageSharedStoragePrivateAggregationConfig
+    <$> o A..:? "aggregationCoordinatorOrigin"
+    <*> o A..:? "contextId"
+    <*> o A..: "filteringIdMaxBytes"
+    <*> o A..:? "maxContributions"
+instance ToJSON StorageSharedStoragePrivateAggregationConfig where
+  toJSON p = A.object $ catMaybes [
+    ("aggregationCoordinatorOrigin" A..=) <$> (storageSharedStoragePrivateAggregationConfigAggregationCoordinatorOrigin p),
+    ("contextId" A..=) <$> (storageSharedStoragePrivateAggregationConfigContextId p),
+    ("filteringIdMaxBytes" A..=) <$> Just (storageSharedStoragePrivateAggregationConfigFilteringIdMaxBytes p),
+    ("maxContributions" A..=) <$> (storageSharedStoragePrivateAggregationConfigMaxContributions p)
+    ]
+
+-- | Type 'Storage.SharedStorageReportingMetadata'.
+--   Pair of reporting metadata details for a candidate URL for `selectURL()`.
+data StorageSharedStorageReportingMetadata = StorageSharedStorageReportingMetadata
+  {
+    storageSharedStorageReportingMetadataEventType :: T.Text,
+    storageSharedStorageReportingMetadataReportingUrl :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageSharedStorageReportingMetadata where
+  parseJSON = A.withObject "StorageSharedStorageReportingMetadata" $ \o -> StorageSharedStorageReportingMetadata
+    <$> o A..: "eventType"
+    <*> o A..: "reportingUrl"
+instance ToJSON StorageSharedStorageReportingMetadata where
+  toJSON p = A.object $ catMaybes [
+    ("eventType" A..=) <$> Just (storageSharedStorageReportingMetadataEventType p),
+    ("reportingUrl" A..=) <$> Just (storageSharedStorageReportingMetadataReportingUrl p)
+    ]
+
+-- | Type 'Storage.SharedStorageUrlWithMetadata'.
+--   Bundles a candidate URL with its reporting metadata.
+data StorageSharedStorageUrlWithMetadata = StorageSharedStorageUrlWithMetadata
+  {
+    -- | Spec of candidate URL.
+    storageSharedStorageUrlWithMetadataUrl :: T.Text,
+    -- | Any associated reporting metadata.
+    storageSharedStorageUrlWithMetadataReportingMetadata :: [StorageSharedStorageReportingMetadata]
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageSharedStorageUrlWithMetadata where
+  parseJSON = A.withObject "StorageSharedStorageUrlWithMetadata" $ \o -> StorageSharedStorageUrlWithMetadata
+    <$> o A..: "url"
+    <*> o A..: "reportingMetadata"
+instance ToJSON StorageSharedStorageUrlWithMetadata where
+  toJSON p = A.object $ catMaybes [
+    ("url" A..=) <$> Just (storageSharedStorageUrlWithMetadataUrl p),
+    ("reportingMetadata" A..=) <$> Just (storageSharedStorageUrlWithMetadataReportingMetadata p)
+    ]
+
+-- | Type 'Storage.SharedStorageAccessParams'.
+--   Bundles the parameters for shared storage access events whose
+--   presence/absence can vary according to SharedStorageAccessType.
+data StorageSharedStorageAccessParams = StorageSharedStorageAccessParams
+  {
+    -- | Spec of the module script URL.
+    --   Present only for SharedStorageAccessMethods: addModule and
+    --   createWorklet.
+    storageSharedStorageAccessParamsScriptSourceUrl :: Maybe T.Text,
+    -- | String denoting "context-origin", "script-origin", or a custom
+    --   origin to be used as the worklet's data origin.
+    --   Present only for SharedStorageAccessMethod: createWorklet.
+    storageSharedStorageAccessParamsDataOrigin :: Maybe T.Text,
+    -- | Name of the registered operation to be run.
+    --   Present only for SharedStorageAccessMethods: run and selectURL.
+    storageSharedStorageAccessParamsOperationName :: Maybe T.Text,
+    -- | ID of the operation call.
+    --   Present only for SharedStorageAccessMethods: run and selectURL.
+    storageSharedStorageAccessParamsOperationId :: Maybe T.Text,
+    -- | Whether or not to keep the worket alive for future run or selectURL
+    --   calls.
+    --   Present only for SharedStorageAccessMethods: run and selectURL.
+    storageSharedStorageAccessParamsKeepAlive :: Maybe Bool,
+    -- | Configures the private aggregation options.
+    --   Present only for SharedStorageAccessMethods: run and selectURL.
+    storageSharedStorageAccessParamsPrivateAggregationConfig :: Maybe StorageSharedStoragePrivateAggregationConfig,
+    -- | The operation's serialized data in bytes (converted to a string).
+    --   Present only for SharedStorageAccessMethods: run and selectURL.
+    --   TODO(crbug.com/401011862): Consider updating this parameter to binary.
+    storageSharedStorageAccessParamsSerializedData :: Maybe T.Text,
+    -- | Array of candidate URLs' specs, along with any associated metadata.
+    --   Present only for SharedStorageAccessMethod: selectURL.
+    storageSharedStorageAccessParamsUrlsWithMetadata :: Maybe [StorageSharedStorageUrlWithMetadata],
+    -- | Spec of the URN:UUID generated for a selectURL call.
+    --   Present only for SharedStorageAccessMethod: selectURL.
+    storageSharedStorageAccessParamsUrnUuid :: Maybe T.Text,
+    -- | Key for a specific entry in an origin's shared storage.
+    --   Present only for SharedStorageAccessMethods: set, append, delete, and
+    --   get.
+    storageSharedStorageAccessParamsKey :: Maybe T.Text,
+    -- | Value for a specific entry in an origin's shared storage.
+    --   Present only for SharedStorageAccessMethods: set and append.
+    storageSharedStorageAccessParamsValue :: Maybe T.Text,
+    -- | Whether or not to set an entry for a key if that key is already present.
+    --   Present only for SharedStorageAccessMethod: set.
+    storageSharedStorageAccessParamsIgnoreIfPresent :: Maybe Bool,
+    -- | A number denoting the (0-based) order of the worklet's
+    --   creation relative to all other shared storage worklets created by
+    --   documents using the current storage partition.
+    --   Present only for SharedStorageAccessMethods: addModule, createWorklet.
+    storageSharedStorageAccessParamsWorkletOrdinal :: Maybe Int,
+    -- | Hex representation of the DevTools token used as the TargetID for the
+    --   associated shared storage worklet.
+    --   Present only for SharedStorageAccessMethods: addModule, createWorklet,
+    --   run, selectURL, and any other SharedStorageAccessMethod when the
+    --   SharedStorageAccessScope is sharedStorageWorklet.
+    storageSharedStorageAccessParamsWorkletTargetId :: Maybe BrowserTarget.TargetTargetID,
+    -- | Name of the lock to be acquired, if present.
+    --   Optionally present only for SharedStorageAccessMethods: batchUpdate,
+    --   set, append, delete, and clear.
+    storageSharedStorageAccessParamsWithLock :: Maybe T.Text,
+    -- | If the method has been called as part of a batchUpdate, then this
+    --   number identifies the batch to which it belongs.
+    --   Optionally present only for SharedStorageAccessMethods:
+    --   batchUpdate (required), set, append, delete, and clear.
+    storageSharedStorageAccessParamsBatchUpdateId :: Maybe T.Text,
+    -- | Number of modifier methods sent in batch.
+    --   Present only for SharedStorageAccessMethod: batchUpdate.
+    storageSharedStorageAccessParamsBatchSize :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageSharedStorageAccessParams where
+  parseJSON = A.withObject "StorageSharedStorageAccessParams" $ \o -> StorageSharedStorageAccessParams
+    <$> o A..:? "scriptSourceUrl"
+    <*> o A..:? "dataOrigin"
+    <*> o A..:? "operationName"
+    <*> o A..:? "operationId"
+    <*> o A..:? "keepAlive"
+    <*> o A..:? "privateAggregationConfig"
+    <*> o A..:? "serializedData"
+    <*> o A..:? "urlsWithMetadata"
+    <*> o A..:? "urnUuid"
+    <*> o A..:? "key"
+    <*> o A..:? "value"
+    <*> o A..:? "ignoreIfPresent"
+    <*> o A..:? "workletOrdinal"
+    <*> o A..:? "workletTargetId"
+    <*> o A..:? "withLock"
+    <*> o A..:? "batchUpdateId"
+    <*> o A..:? "batchSize"
+instance ToJSON StorageSharedStorageAccessParams where
+  toJSON p = A.object $ catMaybes [
+    ("scriptSourceUrl" A..=) <$> (storageSharedStorageAccessParamsScriptSourceUrl p),
+    ("dataOrigin" A..=) <$> (storageSharedStorageAccessParamsDataOrigin p),
+    ("operationName" A..=) <$> (storageSharedStorageAccessParamsOperationName p),
+    ("operationId" A..=) <$> (storageSharedStorageAccessParamsOperationId p),
+    ("keepAlive" A..=) <$> (storageSharedStorageAccessParamsKeepAlive p),
+    ("privateAggregationConfig" A..=) <$> (storageSharedStorageAccessParamsPrivateAggregationConfig p),
+    ("serializedData" A..=) <$> (storageSharedStorageAccessParamsSerializedData p),
+    ("urlsWithMetadata" A..=) <$> (storageSharedStorageAccessParamsUrlsWithMetadata p),
+    ("urnUuid" A..=) <$> (storageSharedStorageAccessParamsUrnUuid p),
+    ("key" A..=) <$> (storageSharedStorageAccessParamsKey p),
+    ("value" A..=) <$> (storageSharedStorageAccessParamsValue p),
+    ("ignoreIfPresent" A..=) <$> (storageSharedStorageAccessParamsIgnoreIfPresent p),
+    ("workletOrdinal" A..=) <$> (storageSharedStorageAccessParamsWorkletOrdinal p),
+    ("workletTargetId" A..=) <$> (storageSharedStorageAccessParamsWorkletTargetId p),
+    ("withLock" A..=) <$> (storageSharedStorageAccessParamsWithLock p),
+    ("batchUpdateId" A..=) <$> (storageSharedStorageAccessParamsBatchUpdateId p),
+    ("batchSize" A..=) <$> (storageSharedStorageAccessParamsBatchSize p)
+    ]
+
+-- | Type 'Storage.StorageBucketsDurability'.
+data StorageStorageBucketsDurability = StorageStorageBucketsDurabilityRelaxed | StorageStorageBucketsDurabilityStrict
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON StorageStorageBucketsDurability where
+  parseJSON = A.withText "StorageStorageBucketsDurability" $ \v -> case v of
+    "relaxed" -> pure StorageStorageBucketsDurabilityRelaxed
+    "strict" -> pure StorageStorageBucketsDurabilityStrict
+    "_" -> fail "failed to parse StorageStorageBucketsDurability"
+instance ToJSON StorageStorageBucketsDurability where
+  toJSON v = A.String $ case v of
+    StorageStorageBucketsDurabilityRelaxed -> "relaxed"
+    StorageStorageBucketsDurabilityStrict -> "strict"
+
+-- | Type 'Storage.StorageBucket'.
+data StorageStorageBucket = StorageStorageBucket
+  {
+    storageStorageBucketStorageKey :: StorageSerializedStorageKey,
+    -- | If not specified, it is the default bucket of the storageKey.
+    storageStorageBucketName :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageStorageBucket where
+  parseJSON = A.withObject "StorageStorageBucket" $ \o -> StorageStorageBucket
+    <$> o A..: "storageKey"
+    <*> o A..:? "name"
+instance ToJSON StorageStorageBucket where
+  toJSON p = A.object $ catMaybes [
+    ("storageKey" A..=) <$> Just (storageStorageBucketStorageKey p),
+    ("name" A..=) <$> (storageStorageBucketName p)
+    ]
+
+-- | Type 'Storage.StorageBucketInfo'.
+data StorageStorageBucketInfo = StorageStorageBucketInfo
+  {
+    storageStorageBucketInfoBucket :: StorageStorageBucket,
+    storageStorageBucketInfoId :: T.Text,
+    storageStorageBucketInfoExpiration :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
+    -- | Storage quota (bytes).
+    storageStorageBucketInfoQuota :: Double,
+    storageStorageBucketInfoPersistent :: Bool,
+    storageStorageBucketInfoDurability :: StorageStorageBucketsDurability
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageStorageBucketInfo where
+  parseJSON = A.withObject "StorageStorageBucketInfo" $ \o -> StorageStorageBucketInfo
+    <$> o A..: "bucket"
+    <*> o A..: "id"
+    <*> o A..: "expiration"
+    <*> o A..: "quota"
+    <*> o A..: "persistent"
+    <*> o A..: "durability"
+instance ToJSON StorageStorageBucketInfo where
+  toJSON p = A.object $ catMaybes [
+    ("bucket" A..=) <$> Just (storageStorageBucketInfoBucket p),
+    ("id" A..=) <$> Just (storageStorageBucketInfoId p),
+    ("expiration" A..=) <$> Just (storageStorageBucketInfoExpiration p),
+    ("quota" A..=) <$> Just (storageStorageBucketInfoQuota p),
+    ("persistent" A..=) <$> Just (storageStorageBucketInfoPersistent p),
+    ("durability" A..=) <$> Just (storageStorageBucketInfoDurability p)
+    ]
+
+-- | Type 'Storage.RelatedWebsiteSet'.
+--   A single Related Website Set object.
+data StorageRelatedWebsiteSet = StorageRelatedWebsiteSet
+  {
+    -- | The primary site of this set, along with the ccTLDs if there is any.
+    storageRelatedWebsiteSetPrimarySites :: [T.Text],
+    -- | The associated sites of this set, along with the ccTLDs if there is any.
+    storageRelatedWebsiteSetAssociatedSites :: [T.Text],
+    -- | The service sites of this set, along with the ccTLDs if there is any.
+    storageRelatedWebsiteSetServiceSites :: [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageRelatedWebsiteSet where
+  parseJSON = A.withObject "StorageRelatedWebsiteSet" $ \o -> StorageRelatedWebsiteSet
+    <$> o A..: "primarySites"
+    <*> o A..: "associatedSites"
+    <*> o A..: "serviceSites"
+instance ToJSON StorageRelatedWebsiteSet where
+  toJSON p = A.object $ catMaybes [
+    ("primarySites" A..=) <$> Just (storageRelatedWebsiteSetPrimarySites p),
+    ("associatedSites" A..=) <$> Just (storageRelatedWebsiteSetAssociatedSites p),
+    ("serviceSites" A..=) <$> Just (storageRelatedWebsiteSetServiceSites p)
     ]
 
 -- | Type of the 'Storage.cacheStorageContentUpdated' event.
@@ -216,6 +496,10 @@ data StorageCacheStorageContentUpdated = StorageCacheStorageContentUpdated
   {
     -- | Origin to update.
     storageCacheStorageContentUpdatedOrigin :: T.Text,
+    -- | Storage key to update.
+    storageCacheStorageContentUpdatedStorageKey :: T.Text,
+    -- | Storage bucket to update.
+    storageCacheStorageContentUpdatedBucketId :: T.Text,
     -- | Name of cache in origin.
     storageCacheStorageContentUpdatedCacheName :: T.Text
   }
@@ -223,6 +507,8 @@ data StorageCacheStorageContentUpdated = StorageCacheStorageContentUpdated
 instance FromJSON StorageCacheStorageContentUpdated where
   parseJSON = A.withObject "StorageCacheStorageContentUpdated" $ \o -> StorageCacheStorageContentUpdated
     <$> o A..: "origin"
+    <*> o A..: "storageKey"
+    <*> o A..: "bucketId"
     <*> o A..: "cacheName"
 instance Event StorageCacheStorageContentUpdated where
   eventName _ = "Storage.cacheStorageContentUpdated"
@@ -231,12 +517,18 @@ instance Event StorageCacheStorageContentUpdated where
 data StorageCacheStorageListUpdated = StorageCacheStorageListUpdated
   {
     -- | Origin to update.
-    storageCacheStorageListUpdatedOrigin :: T.Text
+    storageCacheStorageListUpdatedOrigin :: T.Text,
+    -- | Storage key to update.
+    storageCacheStorageListUpdatedStorageKey :: T.Text,
+    -- | Storage bucket to update.
+    storageCacheStorageListUpdatedBucketId :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON StorageCacheStorageListUpdated where
   parseJSON = A.withObject "StorageCacheStorageListUpdated" $ \o -> StorageCacheStorageListUpdated
     <$> o A..: "origin"
+    <*> o A..: "storageKey"
+    <*> o A..: "bucketId"
 instance Event StorageCacheStorageListUpdated where
   eventName _ = "Storage.cacheStorageListUpdated"
 
@@ -247,6 +539,8 @@ data StorageIndexedDBContentUpdated = StorageIndexedDBContentUpdated
     storageIndexedDBContentUpdatedOrigin :: T.Text,
     -- | Storage key to update.
     storageIndexedDBContentUpdatedStorageKey :: T.Text,
+    -- | Storage bucket to update.
+    storageIndexedDBContentUpdatedBucketId :: T.Text,
     -- | Database to update.
     storageIndexedDBContentUpdatedDatabaseName :: T.Text,
     -- | ObjectStore to update.
@@ -257,6 +551,7 @@ instance FromJSON StorageIndexedDBContentUpdated where
   parseJSON = A.withObject "StorageIndexedDBContentUpdated" $ \o -> StorageIndexedDBContentUpdated
     <$> o A..: "origin"
     <*> o A..: "storageKey"
+    <*> o A..: "bucketId"
     <*> o A..: "databaseName"
     <*> o A..: "objectStoreName"
 instance Event StorageIndexedDBContentUpdated where
@@ -268,64 +563,137 @@ data StorageIndexedDBListUpdated = StorageIndexedDBListUpdated
     -- | Origin to update.
     storageIndexedDBListUpdatedOrigin :: T.Text,
     -- | Storage key to update.
-    storageIndexedDBListUpdatedStorageKey :: T.Text
+    storageIndexedDBListUpdatedStorageKey :: T.Text,
+    -- | Storage bucket to update.
+    storageIndexedDBListUpdatedBucketId :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON StorageIndexedDBListUpdated where
   parseJSON = A.withObject "StorageIndexedDBListUpdated" $ \o -> StorageIndexedDBListUpdated
     <$> o A..: "origin"
     <*> o A..: "storageKey"
+    <*> o A..: "bucketId"
 instance Event StorageIndexedDBListUpdated where
   eventName _ = "Storage.indexedDBListUpdated"
 
--- | Type of the 'Storage.interestGroupAccessed' event.
-data StorageInterestGroupAccessed = StorageInterestGroupAccessed
+-- | Type of the 'Storage.sharedStorageAccessed' event.
+data StorageSharedStorageAccessed = StorageSharedStorageAccessed
   {
-    storageInterestGroupAccessedAccessTime :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
-    storageInterestGroupAccessedType :: StorageInterestGroupAccessType,
-    storageInterestGroupAccessedOwnerOrigin :: T.Text,
-    storageInterestGroupAccessedName :: T.Text
+    -- | Time of the access.
+    storageSharedStorageAccessedAccessTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
+    -- | Enum value indicating the access scope.
+    storageSharedStorageAccessedScope :: StorageSharedStorageAccessScope,
+    -- | Enum value indicating the Shared Storage API method invoked.
+    storageSharedStorageAccessedMethod :: StorageSharedStorageAccessMethod,
+    -- | DevTools Frame Token for the primary frame tree's root.
+    storageSharedStorageAccessedMainFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
+    -- | Serialization of the origin owning the Shared Storage data.
+    storageSharedStorageAccessedOwnerOrigin :: T.Text,
+    -- | Serialization of the site owning the Shared Storage data.
+    storageSharedStorageAccessedOwnerSite :: T.Text,
+    -- | The sub-parameters wrapped by `params` are all optional and their
+    --   presence/absence depends on `type`.
+    storageSharedStorageAccessedParams :: StorageSharedStorageAccessParams
   }
   deriving (Eq, Show)
-instance FromJSON StorageInterestGroupAccessed where
-  parseJSON = A.withObject "StorageInterestGroupAccessed" $ \o -> StorageInterestGroupAccessed
+instance FromJSON StorageSharedStorageAccessed where
+  parseJSON = A.withObject "StorageSharedStorageAccessed" $ \o -> StorageSharedStorageAccessed
     <$> o A..: "accessTime"
-    <*> o A..: "type"
+    <*> o A..: "scope"
+    <*> o A..: "method"
+    <*> o A..: "mainFrameId"
     <*> o A..: "ownerOrigin"
-    <*> o A..: "name"
-instance Event StorageInterestGroupAccessed where
-  eventName _ = "Storage.interestGroupAccessed"
+    <*> o A..: "ownerSite"
+    <*> o A..: "params"
+instance Event StorageSharedStorageAccessed where
+  eventName _ = "Storage.sharedStorageAccessed"
 
--- | Returns a storage key given a frame id.
-
--- | Parameters of the 'Storage.getStorageKeyForFrame' command.
-data PStorageGetStorageKeyForFrame = PStorageGetStorageKeyForFrame
+-- | Type of the 'Storage.sharedStorageWorkletOperationExecutionFinished' event.
+data StorageSharedStorageWorkletOperationExecutionFinished = StorageSharedStorageWorkletOperationExecutionFinished
   {
-    pStorageGetStorageKeyForFrameFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId
+    -- | Time that the operation finished.
+    storageSharedStorageWorkletOperationExecutionFinishedFinishedTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
+    -- | Time, in microseconds, from start of shared storage JS API call until
+    --   end of operation execution in the worklet.
+    storageSharedStorageWorkletOperationExecutionFinishedExecutionTime :: Int,
+    -- | Enum value indicating the Shared Storage API method invoked.
+    storageSharedStorageWorkletOperationExecutionFinishedMethod :: StorageSharedStorageAccessMethod,
+    -- | ID of the operation call.
+    storageSharedStorageWorkletOperationExecutionFinishedOperationId :: T.Text,
+    -- | Hex representation of the DevTools token used as the TargetID for the
+    --   associated shared storage worklet.
+    storageSharedStorageWorkletOperationExecutionFinishedWorkletTargetId :: BrowserTarget.TargetTargetID,
+    -- | DevTools Frame Token for the primary frame tree's root.
+    storageSharedStorageWorkletOperationExecutionFinishedMainFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
+    -- | Serialization of the origin owning the Shared Storage data.
+    storageSharedStorageWorkletOperationExecutionFinishedOwnerOrigin :: T.Text
   }
   deriving (Eq, Show)
-pStorageGetStorageKeyForFrame
-  :: DOMPageNetworkEmulationSecurity.PageFrameId
-  -> PStorageGetStorageKeyForFrame
-pStorageGetStorageKeyForFrame
-  arg_pStorageGetStorageKeyForFrameFrameId
-  = PStorageGetStorageKeyForFrame
-    arg_pStorageGetStorageKeyForFrameFrameId
-instance ToJSON PStorageGetStorageKeyForFrame where
+instance FromJSON StorageSharedStorageWorkletOperationExecutionFinished where
+  parseJSON = A.withObject "StorageSharedStorageWorkletOperationExecutionFinished" $ \o -> StorageSharedStorageWorkletOperationExecutionFinished
+    <$> o A..: "finishedTime"
+    <*> o A..: "executionTime"
+    <*> o A..: "method"
+    <*> o A..: "operationId"
+    <*> o A..: "workletTargetId"
+    <*> o A..: "mainFrameId"
+    <*> o A..: "ownerOrigin"
+instance Event StorageSharedStorageWorkletOperationExecutionFinished where
+  eventName _ = "Storage.sharedStorageWorkletOperationExecutionFinished"
+
+-- | Type of the 'Storage.storageBucketCreatedOrUpdated' event.
+data StorageStorageBucketCreatedOrUpdated = StorageStorageBucketCreatedOrUpdated
+  {
+    storageStorageBucketCreatedOrUpdatedBucketInfo :: StorageStorageBucketInfo
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageStorageBucketCreatedOrUpdated where
+  parseJSON = A.withObject "StorageStorageBucketCreatedOrUpdated" $ \o -> StorageStorageBucketCreatedOrUpdated
+    <$> o A..: "bucketInfo"
+instance Event StorageStorageBucketCreatedOrUpdated where
+  eventName _ = "Storage.storageBucketCreatedOrUpdated"
+
+-- | Type of the 'Storage.storageBucketDeleted' event.
+data StorageStorageBucketDeleted = StorageStorageBucketDeleted
+  {
+    storageStorageBucketDeletedBucketId :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageStorageBucketDeleted where
+  parseJSON = A.withObject "StorageStorageBucketDeleted" $ \o -> StorageStorageBucketDeleted
+    <$> o A..: "bucketId"
+instance Event StorageStorageBucketDeleted where
+  eventName _ = "Storage.storageBucketDeleted"
+
+-- | Returns storage key for the given frame. If no frame ID is provided,
+--   the storage key of the target executing this command is returned.
+
+-- | Parameters of the 'Storage.getStorageKey' command.
+data PStorageGetStorageKey = PStorageGetStorageKey
+  {
+    pStorageGetStorageKeyFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId
+  }
+  deriving (Eq, Show)
+pStorageGetStorageKey
+  :: PStorageGetStorageKey
+pStorageGetStorageKey
+  = PStorageGetStorageKey
+    Nothing
+instance ToJSON PStorageGetStorageKey where
   toJSON p = A.object $ catMaybes [
-    ("frameId" A..=) <$> Just (pStorageGetStorageKeyForFrameFrameId p)
+    ("frameId" A..=) <$> (pStorageGetStorageKeyFrameId p)
     ]
-data StorageGetStorageKeyForFrame = StorageGetStorageKeyForFrame
+data StorageGetStorageKey = StorageGetStorageKey
   {
-    storageGetStorageKeyForFrameStorageKey :: StorageSerializedStorageKey
+    storageGetStorageKeyStorageKey :: StorageSerializedStorageKey
   }
   deriving (Eq, Show)
-instance FromJSON StorageGetStorageKeyForFrame where
-  parseJSON = A.withObject "StorageGetStorageKeyForFrame" $ \o -> StorageGetStorageKeyForFrame
+instance FromJSON StorageGetStorageKey where
+  parseJSON = A.withObject "StorageGetStorageKey" $ \o -> StorageGetStorageKey
     <$> o A..: "storageKey"
-instance Command PStorageGetStorageKeyForFrame where
-  type CommandResponse PStorageGetStorageKeyForFrame = StorageGetStorageKeyForFrame
-  commandName _ = "Storage.getStorageKeyForFrame"
+instance Command PStorageGetStorageKey where
+  type CommandResponse PStorageGetStorageKey = StorageGetStorageKey
+  commandName _ = "Storage.getStorageKey"
 
 -- | Clears storage for origin.
 
@@ -422,7 +790,7 @@ instance ToJSON PStorageGetCookies where
 data StorageGetCookies = StorageGetCookies
   {
     -- | Array of cookie objects.
-    storageGetCookiesCookies :: [DOMPageNetworkEmulationSecurity.NetworkCookie]
+    storageGetCookiesCookies :: [DOMNetworkEmulationPageSecurity.NetworkCookie]
   }
   deriving (Eq, Show)
 instance FromJSON StorageGetCookies where
@@ -438,7 +806,7 @@ instance Command PStorageGetCookies where
 data PStorageSetCookies = PStorageSetCookies
   {
     -- | Cookies to be set.
-    pStorageSetCookiesCookies :: [DOMPageNetworkEmulationSecurity.NetworkCookieParam],
+    pStorageSetCookiesCookies :: [DOMNetworkEmulationPageSecurity.NetworkCookieParam],
     -- | Browser context to use when called on the browser endpoint.
     pStorageSetCookiesBrowserContextId :: Maybe BrowserTarget.BrowserBrowserContextID
   }
@@ -447,7 +815,7 @@ pStorageSetCookies
   {-
   -- | Cookies to be set.
   -}
-  :: [DOMPageNetworkEmulationSecurity.NetworkCookieParam]
+  :: [DOMNetworkEmulationPageSecurity.NetworkCookieParam]
   -> PStorageSetCookies
 pStorageSetCookies
   arg_pStorageSetCookiesCookies
@@ -598,6 +966,34 @@ instance Command PStorageTrackCacheStorageForOrigin where
   commandName _ = "Storage.trackCacheStorageForOrigin"
   fromJSON = const . A.Success . const ()
 
+-- | Registers storage key to be notified when an update occurs to its cache storage list.
+
+-- | Parameters of the 'Storage.trackCacheStorageForStorageKey' command.
+data PStorageTrackCacheStorageForStorageKey = PStorageTrackCacheStorageForStorageKey
+  {
+    -- | Storage key.
+    pStorageTrackCacheStorageForStorageKeyStorageKey :: T.Text
+  }
+  deriving (Eq, Show)
+pStorageTrackCacheStorageForStorageKey
+  {-
+  -- | Storage key.
+  -}
+  :: T.Text
+  -> PStorageTrackCacheStorageForStorageKey
+pStorageTrackCacheStorageForStorageKey
+  arg_pStorageTrackCacheStorageForStorageKeyStorageKey
+  = PStorageTrackCacheStorageForStorageKey
+    arg_pStorageTrackCacheStorageForStorageKeyStorageKey
+instance ToJSON PStorageTrackCacheStorageForStorageKey where
+  toJSON p = A.object $ catMaybes [
+    ("storageKey" A..=) <$> Just (pStorageTrackCacheStorageForStorageKeyStorageKey p)
+    ]
+instance Command PStorageTrackCacheStorageForStorageKey where
+  type CommandResponse PStorageTrackCacheStorageForStorageKey = ()
+  commandName _ = "Storage.trackCacheStorageForStorageKey"
+  fromJSON = const . A.Success . const ()
+
 -- | Registers origin to be notified when an update occurs to its IndexedDB.
 
 -- | Parameters of the 'Storage.trackIndexedDBForOrigin' command.
@@ -680,6 +1076,34 @@ instance ToJSON PStorageUntrackCacheStorageForOrigin where
 instance Command PStorageUntrackCacheStorageForOrigin where
   type CommandResponse PStorageUntrackCacheStorageForOrigin = ()
   commandName _ = "Storage.untrackCacheStorageForOrigin"
+  fromJSON = const . A.Success . const ()
+
+-- | Unregisters storage key from receiving notifications for cache storage.
+
+-- | Parameters of the 'Storage.untrackCacheStorageForStorageKey' command.
+data PStorageUntrackCacheStorageForStorageKey = PStorageUntrackCacheStorageForStorageKey
+  {
+    -- | Storage key.
+    pStorageUntrackCacheStorageForStorageKeyStorageKey :: T.Text
+  }
+  deriving (Eq, Show)
+pStorageUntrackCacheStorageForStorageKey
+  {-
+  -- | Storage key.
+  -}
+  :: T.Text
+  -> PStorageUntrackCacheStorageForStorageKey
+pStorageUntrackCacheStorageForStorageKey
+  arg_pStorageUntrackCacheStorageForStorageKeyStorageKey
+  = PStorageUntrackCacheStorageForStorageKey
+    arg_pStorageUntrackCacheStorageForStorageKeyStorageKey
+instance ToJSON PStorageUntrackCacheStorageForStorageKey where
+  toJSON p = A.object $ catMaybes [
+    ("storageKey" A..=) <$> Just (pStorageUntrackCacheStorageForStorageKeyStorageKey p)
+    ]
+instance Command PStorageUntrackCacheStorageForStorageKey where
+  type CommandResponse PStorageUntrackCacheStorageForStorageKey = ()
+  commandName _ = "Storage.untrackCacheStorageForStorageKey"
   fromJSON = const . A.Success . const ()
 
 -- | Unregisters origin from receiving notifications for IndexedDB.
@@ -795,63 +1219,305 @@ instance Command PStorageClearTrustTokens where
   type CommandResponse PStorageClearTrustTokens = StorageClearTrustTokens
   commandName _ = "Storage.clearTrustTokens"
 
--- | Gets details for a named interest group.
+-- | Gets metadata for an origin's shared storage.
 
--- | Parameters of the 'Storage.getInterestGroupDetails' command.
-data PStorageGetInterestGroupDetails = PStorageGetInterestGroupDetails
+-- | Parameters of the 'Storage.getSharedStorageMetadata' command.
+data PStorageGetSharedStorageMetadata = PStorageGetSharedStorageMetadata
   {
-    pStorageGetInterestGroupDetailsOwnerOrigin :: T.Text,
-    pStorageGetInterestGroupDetailsName :: T.Text
+    pStorageGetSharedStorageMetadataOwnerOrigin :: T.Text
   }
   deriving (Eq, Show)
-pStorageGetInterestGroupDetails
+pStorageGetSharedStorageMetadata
+  :: T.Text
+  -> PStorageGetSharedStorageMetadata
+pStorageGetSharedStorageMetadata
+  arg_pStorageGetSharedStorageMetadataOwnerOrigin
+  = PStorageGetSharedStorageMetadata
+    arg_pStorageGetSharedStorageMetadataOwnerOrigin
+instance ToJSON PStorageGetSharedStorageMetadata where
+  toJSON p = A.object $ catMaybes [
+    ("ownerOrigin" A..=) <$> Just (pStorageGetSharedStorageMetadataOwnerOrigin p)
+    ]
+data StorageGetSharedStorageMetadata = StorageGetSharedStorageMetadata
+  {
+    storageGetSharedStorageMetadataMetadata :: StorageSharedStorageMetadata
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageGetSharedStorageMetadata where
+  parseJSON = A.withObject "StorageGetSharedStorageMetadata" $ \o -> StorageGetSharedStorageMetadata
+    <$> o A..: "metadata"
+instance Command PStorageGetSharedStorageMetadata where
+  type CommandResponse PStorageGetSharedStorageMetadata = StorageGetSharedStorageMetadata
+  commandName _ = "Storage.getSharedStorageMetadata"
+
+-- | Gets the entries in an given origin's shared storage.
+
+-- | Parameters of the 'Storage.getSharedStorageEntries' command.
+data PStorageGetSharedStorageEntries = PStorageGetSharedStorageEntries
+  {
+    pStorageGetSharedStorageEntriesOwnerOrigin :: T.Text
+  }
+  deriving (Eq, Show)
+pStorageGetSharedStorageEntries
+  :: T.Text
+  -> PStorageGetSharedStorageEntries
+pStorageGetSharedStorageEntries
+  arg_pStorageGetSharedStorageEntriesOwnerOrigin
+  = PStorageGetSharedStorageEntries
+    arg_pStorageGetSharedStorageEntriesOwnerOrigin
+instance ToJSON PStorageGetSharedStorageEntries where
+  toJSON p = A.object $ catMaybes [
+    ("ownerOrigin" A..=) <$> Just (pStorageGetSharedStorageEntriesOwnerOrigin p)
+    ]
+data StorageGetSharedStorageEntries = StorageGetSharedStorageEntries
+  {
+    storageGetSharedStorageEntriesEntries :: [StorageSharedStorageEntry]
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageGetSharedStorageEntries where
+  parseJSON = A.withObject "StorageGetSharedStorageEntries" $ \o -> StorageGetSharedStorageEntries
+    <$> o A..: "entries"
+instance Command PStorageGetSharedStorageEntries where
+  type CommandResponse PStorageGetSharedStorageEntries = StorageGetSharedStorageEntries
+  commandName _ = "Storage.getSharedStorageEntries"
+
+-- | Sets entry with `key` and `value` for a given origin's shared storage.
+
+-- | Parameters of the 'Storage.setSharedStorageEntry' command.
+data PStorageSetSharedStorageEntry = PStorageSetSharedStorageEntry
+  {
+    pStorageSetSharedStorageEntryOwnerOrigin :: T.Text,
+    pStorageSetSharedStorageEntryKey :: T.Text,
+    pStorageSetSharedStorageEntryValue :: T.Text,
+    -- | If `ignoreIfPresent` is included and true, then only sets the entry if
+    --   `key` doesn't already exist.
+    pStorageSetSharedStorageEntryIgnoreIfPresent :: Maybe Bool
+  }
+  deriving (Eq, Show)
+pStorageSetSharedStorageEntry
   :: T.Text
   -> T.Text
-  -> PStorageGetInterestGroupDetails
-pStorageGetInterestGroupDetails
-  arg_pStorageGetInterestGroupDetailsOwnerOrigin
-  arg_pStorageGetInterestGroupDetailsName
-  = PStorageGetInterestGroupDetails
-    arg_pStorageGetInterestGroupDetailsOwnerOrigin
-    arg_pStorageGetInterestGroupDetailsName
-instance ToJSON PStorageGetInterestGroupDetails where
+  -> T.Text
+  -> PStorageSetSharedStorageEntry
+pStorageSetSharedStorageEntry
+  arg_pStorageSetSharedStorageEntryOwnerOrigin
+  arg_pStorageSetSharedStorageEntryKey
+  arg_pStorageSetSharedStorageEntryValue
+  = PStorageSetSharedStorageEntry
+    arg_pStorageSetSharedStorageEntryOwnerOrigin
+    arg_pStorageSetSharedStorageEntryKey
+    arg_pStorageSetSharedStorageEntryValue
+    Nothing
+instance ToJSON PStorageSetSharedStorageEntry where
   toJSON p = A.object $ catMaybes [
-    ("ownerOrigin" A..=) <$> Just (pStorageGetInterestGroupDetailsOwnerOrigin p),
-    ("name" A..=) <$> Just (pStorageGetInterestGroupDetailsName p)
+    ("ownerOrigin" A..=) <$> Just (pStorageSetSharedStorageEntryOwnerOrigin p),
+    ("key" A..=) <$> Just (pStorageSetSharedStorageEntryKey p),
+    ("value" A..=) <$> Just (pStorageSetSharedStorageEntryValue p),
+    ("ignoreIfPresent" A..=) <$> (pStorageSetSharedStorageEntryIgnoreIfPresent p)
     ]
-data StorageGetInterestGroupDetails = StorageGetInterestGroupDetails
-  {
-    storageGetInterestGroupDetailsDetails :: StorageInterestGroupDetails
-  }
-  deriving (Eq, Show)
-instance FromJSON StorageGetInterestGroupDetails where
-  parseJSON = A.withObject "StorageGetInterestGroupDetails" $ \o -> StorageGetInterestGroupDetails
-    <$> o A..: "details"
-instance Command PStorageGetInterestGroupDetails where
-  type CommandResponse PStorageGetInterestGroupDetails = StorageGetInterestGroupDetails
-  commandName _ = "Storage.getInterestGroupDetails"
-
--- | Enables/Disables issuing of interestGroupAccessed events.
-
--- | Parameters of the 'Storage.setInterestGroupTracking' command.
-data PStorageSetInterestGroupTracking = PStorageSetInterestGroupTracking
-  {
-    pStorageSetInterestGroupTrackingEnable :: Bool
-  }
-  deriving (Eq, Show)
-pStorageSetInterestGroupTracking
-  :: Bool
-  -> PStorageSetInterestGroupTracking
-pStorageSetInterestGroupTracking
-  arg_pStorageSetInterestGroupTrackingEnable
-  = PStorageSetInterestGroupTracking
-    arg_pStorageSetInterestGroupTrackingEnable
-instance ToJSON PStorageSetInterestGroupTracking where
-  toJSON p = A.object $ catMaybes [
-    ("enable" A..=) <$> Just (pStorageSetInterestGroupTrackingEnable p)
-    ]
-instance Command PStorageSetInterestGroupTracking where
-  type CommandResponse PStorageSetInterestGroupTracking = ()
-  commandName _ = "Storage.setInterestGroupTracking"
+instance Command PStorageSetSharedStorageEntry where
+  type CommandResponse PStorageSetSharedStorageEntry = ()
+  commandName _ = "Storage.setSharedStorageEntry"
   fromJSON = const . A.Success . const ()
+
+-- | Deletes entry for `key` (if it exists) for a given origin's shared storage.
+
+-- | Parameters of the 'Storage.deleteSharedStorageEntry' command.
+data PStorageDeleteSharedStorageEntry = PStorageDeleteSharedStorageEntry
+  {
+    pStorageDeleteSharedStorageEntryOwnerOrigin :: T.Text,
+    pStorageDeleteSharedStorageEntryKey :: T.Text
+  }
+  deriving (Eq, Show)
+pStorageDeleteSharedStorageEntry
+  :: T.Text
+  -> T.Text
+  -> PStorageDeleteSharedStorageEntry
+pStorageDeleteSharedStorageEntry
+  arg_pStorageDeleteSharedStorageEntryOwnerOrigin
+  arg_pStorageDeleteSharedStorageEntryKey
+  = PStorageDeleteSharedStorageEntry
+    arg_pStorageDeleteSharedStorageEntryOwnerOrigin
+    arg_pStorageDeleteSharedStorageEntryKey
+instance ToJSON PStorageDeleteSharedStorageEntry where
+  toJSON p = A.object $ catMaybes [
+    ("ownerOrigin" A..=) <$> Just (pStorageDeleteSharedStorageEntryOwnerOrigin p),
+    ("key" A..=) <$> Just (pStorageDeleteSharedStorageEntryKey p)
+    ]
+instance Command PStorageDeleteSharedStorageEntry where
+  type CommandResponse PStorageDeleteSharedStorageEntry = ()
+  commandName _ = "Storage.deleteSharedStorageEntry"
+  fromJSON = const . A.Success . const ()
+
+-- | Clears all entries for a given origin's shared storage.
+
+-- | Parameters of the 'Storage.clearSharedStorageEntries' command.
+data PStorageClearSharedStorageEntries = PStorageClearSharedStorageEntries
+  {
+    pStorageClearSharedStorageEntriesOwnerOrigin :: T.Text
+  }
+  deriving (Eq, Show)
+pStorageClearSharedStorageEntries
+  :: T.Text
+  -> PStorageClearSharedStorageEntries
+pStorageClearSharedStorageEntries
+  arg_pStorageClearSharedStorageEntriesOwnerOrigin
+  = PStorageClearSharedStorageEntries
+    arg_pStorageClearSharedStorageEntriesOwnerOrigin
+instance ToJSON PStorageClearSharedStorageEntries where
+  toJSON p = A.object $ catMaybes [
+    ("ownerOrigin" A..=) <$> Just (pStorageClearSharedStorageEntriesOwnerOrigin p)
+    ]
+instance Command PStorageClearSharedStorageEntries where
+  type CommandResponse PStorageClearSharedStorageEntries = ()
+  commandName _ = "Storage.clearSharedStorageEntries"
+  fromJSON = const . A.Success . const ()
+
+-- | Resets the budget for `ownerOrigin` by clearing all budget withdrawals.
+
+-- | Parameters of the 'Storage.resetSharedStorageBudget' command.
+data PStorageResetSharedStorageBudget = PStorageResetSharedStorageBudget
+  {
+    pStorageResetSharedStorageBudgetOwnerOrigin :: T.Text
+  }
+  deriving (Eq, Show)
+pStorageResetSharedStorageBudget
+  :: T.Text
+  -> PStorageResetSharedStorageBudget
+pStorageResetSharedStorageBudget
+  arg_pStorageResetSharedStorageBudgetOwnerOrigin
+  = PStorageResetSharedStorageBudget
+    arg_pStorageResetSharedStorageBudgetOwnerOrigin
+instance ToJSON PStorageResetSharedStorageBudget where
+  toJSON p = A.object $ catMaybes [
+    ("ownerOrigin" A..=) <$> Just (pStorageResetSharedStorageBudgetOwnerOrigin p)
+    ]
+instance Command PStorageResetSharedStorageBudget where
+  type CommandResponse PStorageResetSharedStorageBudget = ()
+  commandName _ = "Storage.resetSharedStorageBudget"
+  fromJSON = const . A.Success . const ()
+
+-- | Enables/disables issuing of sharedStorageAccessed events.
+
+-- | Parameters of the 'Storage.setSharedStorageTracking' command.
+data PStorageSetSharedStorageTracking = PStorageSetSharedStorageTracking
+  {
+    pStorageSetSharedStorageTrackingEnable :: Bool
+  }
+  deriving (Eq, Show)
+pStorageSetSharedStorageTracking
+  :: Bool
+  -> PStorageSetSharedStorageTracking
+pStorageSetSharedStorageTracking
+  arg_pStorageSetSharedStorageTrackingEnable
+  = PStorageSetSharedStorageTracking
+    arg_pStorageSetSharedStorageTrackingEnable
+instance ToJSON PStorageSetSharedStorageTracking where
+  toJSON p = A.object $ catMaybes [
+    ("enable" A..=) <$> Just (pStorageSetSharedStorageTrackingEnable p)
+    ]
+instance Command PStorageSetSharedStorageTracking where
+  type CommandResponse PStorageSetSharedStorageTracking = ()
+  commandName _ = "Storage.setSharedStorageTracking"
+  fromJSON = const . A.Success . const ()
+
+-- | Set tracking for a storage key's buckets.
+
+-- | Parameters of the 'Storage.setStorageBucketTracking' command.
+data PStorageSetStorageBucketTracking = PStorageSetStorageBucketTracking
+  {
+    pStorageSetStorageBucketTrackingStorageKey :: T.Text,
+    pStorageSetStorageBucketTrackingEnable :: Bool
+  }
+  deriving (Eq, Show)
+pStorageSetStorageBucketTracking
+  :: T.Text
+  -> Bool
+  -> PStorageSetStorageBucketTracking
+pStorageSetStorageBucketTracking
+  arg_pStorageSetStorageBucketTrackingStorageKey
+  arg_pStorageSetStorageBucketTrackingEnable
+  = PStorageSetStorageBucketTracking
+    arg_pStorageSetStorageBucketTrackingStorageKey
+    arg_pStorageSetStorageBucketTrackingEnable
+instance ToJSON PStorageSetStorageBucketTracking where
+  toJSON p = A.object $ catMaybes [
+    ("storageKey" A..=) <$> Just (pStorageSetStorageBucketTrackingStorageKey p),
+    ("enable" A..=) <$> Just (pStorageSetStorageBucketTrackingEnable p)
+    ]
+instance Command PStorageSetStorageBucketTracking where
+  type CommandResponse PStorageSetStorageBucketTracking = ()
+  commandName _ = "Storage.setStorageBucketTracking"
+  fromJSON = const . A.Success . const ()
+
+-- | Deletes the Storage Bucket with the given storage key and bucket name.
+
+-- | Parameters of the 'Storage.deleteStorageBucket' command.
+data PStorageDeleteStorageBucket = PStorageDeleteStorageBucket
+  {
+    pStorageDeleteStorageBucketBucket :: StorageStorageBucket
+  }
+  deriving (Eq, Show)
+pStorageDeleteStorageBucket
+  :: StorageStorageBucket
+  -> PStorageDeleteStorageBucket
+pStorageDeleteStorageBucket
+  arg_pStorageDeleteStorageBucketBucket
+  = PStorageDeleteStorageBucket
+    arg_pStorageDeleteStorageBucketBucket
+instance ToJSON PStorageDeleteStorageBucket where
+  toJSON p = A.object $ catMaybes [
+    ("bucket" A..=) <$> Just (pStorageDeleteStorageBucketBucket p)
+    ]
+instance Command PStorageDeleteStorageBucket where
+  type CommandResponse PStorageDeleteStorageBucket = ()
+  commandName _ = "Storage.deleteStorageBucket"
+  fromJSON = const . A.Success . const ()
+
+-- | Deletes state for sites identified as potential bounce trackers, immediately.
+
+-- | Parameters of the 'Storage.runBounceTrackingMitigations' command.
+data PStorageRunBounceTrackingMitigations = PStorageRunBounceTrackingMitigations
+  deriving (Eq, Show)
+pStorageRunBounceTrackingMitigations
+  :: PStorageRunBounceTrackingMitigations
+pStorageRunBounceTrackingMitigations
+  = PStorageRunBounceTrackingMitigations
+instance ToJSON PStorageRunBounceTrackingMitigations where
+  toJSON _ = A.Null
+data StorageRunBounceTrackingMitigations = StorageRunBounceTrackingMitigations
+  {
+    storageRunBounceTrackingMitigationsDeletedSites :: [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageRunBounceTrackingMitigations where
+  parseJSON = A.withObject "StorageRunBounceTrackingMitigations" $ \o -> StorageRunBounceTrackingMitigations
+    <$> o A..: "deletedSites"
+instance Command PStorageRunBounceTrackingMitigations where
+  type CommandResponse PStorageRunBounceTrackingMitigations = StorageRunBounceTrackingMitigations
+  commandName _ = "Storage.runBounceTrackingMitigations"
+
+-- | Returns the effective Related Website Sets in use by this profile for the browser
+--   session. The effective Related Website Sets will not change during a browser session.
+
+-- | Parameters of the 'Storage.getRelatedWebsiteSets' command.
+data PStorageGetRelatedWebsiteSets = PStorageGetRelatedWebsiteSets
+  deriving (Eq, Show)
+pStorageGetRelatedWebsiteSets
+  :: PStorageGetRelatedWebsiteSets
+pStorageGetRelatedWebsiteSets
+  = PStorageGetRelatedWebsiteSets
+instance ToJSON PStorageGetRelatedWebsiteSets where
+  toJSON _ = A.Null
+data StorageGetRelatedWebsiteSets = StorageGetRelatedWebsiteSets
+  {
+    storageGetRelatedWebsiteSetsSets :: [StorageRelatedWebsiteSet]
+  }
+  deriving (Eq, Show)
+instance FromJSON StorageGetRelatedWebsiteSets where
+  parseJSON = A.withObject "StorageGetRelatedWebsiteSets" $ \o -> StorageGetRelatedWebsiteSets
+    <$> o A..: "sets"
+instance Command PStorageGetRelatedWebsiteSets where
+  type CommandResponse PStorageGetRelatedWebsiteSets = StorageGetRelatedWebsiteSets
+  commandName _ = "Storage.getRelatedWebsiteSets"
 

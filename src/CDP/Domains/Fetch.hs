@@ -46,12 +46,14 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.IO as IO
 
 
 -- | Type 'Fetch.RequestId'.
 --   Unique request identifier.
+--   Note that this does not identify individual HTTP requests that are part of
+--   a network request.
 type FetchRequestId = T.Text
 
 -- | Type 'Fetch.RequestStage'.
@@ -77,7 +79,7 @@ data FetchRequestPattern = FetchRequestPattern
     --   backslash. Omitting is equivalent to `"*"`.
     fetchRequestPatternUrlPattern :: Maybe T.Text,
     -- | If set, only requests for matching resource types will be intercepted.
-    fetchRequestPatternResourceType :: Maybe DOMPageNetworkEmulationSecurity.NetworkResourceType,
+    fetchRequestPatternResourceType :: Maybe DOMNetworkEmulationPageSecurity.NetworkResourceType,
     -- | Stage at which to begin intercepting requests. Default is Request.
     fetchRequestPatternRequestStage :: Maybe FetchRequestStage
   }
@@ -198,13 +200,13 @@ data FetchRequestPaused = FetchRequestPaused
     -- | Each request the page makes will have a unique id.
     fetchRequestPausedRequestId :: FetchRequestId,
     -- | The details of the request.
-    fetchRequestPausedRequest :: DOMPageNetworkEmulationSecurity.NetworkRequest,
+    fetchRequestPausedRequest :: DOMNetworkEmulationPageSecurity.NetworkRequest,
     -- | The id of the frame that initiated the request.
-    fetchRequestPausedFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId,
+    fetchRequestPausedFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
     -- | How the requested resource will be used.
-    fetchRequestPausedResourceType :: DOMPageNetworkEmulationSecurity.NetworkResourceType,
+    fetchRequestPausedResourceType :: DOMNetworkEmulationPageSecurity.NetworkResourceType,
     -- | Response error if intercepted at response stage.
-    fetchRequestPausedResponseErrorReason :: Maybe DOMPageNetworkEmulationSecurity.NetworkErrorReason,
+    fetchRequestPausedResponseErrorReason :: Maybe DOMNetworkEmulationPageSecurity.NetworkErrorReason,
     -- | Response code if intercepted at response stage.
     fetchRequestPausedResponseStatusCode :: Maybe Int,
     -- | Response status text if intercepted at response stage.
@@ -213,7 +215,7 @@ data FetchRequestPaused = FetchRequestPaused
     fetchRequestPausedResponseHeaders :: Maybe [FetchHeaderEntry],
     -- | If the intercepted request had a corresponding Network.requestWillBeSent event fired for it,
     --   then this networkId will be the same as the requestId present in the requestWillBeSent event.
-    fetchRequestPausedNetworkId :: Maybe DOMPageNetworkEmulationSecurity.NetworkRequestId,
+    fetchRequestPausedNetworkId :: Maybe DOMNetworkEmulationPageSecurity.NetworkRequestId,
     -- | If the request is due to a redirect response from the server, the id of the request that
     --   has caused the redirect.
     fetchRequestPausedRedirectedRequestId :: Maybe FetchRequestId
@@ -240,11 +242,11 @@ data FetchAuthRequired = FetchAuthRequired
     -- | Each request the page makes will have a unique id.
     fetchAuthRequiredRequestId :: FetchRequestId,
     -- | The details of the request.
-    fetchAuthRequiredRequest :: DOMPageNetworkEmulationSecurity.NetworkRequest,
+    fetchAuthRequiredRequest :: DOMNetworkEmulationPageSecurity.NetworkRequest,
     -- | The id of the frame that initiated the request.
-    fetchAuthRequiredFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId,
+    fetchAuthRequiredFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
     -- | How the requested resource will be used.
-    fetchAuthRequiredResourceType :: DOMPageNetworkEmulationSecurity.NetworkResourceType,
+    fetchAuthRequiredResourceType :: DOMNetworkEmulationPageSecurity.NetworkResourceType,
     -- | Details of the Authorization Challenge encountered.
     --   If this is set, client should respond with continueRequest that
     --   contains AuthChallengeResponse.
@@ -316,7 +318,7 @@ data PFetchFailRequest = PFetchFailRequest
     -- | An id the client received in requestPaused event.
     pFetchFailRequestRequestId :: FetchRequestId,
     -- | Causes the request to fail with the given reason.
-    pFetchFailRequestErrorReason :: DOMPageNetworkEmulationSecurity.NetworkErrorReason
+    pFetchFailRequestErrorReason :: DOMNetworkEmulationPageSecurity.NetworkErrorReason
   }
   deriving (Eq, Show)
 pFetchFailRequest
@@ -327,7 +329,7 @@ pFetchFailRequest
   {-
   -- | Causes the request to fail with the given reason.
   -}
-  -> DOMPageNetworkEmulationSecurity.NetworkErrorReason
+  -> DOMNetworkEmulationPageSecurity.NetworkErrorReason
   -> PFetchFailRequest
 pFetchFailRequest
   arg_pFetchFailRequestRequestId
@@ -547,6 +549,10 @@ instance Command PFetchContinueResponse where
 --   takeResponseBodyForInterceptionAsStream. Calling other methods that
 --   affect the request or disabling fetch domain before body is received
 --   results in an undefined behavior.
+--   Note that the response body is not available for redirects. Requests
+--   paused in the _redirect received_ state may be differentiated by
+--   `responseCode` and presence of `location` response header, see
+--   comments to `requestPaused` for details.
 
 -- | Parameters of the 'Fetch.getResponseBody' command.
 data PFetchGetResponseBody = PFetchGetResponseBody

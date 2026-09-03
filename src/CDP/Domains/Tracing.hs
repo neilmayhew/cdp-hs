@@ -70,7 +70,7 @@ instance ToJSON TracingTraceConfigRecordMode where
     TracingTraceConfigRecordModeEchoToConsole -> "echoToConsole"
 data TracingTraceConfig = TracingTraceConfig
   {
-    -- | Controls how the trace buffer stores data.
+    -- | Controls how the trace buffer stores data. The default is `recordUntilFull`.
     tracingTraceConfigRecordMode :: Maybe TracingTraceConfigRecordMode,
     -- | Size of the trace buffer in kilobytes. If not specified or zero is passed, a default value
     --   of 200 MB would be used.
@@ -278,6 +278,30 @@ instance Command PTracingGetCategories where
   type CommandResponse PTracingGetCategories = TracingGetCategories
   commandName _ = "Tracing.getCategories"
 
+-- | Return a descriptor for all available tracing categories.
+
+-- | Parameters of the 'Tracing.getTrackEventDescriptor' command.
+data PTracingGetTrackEventDescriptor = PTracingGetTrackEventDescriptor
+  deriving (Eq, Show)
+pTracingGetTrackEventDescriptor
+  :: PTracingGetTrackEventDescriptor
+pTracingGetTrackEventDescriptor
+  = PTracingGetTrackEventDescriptor
+instance ToJSON PTracingGetTrackEventDescriptor where
+  toJSON _ = A.Null
+data TracingGetTrackEventDescriptor = TracingGetTrackEventDescriptor
+  {
+    -- | Base64-encoded serialized perfetto.protos.TrackEventDescriptor protobuf message. (Encoded as a base64 string when passed over JSON)
+    tracingGetTrackEventDescriptorDescriptor :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON TracingGetTrackEventDescriptor where
+  parseJSON = A.withObject "TracingGetTrackEventDescriptor" $ \o -> TracingGetTrackEventDescriptor
+    <$> o A..: "descriptor"
+instance Command PTracingGetTrackEventDescriptor where
+  type CommandResponse PTracingGetTrackEventDescriptor = TracingGetTrackEventDescriptor
+  commandName _ = "Tracing.getTrackEventDescriptor"
+
 -- | Record a clock sync marker in the trace.
 
 -- | Parameters of the 'Tracing.recordClockSyncMarker' command.
@@ -377,13 +401,26 @@ data PTracingStart = PTracingStart
     --   are ignored. (Encoded as a base64 string when passed over JSON)
     pTracingStartPerfettoConfig :: Maybe T.Text,
     -- | Backend type (defaults to `auto`)
-    pTracingStartTracingBackend :: Maybe TracingTracingBackend
+    pTracingStartTracingBackend :: Maybe TracingTracingBackend,
+    -- | Maximum width and height (in pixels) of each captured screenshot.
+    --   Only used when the `disabled-by-default-devtools.screenshot` category is
+    --   enabled. Defaults to 500. The combined memory footprint of screenshots
+    --   (`screenshotMaxSize` * `screenshotMaxSize` * 4 * `screenshotMaxCount`)
+    --   is clamped to the existing per-session budget.
+    pTracingStartScreenshotMaxSize :: Maybe Int,
+    -- | Maximum number of screenshots captured during a single tracing session.
+    --   Only used when the `disabled-by-default-devtools.screenshot` category is
+    --   enabled. Defaults to 450. Clamped together with `screenshotMaxSize` to
+    --   stay within the per-session screenshot memory budget.
+    pTracingStartScreenshotMaxCount :: Maybe Int
   }
   deriving (Eq, Show)
 pTracingStart
   :: PTracingStart
 pTracingStart
   = PTracingStart
+    Nothing
+    Nothing
     Nothing
     Nothing
     Nothing
@@ -399,7 +436,9 @@ instance ToJSON PTracingStart where
     ("streamCompression" A..=) <$> (pTracingStartStreamCompression p),
     ("traceConfig" A..=) <$> (pTracingStartTraceConfig p),
     ("perfettoConfig" A..=) <$> (pTracingStartPerfettoConfig p),
-    ("tracingBackend" A..=) <$> (pTracingStartTracingBackend p)
+    ("tracingBackend" A..=) <$> (pTracingStartTracingBackend p),
+    ("screenshotMaxSize" A..=) <$> (pTracingStartScreenshotMaxSize p),
+    ("screenshotMaxCount" A..=) <$> (pTracingStartScreenshotMaxCount p)
     ]
 instance Command PTracingStart where
   type CommandResponse PTracingStart = ()

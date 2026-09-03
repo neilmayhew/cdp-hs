@@ -47,22 +47,22 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
 
 -- | Type 'PerformanceTimeline.LargestContentfulPaint'.
 --   See https://github.com/WICG/LargestContentfulPaint and largest_contentful_paint.idl
 data PerformanceTimelineLargestContentfulPaint = PerformanceTimelineLargestContentfulPaint
   {
-    performanceTimelineLargestContentfulPaintRenderTime :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
-    performanceTimelineLargestContentfulPaintLoadTime :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
+    performanceTimelineLargestContentfulPaintRenderTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
+    performanceTimelineLargestContentfulPaintLoadTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
     -- | The number of pixels being painted.
     performanceTimelineLargestContentfulPaintSize :: Double,
     -- | The id attribute of the element, if available.
     performanceTimelineLargestContentfulPaintElementId :: Maybe T.Text,
     -- | The URL of the image (may be trimmed).
     performanceTimelineLargestContentfulPaintUrl :: Maybe T.Text,
-    performanceTimelineLargestContentfulPaintNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId
+    performanceTimelineLargestContentfulPaintNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
   }
   deriving (Eq, Show)
 instance FromJSON PerformanceTimelineLargestContentfulPaint where
@@ -86,9 +86,9 @@ instance ToJSON PerformanceTimelineLargestContentfulPaint where
 -- | Type 'PerformanceTimeline.LayoutShiftAttribution'.
 data PerformanceTimelineLayoutShiftAttribution = PerformanceTimelineLayoutShiftAttribution
   {
-    performanceTimelineLayoutShiftAttributionPreviousRect :: DOMPageNetworkEmulationSecurity.DOMRect,
-    performanceTimelineLayoutShiftAttributionCurrentRect :: DOMPageNetworkEmulationSecurity.DOMRect,
-    performanceTimelineLayoutShiftAttributionNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId
+    performanceTimelineLayoutShiftAttributionPreviousRect :: DOMNetworkEmulationPageSecurity.DOMRect,
+    performanceTimelineLayoutShiftAttributionCurrentRect :: DOMNetworkEmulationPageSecurity.DOMRect,
+    performanceTimelineLayoutShiftAttributionNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
   }
   deriving (Eq, Show)
 instance FromJSON PerformanceTimelineLayoutShiftAttribution where
@@ -110,7 +110,7 @@ data PerformanceTimelineLayoutShift = PerformanceTimelineLayoutShift
     -- | Score increment produced by this event.
     performanceTimelineLayoutShiftValue :: Double,
     performanceTimelineLayoutShiftHadRecentInput :: Bool,
-    performanceTimelineLayoutShiftLastInputTime :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
+    performanceTimelineLayoutShiftLastInputTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
     performanceTimelineLayoutShiftSources :: [PerformanceTimelineLayoutShiftAttribution]
   }
   deriving (Eq, Show)
@@ -132,14 +132,14 @@ instance ToJSON PerformanceTimelineLayoutShift where
 data PerformanceTimelineTimelineEvent = PerformanceTimelineTimelineEvent
   {
     -- | Identifies the frame that this event is related to. Empty for non-frame targets.
-    performanceTimelineTimelineEventFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId,
+    performanceTimelineTimelineEventFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
     -- | The event type, as specified in https://w3c.github.io/performance-timeline/#dom-performanceentry-entrytype
-    --   This determines which of the optional "details" fiedls is present.
+    --   This determines which of the optional "details" fields is present.
     performanceTimelineTimelineEventType :: T.Text,
     -- | Name may be empty depending on the type.
     performanceTimelineTimelineEventName :: T.Text,
     -- | Time in seconds since Epoch, monotonically increasing within document lifetime.
-    performanceTimelineTimelineEventTime :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
+    performanceTimelineTimelineEventTime :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
     -- | Event duration, if applicable.
     performanceTimelineTimelineEventDuration :: Maybe Double,
     performanceTimelineTimelineEventLcpDetails :: Maybe PerformanceTimelineLargestContentfulPaint,

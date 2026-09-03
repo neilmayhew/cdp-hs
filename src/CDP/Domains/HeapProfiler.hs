@@ -362,6 +362,8 @@ data PHeapProfilerStartSampling = PHeapProfilerStartSampling
     -- | Average sample interval in bytes. Poisson distribution is used for the intervals. The
     --   default value is 32768 bytes.
     pHeapProfilerStartSamplingSamplingInterval :: Maybe Double,
+    -- | Maximum stack depth. The default value is 128.
+    pHeapProfilerStartSamplingStackDepth :: Maybe Double,
     -- | By default, the sampling heap profiler reports only objects which are
     --   still alive when the profile is returned via getSamplingProfile or
     --   stopSampling, which is useful for determining what functions contribute
@@ -387,9 +389,11 @@ pHeapProfilerStartSampling
     Nothing
     Nothing
     Nothing
+    Nothing
 instance ToJSON PHeapProfilerStartSampling where
   toJSON p = A.object $ catMaybes [
     ("samplingInterval" A..=) <$> (pHeapProfilerStartSamplingSamplingInterval p),
+    ("stackDepth" A..=) <$> (pHeapProfilerStartSamplingStackDepth p),
     ("includeObjectsCollectedByMajorGC" A..=) <$> (pHeapProfilerStartSamplingIncludeObjectsCollectedByMajorGC p),
     ("includeObjectsCollectedByMinorGC" A..=) <$> (pHeapProfilerStartSamplingIncludeObjectsCollectedByMinorGC p)
     ]

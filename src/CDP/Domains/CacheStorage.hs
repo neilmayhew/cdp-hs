@@ -45,6 +45,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
+import CDP.Domains.Storage as Storage
 
 
 -- | Type 'CacheStorage.CacheId'.
@@ -125,6 +126,10 @@ data CacheStorageCache = CacheStorageCache
     cacheStorageCacheCacheId :: CacheStorageCacheId,
     -- | Security origin of the cache.
     cacheStorageCacheSecurityOrigin :: T.Text,
+    -- | Storage key of the cache.
+    cacheStorageCacheStorageKey :: T.Text,
+    -- | Storage bucket of the cache.
+    cacheStorageCacheStorageBucket :: Maybe Storage.StorageStorageBucket,
     -- | The name of the cache.
     cacheStorageCacheCacheName :: T.Text
   }
@@ -133,11 +138,15 @@ instance FromJSON CacheStorageCache where
   parseJSON = A.withObject "CacheStorageCache" $ \o -> CacheStorageCache
     <$> o A..: "cacheId"
     <*> o A..: "securityOrigin"
+    <*> o A..: "storageKey"
+    <*> o A..:? "storageBucket"
     <*> o A..: "cacheName"
 instance ToJSON CacheStorageCache where
   toJSON p = A.object $ catMaybes [
     ("cacheId" A..=) <$> Just (cacheStorageCacheCacheId p),
     ("securityOrigin" A..=) <$> Just (cacheStorageCacheSecurityOrigin p),
+    ("storageKey" A..=) <$> Just (cacheStorageCacheStorageKey p),
+    ("storageBucket" A..=) <$> (cacheStorageCacheStorageBucket p),
     ("cacheName" A..=) <$> Just (cacheStorageCacheCacheName p)
     ]
 
@@ -244,23 +253,27 @@ instance Command PCacheStorageDeleteEntry where
 -- | Parameters of the 'CacheStorage.requestCacheNames' command.
 data PCacheStorageRequestCacheNames = PCacheStorageRequestCacheNames
   {
-    -- | Security origin.
-    pCacheStorageRequestCacheNamesSecurityOrigin :: T.Text
+    -- | At least and at most one of securityOrigin, storageKey, storageBucket must be specified.
+    --   Security origin.
+    pCacheStorageRequestCacheNamesSecurityOrigin :: Maybe T.Text,
+    -- | Storage key.
+    pCacheStorageRequestCacheNamesStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pCacheStorageRequestCacheNamesStorageBucket :: Maybe Storage.StorageStorageBucket
   }
   deriving (Eq, Show)
 pCacheStorageRequestCacheNames
-  {-
-  -- | Security origin.
-  -}
-  :: T.Text
-  -> PCacheStorageRequestCacheNames
+  :: PCacheStorageRequestCacheNames
 pCacheStorageRequestCacheNames
-  arg_pCacheStorageRequestCacheNamesSecurityOrigin
   = PCacheStorageRequestCacheNames
-    arg_pCacheStorageRequestCacheNamesSecurityOrigin
+    Nothing
+    Nothing
+    Nothing
 instance ToJSON PCacheStorageRequestCacheNames where
   toJSON p = A.object $ catMaybes [
-    ("securityOrigin" A..=) <$> Just (pCacheStorageRequestCacheNamesSecurityOrigin p)
+    ("securityOrigin" A..=) <$> (pCacheStorageRequestCacheNamesSecurityOrigin p),
+    ("storageKey" A..=) <$> (pCacheStorageRequestCacheNamesStorageKey p),
+    ("storageBucket" A..=) <$> (pCacheStorageRequestCacheNamesStorageBucket p)
     ]
 data CacheStorageRequestCacheNames = CacheStorageRequestCacheNames
   {

@@ -11,6 +11,7 @@ module CDP.Internal.Utils where
 import           Control.Monad
 import           Control.Monad.Loops
 import           Control.Monad.Trans  (liftIO)
+import           Data.Kind (Type)
 import qualified Data.Map             as M
 import           Data.Maybe
 import Data.Foldable (for_)
@@ -82,7 +83,7 @@ class FromJSON a => Event a where
     eventName :: Proxy a -> String
 
 class (ToJSON cmd, FromJSON (CommandResponse cmd)) => Command cmd where
-    type CommandResponse cmd :: *
+    type CommandResponse cmd :: Type
     commandName :: Proxy cmd -> String
     fromJSON :: Proxy cmd -> A.Value -> A.Result (CommandResponse cmd)
     fromJSON = const A.fromJSON

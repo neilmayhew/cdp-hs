@@ -15,8 +15,8 @@ that has an `id`. This `id` can be used to get additional information on the Nod
 the JavaScript object wrapper, etc. It is important that client receives DOM events only for the
 nodes that are known to the client. Backend keeps track of the nodes that were sent to the client
 and never sends the same node twice. It is client's responsibility to collect information about
-the nodes that were sent to the client.<p>Note that `iframe` owner elements will return
-corresponding document elements as their child nodes.</p>
+the nodes that were sent to the client. Note that `iframe` owner elements will return
+corresponding document elements as their child nodes.
 = Emulation
 
 This domain emulates different environments for the page.
@@ -29,11 +29,10 @@ file, data and other requests and responses, their headers, bodies, timing, etc.
 Actions and events related to the inspected page belong to the page domain.
 = Security
 
-Security
 -}
 
 
-module CDP.Domains.DOMPageNetworkEmulationSecurity (module CDP.Domains.DOMPageNetworkEmulationSecurity) where
+module CDP.Domains.DOMNetworkEmulationPageSecurity (module CDP.Domains.DOMNetworkEmulationPageSecurity) where
 
 import           Control.Applicative  ((<$>))
 import           Control.Monad
@@ -79,6 +78,10 @@ type DOMNodeId = Int
 --   front-end.
 type DOMBackendNodeId = Int
 
+-- | Type 'DOM.StyleSheetId'.
+--   Unique identifier for a CSS stylesheet.
+type DOMStyleSheetId = T.Text
+
 -- | Type 'DOM.BackendNode'.
 --   Backend node with a friendly name.
 data DOMBackendNode = DOMBackendNode
@@ -104,22 +107,31 @@ instance ToJSON DOMBackendNode where
 
 -- | Type 'DOM.PseudoType'.
 --   Pseudo element type.
-data DOMPseudoType = DOMPseudoTypeFirstLine | DOMPseudoTypeFirstLetter | DOMPseudoTypeBefore | DOMPseudoTypeAfter | DOMPseudoTypeMarker | DOMPseudoTypeBackdrop | DOMPseudoTypeSelection | DOMPseudoTypeTargetText | DOMPseudoTypeSpellingError | DOMPseudoTypeGrammarError | DOMPseudoTypeHighlight | DOMPseudoTypeFirstLineInherited | DOMPseudoTypeScrollbar | DOMPseudoTypeScrollbarThumb | DOMPseudoTypeScrollbarButton | DOMPseudoTypeScrollbarTrack | DOMPseudoTypeScrollbarTrackPiece | DOMPseudoTypeScrollbarCorner | DOMPseudoTypeResizer | DOMPseudoTypeInputListButton | DOMPseudoTypePageTransition | DOMPseudoTypePageTransitionContainer | DOMPseudoTypePageTransitionImageWrapper | DOMPseudoTypePageTransitionOutgoingImage | DOMPseudoTypePageTransitionIncomingImage
+data DOMPseudoType = DOMPseudoTypeFirstLine | DOMPseudoTypeFirstLetter | DOMPseudoTypeCheckmark | DOMPseudoTypeBefore | DOMPseudoTypeAfter | DOMPseudoTypeExpandIcon | DOMPseudoTypePickerIcon | DOMPseudoTypeInterestButton | DOMPseudoTypeMarker | DOMPseudoTypeBackdrop | DOMPseudoTypeColumn | DOMPseudoTypeSelection | DOMPseudoTypeSearchText | DOMPseudoTypeTargetText | DOMPseudoTypeSpellingError | DOMPseudoTypeGrammarError | DOMPseudoTypeHighlight | DOMPseudoTypeFirstLineInherited | DOMPseudoTypeScrollMarker | DOMPseudoTypeScrollMarkerGroup | DOMPseudoTypeScrollButton | DOMPseudoTypeScrollbar | DOMPseudoTypeScrollbarThumb | DOMPseudoTypeScrollbarButton | DOMPseudoTypeScrollbarTrack | DOMPseudoTypeScrollbarTrackPiece | DOMPseudoTypeScrollbarCorner | DOMPseudoTypeResizer | DOMPseudoTypeInputListButton | DOMPseudoTypeViewTransition | DOMPseudoTypeViewTransitionGroup | DOMPseudoTypeViewTransitionImagePair | DOMPseudoTypeViewTransitionGroupChildren | DOMPseudoTypeViewTransitionOld | DOMPseudoTypeViewTransitionNew | DOMPseudoTypePlaceholder | DOMPseudoTypeFileSelectorButton | DOMPseudoTypeDetailsContent | DOMPseudoTypePicker | DOMPseudoTypeSelectListbox | DOMPseudoTypePermissionIcon | DOMPseudoTypeOverscrollAreaParent | DOMPseudoTypeOverscrollBackdrop | DOMPseudoTypeSkeleton
   deriving (Ord, Eq, Show, Read)
 instance FromJSON DOMPseudoType where
   parseJSON = A.withText "DOMPseudoType" $ \v -> case v of
     "first-line" -> pure DOMPseudoTypeFirstLine
     "first-letter" -> pure DOMPseudoTypeFirstLetter
+    "checkmark" -> pure DOMPseudoTypeCheckmark
     "before" -> pure DOMPseudoTypeBefore
     "after" -> pure DOMPseudoTypeAfter
+    "expand-icon" -> pure DOMPseudoTypeExpandIcon
+    "picker-icon" -> pure DOMPseudoTypePickerIcon
+    "interest-button" -> pure DOMPseudoTypeInterestButton
     "marker" -> pure DOMPseudoTypeMarker
     "backdrop" -> pure DOMPseudoTypeBackdrop
+    "column" -> pure DOMPseudoTypeColumn
     "selection" -> pure DOMPseudoTypeSelection
+    "search-text" -> pure DOMPseudoTypeSearchText
     "target-text" -> pure DOMPseudoTypeTargetText
     "spelling-error" -> pure DOMPseudoTypeSpellingError
     "grammar-error" -> pure DOMPseudoTypeGrammarError
     "highlight" -> pure DOMPseudoTypeHighlight
     "first-line-inherited" -> pure DOMPseudoTypeFirstLineInherited
+    "scroll-marker" -> pure DOMPseudoTypeScrollMarker
+    "scroll-marker-group" -> pure DOMPseudoTypeScrollMarkerGroup
+    "scroll-button" -> pure DOMPseudoTypeScrollButton
     "scrollbar" -> pure DOMPseudoTypeScrollbar
     "scrollbar-thumb" -> pure DOMPseudoTypeScrollbarThumb
     "scrollbar-button" -> pure DOMPseudoTypeScrollbarButton
@@ -128,26 +140,45 @@ instance FromJSON DOMPseudoType where
     "scrollbar-corner" -> pure DOMPseudoTypeScrollbarCorner
     "resizer" -> pure DOMPseudoTypeResizer
     "input-list-button" -> pure DOMPseudoTypeInputListButton
-    "page-transition" -> pure DOMPseudoTypePageTransition
-    "page-transition-container" -> pure DOMPseudoTypePageTransitionContainer
-    "page-transition-image-wrapper" -> pure DOMPseudoTypePageTransitionImageWrapper
-    "page-transition-outgoing-image" -> pure DOMPseudoTypePageTransitionOutgoingImage
-    "page-transition-incoming-image" -> pure DOMPseudoTypePageTransitionIncomingImage
+    "view-transition" -> pure DOMPseudoTypeViewTransition
+    "view-transition-group" -> pure DOMPseudoTypeViewTransitionGroup
+    "view-transition-image-pair" -> pure DOMPseudoTypeViewTransitionImagePair
+    "view-transition-group-children" -> pure DOMPseudoTypeViewTransitionGroupChildren
+    "view-transition-old" -> pure DOMPseudoTypeViewTransitionOld
+    "view-transition-new" -> pure DOMPseudoTypeViewTransitionNew
+    "placeholder" -> pure DOMPseudoTypePlaceholder
+    "file-selector-button" -> pure DOMPseudoTypeFileSelectorButton
+    "details-content" -> pure DOMPseudoTypeDetailsContent
+    "picker" -> pure DOMPseudoTypePicker
+    "select-listbox" -> pure DOMPseudoTypeSelectListbox
+    "permission-icon" -> pure DOMPseudoTypePermissionIcon
+    "overscroll-area-parent" -> pure DOMPseudoTypeOverscrollAreaParent
+    "overscroll-backdrop" -> pure DOMPseudoTypeOverscrollBackdrop
+    "skeleton" -> pure DOMPseudoTypeSkeleton
     "_" -> fail "failed to parse DOMPseudoType"
 instance ToJSON DOMPseudoType where
   toJSON v = A.String $ case v of
     DOMPseudoTypeFirstLine -> "first-line"
     DOMPseudoTypeFirstLetter -> "first-letter"
+    DOMPseudoTypeCheckmark -> "checkmark"
     DOMPseudoTypeBefore -> "before"
     DOMPseudoTypeAfter -> "after"
+    DOMPseudoTypeExpandIcon -> "expand-icon"
+    DOMPseudoTypePickerIcon -> "picker-icon"
+    DOMPseudoTypeInterestButton -> "interest-button"
     DOMPseudoTypeMarker -> "marker"
     DOMPseudoTypeBackdrop -> "backdrop"
+    DOMPseudoTypeColumn -> "column"
     DOMPseudoTypeSelection -> "selection"
+    DOMPseudoTypeSearchText -> "search-text"
     DOMPseudoTypeTargetText -> "target-text"
     DOMPseudoTypeSpellingError -> "spelling-error"
     DOMPseudoTypeGrammarError -> "grammar-error"
     DOMPseudoTypeHighlight -> "highlight"
     DOMPseudoTypeFirstLineInherited -> "first-line-inherited"
+    DOMPseudoTypeScrollMarker -> "scroll-marker"
+    DOMPseudoTypeScrollMarkerGroup -> "scroll-marker-group"
+    DOMPseudoTypeScrollButton -> "scroll-button"
     DOMPseudoTypeScrollbar -> "scrollbar"
     DOMPseudoTypeScrollbarThumb -> "scrollbar-thumb"
     DOMPseudoTypeScrollbarButton -> "scrollbar-button"
@@ -156,11 +187,21 @@ instance ToJSON DOMPseudoType where
     DOMPseudoTypeScrollbarCorner -> "scrollbar-corner"
     DOMPseudoTypeResizer -> "resizer"
     DOMPseudoTypeInputListButton -> "input-list-button"
-    DOMPseudoTypePageTransition -> "page-transition"
-    DOMPseudoTypePageTransitionContainer -> "page-transition-container"
-    DOMPseudoTypePageTransitionImageWrapper -> "page-transition-image-wrapper"
-    DOMPseudoTypePageTransitionOutgoingImage -> "page-transition-outgoing-image"
-    DOMPseudoTypePageTransitionIncomingImage -> "page-transition-incoming-image"
+    DOMPseudoTypeViewTransition -> "view-transition"
+    DOMPseudoTypeViewTransitionGroup -> "view-transition-group"
+    DOMPseudoTypeViewTransitionImagePair -> "view-transition-image-pair"
+    DOMPseudoTypeViewTransitionGroupChildren -> "view-transition-group-children"
+    DOMPseudoTypeViewTransitionOld -> "view-transition-old"
+    DOMPseudoTypeViewTransitionNew -> "view-transition-new"
+    DOMPseudoTypePlaceholder -> "placeholder"
+    DOMPseudoTypeFileSelectorButton -> "file-selector-button"
+    DOMPseudoTypeDetailsContent -> "details-content"
+    DOMPseudoTypePicker -> "picker"
+    DOMPseudoTypeSelectListbox -> "select-listbox"
+    DOMPseudoTypePermissionIcon -> "permission-icon"
+    DOMPseudoTypeOverscrollAreaParent -> "overscroll-area-parent"
+    DOMPseudoTypeOverscrollBackdrop -> "overscroll-backdrop"
+    DOMPseudoTypeSkeleton -> "skeleton"
 
 -- | Type 'DOM.ShadowRootType'.
 --   Shadow root type.
@@ -193,6 +234,52 @@ instance ToJSON DOMCompatibilityMode where
     DOMCompatibilityModeQuirksMode -> "QuirksMode"
     DOMCompatibilityModeLimitedQuirksMode -> "LimitedQuirksMode"
     DOMCompatibilityModeNoQuirksMode -> "NoQuirksMode"
+
+-- | Type 'DOM.PhysicalAxes'.
+--   ContainerSelector physical axes
+data DOMPhysicalAxes = DOMPhysicalAxesHorizontal | DOMPhysicalAxesVertical | DOMPhysicalAxesBoth
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON DOMPhysicalAxes where
+  parseJSON = A.withText "DOMPhysicalAxes" $ \v -> case v of
+    "Horizontal" -> pure DOMPhysicalAxesHorizontal
+    "Vertical" -> pure DOMPhysicalAxesVertical
+    "Both" -> pure DOMPhysicalAxesBoth
+    "_" -> fail "failed to parse DOMPhysicalAxes"
+instance ToJSON DOMPhysicalAxes where
+  toJSON v = A.String $ case v of
+    DOMPhysicalAxesHorizontal -> "Horizontal"
+    DOMPhysicalAxesVertical -> "Vertical"
+    DOMPhysicalAxesBoth -> "Both"
+
+-- | Type 'DOM.LogicalAxes'.
+--   ContainerSelector logical axes
+data DOMLogicalAxes = DOMLogicalAxesInline | DOMLogicalAxesBlock | DOMLogicalAxesBoth
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON DOMLogicalAxes where
+  parseJSON = A.withText "DOMLogicalAxes" $ \v -> case v of
+    "Inline" -> pure DOMLogicalAxesInline
+    "Block" -> pure DOMLogicalAxesBlock
+    "Both" -> pure DOMLogicalAxesBoth
+    "_" -> fail "failed to parse DOMLogicalAxes"
+instance ToJSON DOMLogicalAxes where
+  toJSON v = A.String $ case v of
+    DOMLogicalAxesInline -> "Inline"
+    DOMLogicalAxesBlock -> "Block"
+    DOMLogicalAxesBoth -> "Both"
+
+-- | Type 'DOM.ScrollOrientation'.
+--   Physical scroll orientation
+data DOMScrollOrientation = DOMScrollOrientationHorizontal | DOMScrollOrientationVertical
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON DOMScrollOrientation where
+  parseJSON = A.withText "DOMScrollOrientation" $ \v -> case v of
+    "horizontal" -> pure DOMScrollOrientationHorizontal
+    "vertical" -> pure DOMScrollOrientationVertical
+    "_" -> fail "failed to parse DOMScrollOrientation"
+instance ToJSON DOMScrollOrientation where
+  toJSON v = A.String $ case v of
+    DOMScrollOrientationHorizontal -> "horizontal"
+    DOMScrollOrientationVertical -> "vertical"
 
 -- | Type 'DOM.Node'.
 --   DOM interaction is implemented in terms of mirror objects that represent the actual DOM nodes.
@@ -259,7 +346,11 @@ data DOMNode = DOMNode
     -- | Whether the node is SVG.
     dOMNodeIsSVG :: Maybe Bool,
     dOMNodeCompatibilityMode :: Maybe DOMCompatibilityMode,
-    dOMNodeAssignedSlot :: Maybe DOMBackendNode
+    dOMNodeAssignedSlot :: Maybe DOMBackendNode,
+    dOMNodeIsScrollable :: Maybe Bool,
+    dOMNodeAffectedByStartingStyles :: Maybe Bool,
+    dOMNodeAdoptedStyleSheets :: Maybe [DOMStyleSheetId],
+    dOMNodeAdProvenance :: Maybe NetworkAdProvenance
   }
   deriving (Eq, Show)
 instance FromJSON DOMNode where
@@ -294,6 +385,10 @@ instance FromJSON DOMNode where
     <*> o A..:? "isSVG"
     <*> o A..:? "compatibilityMode"
     <*> o A..:? "assignedSlot"
+    <*> o A..:? "isScrollable"
+    <*> o A..:? "affectedByStartingStyles"
+    <*> o A..:? "adoptedStyleSheets"
+    <*> o A..:? "adProvenance"
 instance ToJSON DOMNode where
   toJSON p = A.object $ catMaybes [
     ("nodeId" A..=) <$> Just (dOMNodeNodeId p),
@@ -325,7 +420,29 @@ instance ToJSON DOMNode where
     ("distributedNodes" A..=) <$> (dOMNodeDistributedNodes p),
     ("isSVG" A..=) <$> (dOMNodeIsSVG p),
     ("compatibilityMode" A..=) <$> (dOMNodeCompatibilityMode p),
-    ("assignedSlot" A..=) <$> (dOMNodeAssignedSlot p)
+    ("assignedSlot" A..=) <$> (dOMNodeAssignedSlot p),
+    ("isScrollable" A..=) <$> (dOMNodeIsScrollable p),
+    ("affectedByStartingStyles" A..=) <$> (dOMNodeAffectedByStartingStyles p),
+    ("adoptedStyleSheets" A..=) <$> (dOMNodeAdoptedStyleSheets p),
+    ("adProvenance" A..=) <$> (dOMNodeAdProvenance p)
+    ]
+
+-- | Type 'DOM.DetachedElementInfo'.
+--   A structure to hold the top-level node of a detached tree and an array of its retained descendants.
+data DOMDetachedElementInfo = DOMDetachedElementInfo
+  {
+    dOMDetachedElementInfoTreeNode :: DOMNode,
+    dOMDetachedElementInfoRetainedNodeIds :: [DOMNodeId]
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMDetachedElementInfo where
+  parseJSON = A.withObject "DOMDetachedElementInfo" $ \o -> DOMDetachedElementInfo
+    <$> o A..: "treeNode"
+    <*> o A..: "retainedNodeIds"
+instance ToJSON DOMDetachedElementInfo where
+  toJSON p = A.object $ catMaybes [
+    ("treeNode" A..=) <$> Just (dOMDetachedElementInfoTreeNode p),
+    ("retainedNodeIds" A..=) <$> Just (dOMDetachedElementInfoRetainedNodeIds p)
     ]
 
 -- | Type 'DOM.RGBA'.
@@ -490,6 +607,22 @@ instance FromJSON DOMAttributeModified where
 instance Event DOMAttributeModified where
   eventName _ = "DOM.attributeModified"
 
+-- | Type of the 'DOM.adoptedStyleSheetsModified' event.
+data DOMAdoptedStyleSheetsModified = DOMAdoptedStyleSheetsModified
+  {
+    -- | Id of the node that has changed.
+    dOMAdoptedStyleSheetsModifiedNodeId :: DOMNodeId,
+    -- | New adoptedStyleSheets array.
+    dOMAdoptedStyleSheetsModifiedAdoptedStyleSheets :: [DOMStyleSheetId]
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMAdoptedStyleSheetsModified where
+  parseJSON = A.withObject "DOMAdoptedStyleSheetsModified" $ \o -> DOMAdoptedStyleSheetsModified
+    <$> o A..: "nodeId"
+    <*> o A..: "adoptedStyleSheets"
+instance Event DOMAdoptedStyleSheetsModified where
+  eventName _ = "DOM.adoptedStyleSheetsModified"
+
 -- | Type of the 'DOM.attributeRemoved' event.
 data DOMAttributeRemoved = DOMAttributeRemoved
   {
@@ -633,6 +766,54 @@ instance FromJSON DOMTopLayerElementsUpdated where
   parseJSON _ = pure DOMTopLayerElementsUpdated
 instance Event DOMTopLayerElementsUpdated where
   eventName _ = "DOM.topLayerElementsUpdated"
+
+-- | Type of the 'DOM.scrollableFlagUpdated' event.
+data DOMScrollableFlagUpdated = DOMScrollableFlagUpdated
+  {
+    -- | The id of the node.
+    dOMScrollableFlagUpdatedNodeId :: DOMNodeId,
+    -- | If the node is scrollable.
+    dOMScrollableFlagUpdatedIsScrollable :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMScrollableFlagUpdated where
+  parseJSON = A.withObject "DOMScrollableFlagUpdated" $ \o -> DOMScrollableFlagUpdated
+    <$> o A..: "nodeId"
+    <*> o A..: "isScrollable"
+instance Event DOMScrollableFlagUpdated where
+  eventName _ = "DOM.scrollableFlagUpdated"
+
+-- | Type of the 'DOM.adRelatedStateUpdated' event.
+data DOMAdRelatedStateUpdated = DOMAdRelatedStateUpdated
+  {
+    -- | The id of the node.
+    dOMAdRelatedStateUpdatedNodeId :: DOMNodeId,
+    -- | The provenance of the ad related node, if it is ad related.
+    dOMAdRelatedStateUpdatedAdProvenance :: Maybe NetworkAdProvenance
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMAdRelatedStateUpdated where
+  parseJSON = A.withObject "DOMAdRelatedStateUpdated" $ \o -> DOMAdRelatedStateUpdated
+    <$> o A..: "nodeId"
+    <*> o A..:? "adProvenance"
+instance Event DOMAdRelatedStateUpdated where
+  eventName _ = "DOM.adRelatedStateUpdated"
+
+-- | Type of the 'DOM.affectedByStartingStylesFlagUpdated' event.
+data DOMAffectedByStartingStylesFlagUpdated = DOMAffectedByStartingStylesFlagUpdated
+  {
+    -- | The id of the node.
+    dOMAffectedByStartingStylesFlagUpdatedNodeId :: DOMNodeId,
+    -- | If the node has starting styles.
+    dOMAffectedByStartingStylesFlagUpdatedAffectedByStartingStyles :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMAffectedByStartingStylesFlagUpdated where
+  parseJSON = A.withObject "DOMAffectedByStartingStylesFlagUpdated" $ \o -> DOMAffectedByStartingStylesFlagUpdated
+    <$> o A..: "nodeId"
+    <*> o A..: "affectedByStartingStyles"
+instance Event DOMAffectedByStartingStylesFlagUpdated where
+  eventName _ = "DOM.affectedByStartingStylesFlagUpdated"
 
 -- | Type of the 'DOM.pseudoElementRemoved' event.
 data DOMPseudoElementRemoved = DOMPseudoElementRemoved
@@ -988,13 +1169,13 @@ instance Command PDOMFocus where
 -- | Parameters of the 'DOM.getAttributes' command.
 data PDOMGetAttributes = PDOMGetAttributes
   {
-    -- | Id of the node to retrieve attibutes for.
+    -- | Id of the node to retrieve attributes for.
     pDOMGetAttributesNodeId :: DOMNodeId
   }
   deriving (Eq, Show)
 pDOMGetAttributes
   {-
-  -- | Id of the node to retrieve attibutes for.
+  -- | Id of the node to retrieve attributes for.
   -}
   :: DOMNodeId
   -> PDOMGetAttributes
@@ -1099,6 +1280,7 @@ instance Command PDOMGetContentQuads where
   commandName _ = "DOM.getContentQuads"
 
 -- | Returns the root DOM node (and optionally the subtree) to the caller.
+--   Implicitly enables the DOM domain events for the current target.
 
 -- | Parameters of the 'DOM.getDocument' command.
 data PDOMGetDocument = PDOMGetDocument
@@ -1255,7 +1437,9 @@ data PDOMGetOuterHTML = PDOMGetOuterHTML
     -- | Identifier of the backend node.
     pDOMGetOuterHTMLBackendNodeId :: Maybe DOMBackendNodeId,
     -- | JavaScript object id of the node wrapper.
-    pDOMGetOuterHTMLObjectId :: Maybe Runtime.RuntimeRemoteObjectId
+    pDOMGetOuterHTMLObjectId :: Maybe Runtime.RuntimeRemoteObjectId,
+    -- | Include all shadow roots. Equals to false if not specified.
+    pDOMGetOuterHTMLIncludeShadowDOM :: Maybe Bool
   }
   deriving (Eq, Show)
 pDOMGetOuterHTML
@@ -1265,11 +1449,13 @@ pDOMGetOuterHTML
     Nothing
     Nothing
     Nothing
+    Nothing
 instance ToJSON PDOMGetOuterHTML where
   toJSON p = A.object $ catMaybes [
     ("nodeId" A..=) <$> (pDOMGetOuterHTMLNodeId p),
     ("backendNodeId" A..=) <$> (pDOMGetOuterHTMLBackendNodeId p),
-    ("objectId" A..=) <$> (pDOMGetOuterHTMLObjectId p)
+    ("objectId" A..=) <$> (pDOMGetOuterHTMLObjectId p),
+    ("includeShadowDOM" A..=) <$> (pDOMGetOuterHTMLIncludeShadowDOM p)
     ]
 data DOMGetOuterHTML = DOMGetOuterHTML
   {
@@ -1722,6 +1908,64 @@ instance Command PDOMGetTopLayerElements where
   type CommandResponse PDOMGetTopLayerElements = DOMGetTopLayerElements
   commandName _ = "DOM.getTopLayerElements"
 
+-- | Returns the NodeId of the matched element according to certain relations.
+
+-- | Parameters of the 'DOM.getElementByRelation' command.
+data PDOMGetElementByRelationRelation = PDOMGetElementByRelationRelationPopoverTarget | PDOMGetElementByRelationRelationInterestTarget | PDOMGetElementByRelationRelationCommandFor
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON PDOMGetElementByRelationRelation where
+  parseJSON = A.withText "PDOMGetElementByRelationRelation" $ \v -> case v of
+    "PopoverTarget" -> pure PDOMGetElementByRelationRelationPopoverTarget
+    "InterestTarget" -> pure PDOMGetElementByRelationRelationInterestTarget
+    "CommandFor" -> pure PDOMGetElementByRelationRelationCommandFor
+    "_" -> fail "failed to parse PDOMGetElementByRelationRelation"
+instance ToJSON PDOMGetElementByRelationRelation where
+  toJSON v = A.String $ case v of
+    PDOMGetElementByRelationRelationPopoverTarget -> "PopoverTarget"
+    PDOMGetElementByRelationRelationInterestTarget -> "InterestTarget"
+    PDOMGetElementByRelationRelationCommandFor -> "CommandFor"
+data PDOMGetElementByRelation = PDOMGetElementByRelation
+  {
+    -- | Id of the node from which to query the relation.
+    pDOMGetElementByRelationNodeId :: DOMNodeId,
+    -- | Type of relation to get.
+    pDOMGetElementByRelationRelation :: PDOMGetElementByRelationRelation
+  }
+  deriving (Eq, Show)
+pDOMGetElementByRelation
+  {-
+  -- | Id of the node from which to query the relation.
+  -}
+  :: DOMNodeId
+  {-
+  -- | Type of relation to get.
+  -}
+  -> PDOMGetElementByRelationRelation
+  -> PDOMGetElementByRelation
+pDOMGetElementByRelation
+  arg_pDOMGetElementByRelationNodeId
+  arg_pDOMGetElementByRelationRelation
+  = PDOMGetElementByRelation
+    arg_pDOMGetElementByRelationNodeId
+    arg_pDOMGetElementByRelationRelation
+instance ToJSON PDOMGetElementByRelation where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (pDOMGetElementByRelationNodeId p),
+    ("relation" A..=) <$> Just (pDOMGetElementByRelationRelation p)
+    ]
+data DOMGetElementByRelation = DOMGetElementByRelation
+  {
+    -- | NodeId of the element matching the queried relation.
+    dOMGetElementByRelationNodeId :: DOMNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMGetElementByRelation where
+  parseJSON = A.withObject "DOMGetElementByRelation" $ \o -> DOMGetElementByRelation
+    <$> o A..: "nodeId"
+instance Command PDOMGetElementByRelation where
+  type CommandResponse PDOMGetElementByRelation = DOMGetElementByRelation
+  commandName _ = "DOM.getElementByRelation"
+
 -- | Re-does the last undone action.
 
 -- | Parameters of the 'DOM.redo' command.
@@ -2153,6 +2397,30 @@ instance Command PDOMGetFileInfo where
   type CommandResponse PDOMGetFileInfo = DOMGetFileInfo
   commandName _ = "DOM.getFileInfo"
 
+-- | Returns list of detached nodes
+
+-- | Parameters of the 'DOM.getDetachedDomNodes' command.
+data PDOMGetDetachedDomNodes = PDOMGetDetachedDomNodes
+  deriving (Eq, Show)
+pDOMGetDetachedDomNodes
+  :: PDOMGetDetachedDomNodes
+pDOMGetDetachedDomNodes
+  = PDOMGetDetachedDomNodes
+instance ToJSON PDOMGetDetachedDomNodes where
+  toJSON _ = A.Null
+data DOMGetDetachedDomNodes = DOMGetDetachedDomNodes
+  {
+    -- | The list of detached nodes
+    dOMGetDetachedDomNodesDetachedNodes :: [DOMDetachedElementInfo]
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMGetDetachedDomNodes where
+  parseJSON = A.withObject "DOMGetDetachedDomNodes" $ \o -> DOMGetDetachedDomNodes
+    <$> o A..: "detachedNodes"
+instance Command PDOMGetDetachedDomNodes where
+  type CommandResponse PDOMGetDetachedDomNodes = DOMGetDetachedDomNodes
+  commandName _ = "DOM.getDetachedDomNodes"
+
 -- | Enables console to refer to the node with given id via $x (see Command Line API for more details
 --   $x functions).
 
@@ -2352,15 +2620,21 @@ instance Command PDOMGetFrameOwner where
   type CommandResponse PDOMGetFrameOwner = DOMGetFrameOwner
   commandName _ = "DOM.getFrameOwner"
 
--- | Returns the container of the given node based on container query conditions.
---   If containerName is given, it will find the nearest container with a matching name;
---   otherwise it will find the nearest container regardless of its container name.
+-- | Returns the query container of the given node based on container query
+--   conditions: containerName, physical and logical axes, and whether it queries
+--   scroll-state or anchored elements. If no axes are provided and
+--   queriesScrollState is false, the style container is returned, which is the
+--   direct parent or the closest element with a matching container-name.
 
 -- | Parameters of the 'DOM.getContainerForNode' command.
 data PDOMGetContainerForNode = PDOMGetContainerForNode
   {
     pDOMGetContainerForNodeNodeId :: DOMNodeId,
-    pDOMGetContainerForNodeContainerName :: Maybe T.Text
+    pDOMGetContainerForNodeContainerName :: Maybe T.Text,
+    pDOMGetContainerForNodePhysicalAxes :: Maybe DOMPhysicalAxes,
+    pDOMGetContainerForNodeLogicalAxes :: Maybe DOMLogicalAxes,
+    pDOMGetContainerForNodeQueriesScrollState :: Maybe Bool,
+    pDOMGetContainerForNodeQueriesAnchored :: Maybe Bool
   }
   deriving (Eq, Show)
 pDOMGetContainerForNode
@@ -2371,10 +2645,18 @@ pDOMGetContainerForNode
   = PDOMGetContainerForNode
     arg_pDOMGetContainerForNodeNodeId
     Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
 instance ToJSON PDOMGetContainerForNode where
   toJSON p = A.object $ catMaybes [
     ("nodeId" A..=) <$> Just (pDOMGetContainerForNodeNodeId p),
-    ("containerName" A..=) <$> (pDOMGetContainerForNodeContainerName p)
+    ("containerName" A..=) <$> (pDOMGetContainerForNodeContainerName p),
+    ("physicalAxes" A..=) <$> (pDOMGetContainerForNodePhysicalAxes p),
+    ("logicalAxes" A..=) <$> (pDOMGetContainerForNodeLogicalAxes p),
+    ("queriesScrollState" A..=) <$> (pDOMGetContainerForNodeQueriesScrollState p),
+    ("queriesAnchored" A..=) <$> (pDOMGetContainerForNodeQueriesAnchored p)
     ]
 data DOMGetContainerForNode = DOMGetContainerForNode
   {
@@ -2425,6 +2707,148 @@ instance FromJSON DOMGetQueryingDescendantsForContainer where
 instance Command PDOMGetQueryingDescendantsForContainer where
   type CommandResponse PDOMGetQueryingDescendantsForContainer = DOMGetQueryingDescendantsForContainer
   commandName _ = "DOM.getQueryingDescendantsForContainer"
+
+-- | Returns the target anchor element of the given anchor query according to
+--   https://www.w3.org/TR/css-anchor-position-1/#target.
+
+-- | Parameters of the 'DOM.getAnchorElement' command.
+data PDOMGetAnchorElement = PDOMGetAnchorElement
+  {
+    -- | Id of the positioned element from which to find the anchor.
+    pDOMGetAnchorElementNodeId :: DOMNodeId,
+    -- | An optional anchor specifier, as defined in
+    --   https://www.w3.org/TR/css-anchor-position-1/#anchor-specifier.
+    --   If not provided, it will return the implicit anchor element for
+    --   the given positioned element.
+    pDOMGetAnchorElementAnchorSpecifier :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+pDOMGetAnchorElement
+  {-
+  -- | Id of the positioned element from which to find the anchor.
+  -}
+  :: DOMNodeId
+  -> PDOMGetAnchorElement
+pDOMGetAnchorElement
+  arg_pDOMGetAnchorElementNodeId
+  = PDOMGetAnchorElement
+    arg_pDOMGetAnchorElementNodeId
+    Nothing
+instance ToJSON PDOMGetAnchorElement where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (pDOMGetAnchorElementNodeId p),
+    ("anchorSpecifier" A..=) <$> (pDOMGetAnchorElementAnchorSpecifier p)
+    ]
+data DOMGetAnchorElement = DOMGetAnchorElement
+  {
+    -- | The anchor element of the given anchor query.
+    dOMGetAnchorElementNodeId :: DOMNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMGetAnchorElement where
+  parseJSON = A.withObject "DOMGetAnchorElement" $ \o -> DOMGetAnchorElement
+    <$> o A..: "nodeId"
+instance Command PDOMGetAnchorElement where
+  type CommandResponse PDOMGetAnchorElement = DOMGetAnchorElement
+  commandName _ = "DOM.getAnchorElement"
+
+-- | When enabling, this API force-opens the popover identified by nodeId
+--   and keeps it open until disabled.
+
+-- | Parameters of the 'DOM.forceShowPopover' command.
+data PDOMForceShowPopover = PDOMForceShowPopover
+  {
+    -- | Id of the popover HTMLElement
+    pDOMForceShowPopoverNodeId :: DOMNodeId,
+    -- | If true, opens the popover and keeps it open. If false, closes the
+    --   popover if it was previously force-opened.
+    pDOMForceShowPopoverEnable :: Bool,
+    -- | Optional ID of the element invoking this popover, used to establish the implicit anchor.
+    --   If not provided, it will fall back to the first invoker in the document, preferring
+    --   elements with a popovertarget attribute over those with a commandfor attribute. Note that
+    --   if there are multiple invokers, this is just an estimate.
+    pDOMForceShowPopoverInvokerNodeId :: Maybe DOMBackendNodeId
+  }
+  deriving (Eq, Show)
+pDOMForceShowPopover
+  {-
+  -- | Id of the popover HTMLElement
+  -}
+  :: DOMNodeId
+  {-
+  -- | If true, opens the popover and keeps it open. If false, closes the
+  --   popover if it was previously force-opened.
+  -}
+  -> Bool
+  -> PDOMForceShowPopover
+pDOMForceShowPopover
+  arg_pDOMForceShowPopoverNodeId
+  arg_pDOMForceShowPopoverEnable
+  = PDOMForceShowPopover
+    arg_pDOMForceShowPopoverNodeId
+    arg_pDOMForceShowPopoverEnable
+    Nothing
+instance ToJSON PDOMForceShowPopover where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (pDOMForceShowPopoverNodeId p),
+    ("enable" A..=) <$> Just (pDOMForceShowPopoverEnable p),
+    ("invokerNodeId" A..=) <$> (pDOMForceShowPopoverInvokerNodeId p)
+    ]
+data DOMForceShowPopover = DOMForceShowPopover
+  {
+    -- | List of popovers that were closed in order to respect popover stacking order.
+    dOMForceShowPopoverNodeIds :: [DOMNodeId]
+  }
+  deriving (Eq, Show)
+instance FromJSON DOMForceShowPopover where
+  parseJSON = A.withObject "DOMForceShowPopover" $ \o -> DOMForceShowPopover
+    <$> o A..: "nodeIds"
+instance Command PDOMForceShowPopover where
+  type CommandResponse PDOMForceShowPopover = DOMForceShowPopover
+  commandName _ = "DOM.forceShowPopover"
+
+-- | Type 'Emulation.SafeAreaInsets'.
+data EmulationSafeAreaInsets = EmulationSafeAreaInsets
+  {
+    -- | Overrides safe-area-inset-top.
+    emulationSafeAreaInsetsTop :: Maybe Int,
+    -- | Overrides safe-area-max-inset-top.
+    emulationSafeAreaInsetsTopMax :: Maybe Int,
+    -- | Overrides safe-area-inset-left.
+    emulationSafeAreaInsetsLeft :: Maybe Int,
+    -- | Overrides safe-area-max-inset-left.
+    emulationSafeAreaInsetsLeftMax :: Maybe Int,
+    -- | Overrides safe-area-inset-bottom.
+    emulationSafeAreaInsetsBottom :: Maybe Int,
+    -- | Overrides safe-area-max-inset-bottom.
+    emulationSafeAreaInsetsBottomMax :: Maybe Int,
+    -- | Overrides safe-area-inset-right.
+    emulationSafeAreaInsetsRight :: Maybe Int,
+    -- | Overrides safe-area-max-inset-right.
+    emulationSafeAreaInsetsRightMax :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationSafeAreaInsets where
+  parseJSON = A.withObject "EmulationSafeAreaInsets" $ \o -> EmulationSafeAreaInsets
+    <$> o A..:? "top"
+    <*> o A..:? "topMax"
+    <*> o A..:? "left"
+    <*> o A..:? "leftMax"
+    <*> o A..:? "bottom"
+    <*> o A..:? "bottomMax"
+    <*> o A..:? "right"
+    <*> o A..:? "rightMax"
+instance ToJSON EmulationSafeAreaInsets where
+  toJSON p = A.object $ catMaybes [
+    ("top" A..=) <$> (emulationSafeAreaInsetsTop p),
+    ("topMax" A..=) <$> (emulationSafeAreaInsetsTopMax p),
+    ("left" A..=) <$> (emulationSafeAreaInsetsLeft p),
+    ("leftMax" A..=) <$> (emulationSafeAreaInsetsLeftMax p),
+    ("bottom" A..=) <$> (emulationSafeAreaInsetsBottom p),
+    ("bottomMax" A..=) <$> (emulationSafeAreaInsetsBottomMax p),
+    ("right" A..=) <$> (emulationSafeAreaInsetsRight p),
+    ("rightMax" A..=) <$> (emulationSafeAreaInsetsRightMax p)
+    ]
 
 -- | Type 'Emulation.ScreenOrientation'.
 --   Screen orientation.
@@ -2498,6 +2922,32 @@ instance ToJSON EmulationDisplayFeature where
     ("maskLength" A..=) <$> Just (emulationDisplayFeatureMaskLength p)
     ]
 
+-- | Type 'Emulation.DevicePosture'.
+data EmulationDevicePostureType = EmulationDevicePostureTypeContinuous | EmulationDevicePostureTypeFolded
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON EmulationDevicePostureType where
+  parseJSON = A.withText "EmulationDevicePostureType" $ \v -> case v of
+    "continuous" -> pure EmulationDevicePostureTypeContinuous
+    "folded" -> pure EmulationDevicePostureTypeFolded
+    "_" -> fail "failed to parse EmulationDevicePostureType"
+instance ToJSON EmulationDevicePostureType where
+  toJSON v = A.String $ case v of
+    EmulationDevicePostureTypeContinuous -> "continuous"
+    EmulationDevicePostureTypeFolded -> "folded"
+data EmulationDevicePosture = EmulationDevicePosture
+  {
+    -- | Current posture of the device
+    emulationDevicePostureType :: EmulationDevicePostureType
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationDevicePosture where
+  parseJSON = A.withObject "EmulationDevicePosture" $ \o -> EmulationDevicePosture
+    <$> o A..: "type"
+instance ToJSON EmulationDevicePosture where
+  toJSON p = A.object $ catMaybes [
+    ("type" A..=) <$> Just (emulationDevicePostureType p)
+    ]
+
 -- | Type 'Emulation.MediaFeature'.
 data EmulationMediaFeature = EmulationMediaFeature
   {
@@ -2535,7 +2985,7 @@ instance ToJSON EmulationVirtualTimePolicy where
     EmulationVirtualTimePolicyPauseIfNetworkFetchesPending -> "pauseIfNetworkFetchesPending"
 
 -- | Type 'Emulation.UserAgentBrandVersion'.
---   Used to specify User Agent Cient Hints to emulate. See https://wicg.github.io/ua-client-hints
+--   Used to specify User Agent Client Hints to emulate. See https://wicg.github.io/ua-client-hints
 data EmulationUserAgentBrandVersion = EmulationUserAgentBrandVersion
   {
     emulationUserAgentBrandVersionBrand :: T.Text,
@@ -2553,11 +3003,13 @@ instance ToJSON EmulationUserAgentBrandVersion where
     ]
 
 -- | Type 'Emulation.UserAgentMetadata'.
---   Used to specify User Agent Cient Hints to emulate. See https://wicg.github.io/ua-client-hints
+--   Used to specify User Agent Client Hints to emulate. See https://wicg.github.io/ua-client-hints
 --   Missing optional values will be filled in by the target with what it would normally use.
 data EmulationUserAgentMetadata = EmulationUserAgentMetadata
   {
+    -- | Brands appearing in Sec-CH-UA.
     emulationUserAgentMetadataBrands :: Maybe [EmulationUserAgentBrandVersion],
+    -- | Brands appearing in Sec-CH-UA-Full-Version-List.
     emulationUserAgentMetadataFullVersionList :: Maybe [EmulationUserAgentBrandVersion],
     emulationUserAgentMetadataPlatform :: T.Text,
     emulationUserAgentMetadataPlatformVersion :: T.Text,
@@ -2565,7 +3017,10 @@ data EmulationUserAgentMetadata = EmulationUserAgentMetadata
     emulationUserAgentMetadataModel :: T.Text,
     emulationUserAgentMetadataMobile :: Bool,
     emulationUserAgentMetadataBitness :: Maybe T.Text,
-    emulationUserAgentMetadataWow64 :: Maybe Bool
+    emulationUserAgentMetadataWow64 :: Maybe Bool,
+    -- | Used to specify User Agent form-factor values.
+    --   See https://wicg.github.io/ua-client-hints/#sec-ch-ua-form-factors
+    emulationUserAgentMetadataFormFactors :: Maybe [T.Text]
   }
   deriving (Eq, Show)
 instance FromJSON EmulationUserAgentMetadata where
@@ -2579,6 +3034,7 @@ instance FromJSON EmulationUserAgentMetadata where
     <*> o A..: "mobile"
     <*> o A..:? "bitness"
     <*> o A..:? "wow64"
+    <*> o A..:? "formFactors"
 instance ToJSON EmulationUserAgentMetadata where
   toJSON p = A.object $ catMaybes [
     ("brands" A..=) <$> (emulationUserAgentMetadataBrands p),
@@ -2589,7 +3045,281 @@ instance ToJSON EmulationUserAgentMetadata where
     ("model" A..=) <$> Just (emulationUserAgentMetadataModel p),
     ("mobile" A..=) <$> Just (emulationUserAgentMetadataMobile p),
     ("bitness" A..=) <$> (emulationUserAgentMetadataBitness p),
-    ("wow64" A..=) <$> (emulationUserAgentMetadataWow64 p)
+    ("wow64" A..=) <$> (emulationUserAgentMetadataWow64 p),
+    ("formFactors" A..=) <$> (emulationUserAgentMetadataFormFactors p)
+    ]
+
+-- | Type 'Emulation.SensorType'.
+--   Used to specify sensor types to emulate.
+--   See https://w3c.github.io/sensors/#automation for more information.
+data EmulationSensorType = EmulationSensorTypeAbsoluteOrientation | EmulationSensorTypeAccelerometer | EmulationSensorTypeAmbientLight | EmulationSensorTypeGravity | EmulationSensorTypeGyroscope | EmulationSensorTypeLinearAcceleration | EmulationSensorTypeMagnetometer | EmulationSensorTypeRelativeOrientation
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON EmulationSensorType where
+  parseJSON = A.withText "EmulationSensorType" $ \v -> case v of
+    "absolute-orientation" -> pure EmulationSensorTypeAbsoluteOrientation
+    "accelerometer" -> pure EmulationSensorTypeAccelerometer
+    "ambient-light" -> pure EmulationSensorTypeAmbientLight
+    "gravity" -> pure EmulationSensorTypeGravity
+    "gyroscope" -> pure EmulationSensorTypeGyroscope
+    "linear-acceleration" -> pure EmulationSensorTypeLinearAcceleration
+    "magnetometer" -> pure EmulationSensorTypeMagnetometer
+    "relative-orientation" -> pure EmulationSensorTypeRelativeOrientation
+    "_" -> fail "failed to parse EmulationSensorType"
+instance ToJSON EmulationSensorType where
+  toJSON v = A.String $ case v of
+    EmulationSensorTypeAbsoluteOrientation -> "absolute-orientation"
+    EmulationSensorTypeAccelerometer -> "accelerometer"
+    EmulationSensorTypeAmbientLight -> "ambient-light"
+    EmulationSensorTypeGravity -> "gravity"
+    EmulationSensorTypeGyroscope -> "gyroscope"
+    EmulationSensorTypeLinearAcceleration -> "linear-acceleration"
+    EmulationSensorTypeMagnetometer -> "magnetometer"
+    EmulationSensorTypeRelativeOrientation -> "relative-orientation"
+
+-- | Type 'Emulation.SensorMetadata'.
+data EmulationSensorMetadata = EmulationSensorMetadata
+  {
+    emulationSensorMetadataAvailable :: Maybe Bool,
+    emulationSensorMetadataMinimumFrequency :: Maybe Double,
+    emulationSensorMetadataMaximumFrequency :: Maybe Double
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationSensorMetadata where
+  parseJSON = A.withObject "EmulationSensorMetadata" $ \o -> EmulationSensorMetadata
+    <$> o A..:? "available"
+    <*> o A..:? "minimumFrequency"
+    <*> o A..:? "maximumFrequency"
+instance ToJSON EmulationSensorMetadata where
+  toJSON p = A.object $ catMaybes [
+    ("available" A..=) <$> (emulationSensorMetadataAvailable p),
+    ("minimumFrequency" A..=) <$> (emulationSensorMetadataMinimumFrequency p),
+    ("maximumFrequency" A..=) <$> (emulationSensorMetadataMaximumFrequency p)
+    ]
+
+-- | Type 'Emulation.SensorReadingSingle'.
+data EmulationSensorReadingSingle = EmulationSensorReadingSingle
+  {
+    emulationSensorReadingSingleValue :: Double
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationSensorReadingSingle where
+  parseJSON = A.withObject "EmulationSensorReadingSingle" $ \o -> EmulationSensorReadingSingle
+    <$> o A..: "value"
+instance ToJSON EmulationSensorReadingSingle where
+  toJSON p = A.object $ catMaybes [
+    ("value" A..=) <$> Just (emulationSensorReadingSingleValue p)
+    ]
+
+-- | Type 'Emulation.SensorReadingXYZ'.
+data EmulationSensorReadingXYZ = EmulationSensorReadingXYZ
+  {
+    emulationSensorReadingXYZX :: Double,
+    emulationSensorReadingXYZY :: Double,
+    emulationSensorReadingXYZZ :: Double
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationSensorReadingXYZ where
+  parseJSON = A.withObject "EmulationSensorReadingXYZ" $ \o -> EmulationSensorReadingXYZ
+    <$> o A..: "x"
+    <*> o A..: "y"
+    <*> o A..: "z"
+instance ToJSON EmulationSensorReadingXYZ where
+  toJSON p = A.object $ catMaybes [
+    ("x" A..=) <$> Just (emulationSensorReadingXYZX p),
+    ("y" A..=) <$> Just (emulationSensorReadingXYZY p),
+    ("z" A..=) <$> Just (emulationSensorReadingXYZZ p)
+    ]
+
+-- | Type 'Emulation.SensorReadingQuaternion'.
+data EmulationSensorReadingQuaternion = EmulationSensorReadingQuaternion
+  {
+    emulationSensorReadingQuaternionX :: Double,
+    emulationSensorReadingQuaternionY :: Double,
+    emulationSensorReadingQuaternionZ :: Double,
+    emulationSensorReadingQuaternionW :: Double
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationSensorReadingQuaternion where
+  parseJSON = A.withObject "EmulationSensorReadingQuaternion" $ \o -> EmulationSensorReadingQuaternion
+    <$> o A..: "x"
+    <*> o A..: "y"
+    <*> o A..: "z"
+    <*> o A..: "w"
+instance ToJSON EmulationSensorReadingQuaternion where
+  toJSON p = A.object $ catMaybes [
+    ("x" A..=) <$> Just (emulationSensorReadingQuaternionX p),
+    ("y" A..=) <$> Just (emulationSensorReadingQuaternionY p),
+    ("z" A..=) <$> Just (emulationSensorReadingQuaternionZ p),
+    ("w" A..=) <$> Just (emulationSensorReadingQuaternionW p)
+    ]
+
+-- | Type 'Emulation.SensorReading'.
+data EmulationSensorReading = EmulationSensorReading
+  {
+    emulationSensorReadingSingle :: Maybe EmulationSensorReadingSingle,
+    emulationSensorReadingXyz :: Maybe EmulationSensorReadingXYZ,
+    emulationSensorReadingQuaternion :: Maybe EmulationSensorReadingQuaternion
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationSensorReading where
+  parseJSON = A.withObject "EmulationSensorReading" $ \o -> EmulationSensorReading
+    <$> o A..:? "single"
+    <*> o A..:? "xyz"
+    <*> o A..:? "quaternion"
+instance ToJSON EmulationSensorReading where
+  toJSON p = A.object $ catMaybes [
+    ("single" A..=) <$> (emulationSensorReadingSingle p),
+    ("xyz" A..=) <$> (emulationSensorReadingXyz p),
+    ("quaternion" A..=) <$> (emulationSensorReadingQuaternion p)
+    ]
+
+-- | Type 'Emulation.PressureSource'.
+data EmulationPressureSource = EmulationPressureSourceCpu
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON EmulationPressureSource where
+  parseJSON = A.withText "EmulationPressureSource" $ \v -> case v of
+    "cpu" -> pure EmulationPressureSourceCpu
+    "_" -> fail "failed to parse EmulationPressureSource"
+instance ToJSON EmulationPressureSource where
+  toJSON v = A.String $ case v of
+    EmulationPressureSourceCpu -> "cpu"
+
+-- | Type 'Emulation.PressureState'.
+data EmulationPressureState = EmulationPressureStateNominal | EmulationPressureStateFair | EmulationPressureStateSerious | EmulationPressureStateCritical
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON EmulationPressureState where
+  parseJSON = A.withText "EmulationPressureState" $ \v -> case v of
+    "nominal" -> pure EmulationPressureStateNominal
+    "fair" -> pure EmulationPressureStateFair
+    "serious" -> pure EmulationPressureStateSerious
+    "critical" -> pure EmulationPressureStateCritical
+    "_" -> fail "failed to parse EmulationPressureState"
+instance ToJSON EmulationPressureState where
+  toJSON v = A.String $ case v of
+    EmulationPressureStateNominal -> "nominal"
+    EmulationPressureStateFair -> "fair"
+    EmulationPressureStateSerious -> "serious"
+    EmulationPressureStateCritical -> "critical"
+
+-- | Type 'Emulation.PressureMetadata'.
+data EmulationPressureMetadata = EmulationPressureMetadata
+  {
+    emulationPressureMetadataAvailable :: Maybe Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationPressureMetadata where
+  parseJSON = A.withObject "EmulationPressureMetadata" $ \o -> EmulationPressureMetadata
+    <$> o A..:? "available"
+instance ToJSON EmulationPressureMetadata where
+  toJSON p = A.object $ catMaybes [
+    ("available" A..=) <$> (emulationPressureMetadataAvailable p)
+    ]
+
+-- | Type 'Emulation.WorkAreaInsets'.
+data EmulationWorkAreaInsets = EmulationWorkAreaInsets
+  {
+    -- | Work area top inset in pixels. Default is 0;
+    emulationWorkAreaInsetsTop :: Maybe Int,
+    -- | Work area left inset in pixels. Default is 0;
+    emulationWorkAreaInsetsLeft :: Maybe Int,
+    -- | Work area bottom inset in pixels. Default is 0;
+    emulationWorkAreaInsetsBottom :: Maybe Int,
+    -- | Work area right inset in pixels. Default is 0;
+    emulationWorkAreaInsetsRight :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationWorkAreaInsets where
+  parseJSON = A.withObject "EmulationWorkAreaInsets" $ \o -> EmulationWorkAreaInsets
+    <$> o A..:? "top"
+    <*> o A..:? "left"
+    <*> o A..:? "bottom"
+    <*> o A..:? "right"
+instance ToJSON EmulationWorkAreaInsets where
+  toJSON p = A.object $ catMaybes [
+    ("top" A..=) <$> (emulationWorkAreaInsetsTop p),
+    ("left" A..=) <$> (emulationWorkAreaInsetsLeft p),
+    ("bottom" A..=) <$> (emulationWorkAreaInsetsBottom p),
+    ("right" A..=) <$> (emulationWorkAreaInsetsRight p)
+    ]
+
+-- | Type 'Emulation.ScreenId'.
+type EmulationScreenId = T.Text
+
+-- | Type 'Emulation.ScreenInfo'.
+--   Screen information similar to the one returned by window.getScreenDetails() method,
+--   see https://w3c.github.io/window-management/#screendetailed.
+data EmulationScreenInfo = EmulationScreenInfo
+  {
+    -- | Offset of the left edge of the screen.
+    emulationScreenInfoLeft :: Int,
+    -- | Offset of the top edge of the screen.
+    emulationScreenInfoTop :: Int,
+    -- | Width of the screen.
+    emulationScreenInfoWidth :: Int,
+    -- | Height of the screen.
+    emulationScreenInfoHeight :: Int,
+    -- | Offset of the left edge of the available screen area.
+    emulationScreenInfoAvailLeft :: Int,
+    -- | Offset of the top edge of the available screen area.
+    emulationScreenInfoAvailTop :: Int,
+    -- | Width of the available screen area.
+    emulationScreenInfoAvailWidth :: Int,
+    -- | Height of the available screen area.
+    emulationScreenInfoAvailHeight :: Int,
+    -- | Specifies the screen's device pixel ratio.
+    emulationScreenInfoDevicePixelRatio :: Double,
+    -- | Specifies the screen's orientation.
+    emulationScreenInfoOrientation :: EmulationScreenOrientation,
+    -- | Specifies the screen's color depth in bits.
+    emulationScreenInfoColorDepth :: Int,
+    -- | Indicates whether the device has multiple screens.
+    emulationScreenInfoIsExtended :: Bool,
+    -- | Indicates whether the screen is internal to the device or external, attached to the device.
+    emulationScreenInfoIsInternal :: Bool,
+    -- | Indicates whether the screen is set as the the operating system primary screen.
+    emulationScreenInfoIsPrimary :: Bool,
+    -- | Specifies the descriptive label for the screen.
+    emulationScreenInfoLabel :: T.Text,
+    -- | Specifies the unique identifier of the screen.
+    emulationScreenInfoId :: EmulationScreenId
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationScreenInfo where
+  parseJSON = A.withObject "EmulationScreenInfo" $ \o -> EmulationScreenInfo
+    <$> o A..: "left"
+    <*> o A..: "top"
+    <*> o A..: "width"
+    <*> o A..: "height"
+    <*> o A..: "availLeft"
+    <*> o A..: "availTop"
+    <*> o A..: "availWidth"
+    <*> o A..: "availHeight"
+    <*> o A..: "devicePixelRatio"
+    <*> o A..: "orientation"
+    <*> o A..: "colorDepth"
+    <*> o A..: "isExtended"
+    <*> o A..: "isInternal"
+    <*> o A..: "isPrimary"
+    <*> o A..: "label"
+    <*> o A..: "id"
+instance ToJSON EmulationScreenInfo where
+  toJSON p = A.object $ catMaybes [
+    ("left" A..=) <$> Just (emulationScreenInfoLeft p),
+    ("top" A..=) <$> Just (emulationScreenInfoTop p),
+    ("width" A..=) <$> Just (emulationScreenInfoWidth p),
+    ("height" A..=) <$> Just (emulationScreenInfoHeight p),
+    ("availLeft" A..=) <$> Just (emulationScreenInfoAvailLeft p),
+    ("availTop" A..=) <$> Just (emulationScreenInfoAvailTop p),
+    ("availWidth" A..=) <$> Just (emulationScreenInfoAvailWidth p),
+    ("availHeight" A..=) <$> Just (emulationScreenInfoAvailHeight p),
+    ("devicePixelRatio" A..=) <$> Just (emulationScreenInfoDevicePixelRatio p),
+    ("orientation" A..=) <$> Just (emulationScreenInfoOrientation p),
+    ("colorDepth" A..=) <$> Just (emulationScreenInfoColorDepth p),
+    ("isExtended" A..=) <$> Just (emulationScreenInfoIsExtended p),
+    ("isInternal" A..=) <$> Just (emulationScreenInfoIsInternal p),
+    ("isPrimary" A..=) <$> Just (emulationScreenInfoIsPrimary p),
+    ("label" A..=) <$> Just (emulationScreenInfoLabel p),
+    ("id" A..=) <$> Just (emulationScreenInfoId p)
     ]
 
 -- | Type 'Emulation.DisabledImageType'.
@@ -2616,29 +3346,21 @@ instance FromJSON EmulationVirtualTimeBudgetExpired where
 instance Event EmulationVirtualTimeBudgetExpired where
   eventName _ = "Emulation.virtualTimeBudgetExpired"
 
--- | Tells whether emulation is supported.
-
--- | Parameters of the 'Emulation.canEmulate' command.
-data PEmulationCanEmulate = PEmulationCanEmulate
-  deriving (Eq, Show)
-pEmulationCanEmulate
-  :: PEmulationCanEmulate
-pEmulationCanEmulate
-  = PEmulationCanEmulate
-instance ToJSON PEmulationCanEmulate where
-  toJSON _ = A.Null
-data EmulationCanEmulate = EmulationCanEmulate
+-- | Type of the 'Emulation.screenOrientationLockChanged' event.
+data EmulationScreenOrientationLockChanged = EmulationScreenOrientationLockChanged
   {
-    -- | True if emulation is supported.
-    emulationCanEmulateResult :: Bool
+    -- | Whether the screen orientation is currently locked.
+    emulationScreenOrientationLockChangedLocked :: Bool,
+    -- | The orientation lock type requested by the page. Only set when locked is true.
+    emulationScreenOrientationLockChangedOrientation :: Maybe EmulationScreenOrientation
   }
   deriving (Eq, Show)
-instance FromJSON EmulationCanEmulate where
-  parseJSON = A.withObject "EmulationCanEmulate" $ \o -> EmulationCanEmulate
-    <$> o A..: "result"
-instance Command PEmulationCanEmulate where
-  type CommandResponse PEmulationCanEmulate = EmulationCanEmulate
-  commandName _ = "Emulation.canEmulate"
+instance FromJSON EmulationScreenOrientationLockChanged where
+  parseJSON = A.withObject "EmulationScreenOrientationLockChanged" $ \o -> EmulationScreenOrientationLockChanged
+    <$> o A..: "locked"
+    <*> o A..:? "orientation"
+instance Event EmulationScreenOrientationLockChanged where
+  eventName _ = "Emulation.screenOrientationLockChanged"
 
 -- | Clears the overridden device metrics.
 
@@ -2793,11 +3515,47 @@ instance Command PEmulationSetDefaultBackgroundColorOverride where
   commandName _ = "Emulation.setDefaultBackgroundColorOverride"
   fromJSON = const . A.Success . const ()
 
+-- | Overrides the values for env(safe-area-inset-*) and env(safe-area-max-inset-*). Unset values will cause the
+--   respective variables to be undefined, even if previously overridden.
+
+-- | Parameters of the 'Emulation.setSafeAreaInsetsOverride' command.
+data PEmulationSetSafeAreaInsetsOverride = PEmulationSetSafeAreaInsetsOverride
+  {
+    pEmulationSetSafeAreaInsetsOverrideInsets :: EmulationSafeAreaInsets
+  }
+  deriving (Eq, Show)
+pEmulationSetSafeAreaInsetsOverride
+  :: EmulationSafeAreaInsets
+  -> PEmulationSetSafeAreaInsetsOverride
+pEmulationSetSafeAreaInsetsOverride
+  arg_pEmulationSetSafeAreaInsetsOverrideInsets
+  = PEmulationSetSafeAreaInsetsOverride
+    arg_pEmulationSetSafeAreaInsetsOverrideInsets
+instance ToJSON PEmulationSetSafeAreaInsetsOverride where
+  toJSON p = A.object $ catMaybes [
+    ("insets" A..=) <$> Just (pEmulationSetSafeAreaInsetsOverrideInsets p)
+    ]
+instance Command PEmulationSetSafeAreaInsetsOverride where
+  type CommandResponse PEmulationSetSafeAreaInsetsOverride = ()
+  commandName _ = "Emulation.setSafeAreaInsetsOverride"
+  fromJSON = const . A.Success . const ()
+
 -- | Overrides the values of device screen dimensions (window.screen.width, window.screen.height,
 --   window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media
 --   query results).
 
 -- | Parameters of the 'Emulation.setDeviceMetricsOverride' command.
+data PEmulationSetDeviceMetricsOverrideScrollbarType = PEmulationSetDeviceMetricsOverrideScrollbarTypeOverlay | PEmulationSetDeviceMetricsOverrideScrollbarTypeDefault
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON PEmulationSetDeviceMetricsOverrideScrollbarType where
+  parseJSON = A.withText "PEmulationSetDeviceMetricsOverrideScrollbarType" $ \v -> case v of
+    "overlay" -> pure PEmulationSetDeviceMetricsOverrideScrollbarTypeOverlay
+    "default" -> pure PEmulationSetDeviceMetricsOverrideScrollbarTypeDefault
+    "_" -> fail "failed to parse PEmulationSetDeviceMetricsOverrideScrollbarType"
+instance ToJSON PEmulationSetDeviceMetricsOverrideScrollbarType where
+  toJSON v = A.String $ case v of
+    PEmulationSetDeviceMetricsOverrideScrollbarTypeOverlay -> "overlay"
+    PEmulationSetDeviceMetricsOverrideScrollbarTypeDefault -> "default"
 data PEmulationSetDeviceMetricsOverride = PEmulationSetDeviceMetricsOverride
   {
     -- | Overriding width value in pixels (minimum 0, maximum 10000000). 0 disables the override.
@@ -2826,9 +3584,14 @@ data PEmulationSetDeviceMetricsOverride = PEmulationSetDeviceMetricsOverride
     -- | If set, the visible area of the page will be overridden to this viewport. This viewport
     --   change is not observed by the page, e.g. viewport-relative elements do not change positions.
     pEmulationSetDeviceMetricsOverrideViewport :: Maybe PageViewport,
-    -- | If set, the display feature of a multi-segment screen. If not set, multi-segment support
-    --   is turned-off.
-    pEmulationSetDeviceMetricsOverrideDisplayFeature :: Maybe EmulationDisplayFeature
+    -- | Scrollbar type. Default: `default`.
+    pEmulationSetDeviceMetricsOverrideScrollbarType :: Maybe PEmulationSetDeviceMetricsOverrideScrollbarType,
+    -- | If set to true, enables screen orientation lock emulation, which
+    --   intercepts screen.orientation.lock() calls from the page and reports
+    --   orientation changes via screenOrientationLockChanged events. This is
+    --   useful for emulating mobile device orientation lock behavior in
+    --   responsive design mode.
+    pEmulationSetDeviceMetricsOverrideScreenOrientationLockEmulation :: Maybe Bool
   }
   deriving (Eq, Show)
 pEmulationSetDeviceMetricsOverride
@@ -2869,6 +3632,7 @@ pEmulationSetDeviceMetricsOverride
     Nothing
     Nothing
     Nothing
+    Nothing
 instance ToJSON PEmulationSetDeviceMetricsOverride where
   toJSON p = A.object $ catMaybes [
     ("width" A..=) <$> Just (pEmulationSetDeviceMetricsOverrideWidth p),
@@ -2883,11 +3647,100 @@ instance ToJSON PEmulationSetDeviceMetricsOverride where
     ("dontSetVisibleSize" A..=) <$> (pEmulationSetDeviceMetricsOverrideDontSetVisibleSize p),
     ("screenOrientation" A..=) <$> (pEmulationSetDeviceMetricsOverrideScreenOrientation p),
     ("viewport" A..=) <$> (pEmulationSetDeviceMetricsOverrideViewport p),
-    ("displayFeature" A..=) <$> (pEmulationSetDeviceMetricsOverrideDisplayFeature p)
+    ("scrollbarType" A..=) <$> (pEmulationSetDeviceMetricsOverrideScrollbarType p),
+    ("screenOrientationLockEmulation" A..=) <$> (pEmulationSetDeviceMetricsOverrideScreenOrientationLockEmulation p)
     ]
 instance Command PEmulationSetDeviceMetricsOverride where
   type CommandResponse PEmulationSetDeviceMetricsOverride = ()
   commandName _ = "Emulation.setDeviceMetricsOverride"
+  fromJSON = const . A.Success . const ()
+
+-- | Start reporting the given posture value to the Device Posture API.
+--   This override can also be set in setDeviceMetricsOverride().
+
+-- | Parameters of the 'Emulation.setDevicePostureOverride' command.
+data PEmulationSetDevicePostureOverride = PEmulationSetDevicePostureOverride
+  {
+    pEmulationSetDevicePostureOverridePosture :: EmulationDevicePosture
+  }
+  deriving (Eq, Show)
+pEmulationSetDevicePostureOverride
+  :: EmulationDevicePosture
+  -> PEmulationSetDevicePostureOverride
+pEmulationSetDevicePostureOverride
+  arg_pEmulationSetDevicePostureOverridePosture
+  = PEmulationSetDevicePostureOverride
+    arg_pEmulationSetDevicePostureOverridePosture
+instance ToJSON PEmulationSetDevicePostureOverride where
+  toJSON p = A.object $ catMaybes [
+    ("posture" A..=) <$> Just (pEmulationSetDevicePostureOverridePosture p)
+    ]
+instance Command PEmulationSetDevicePostureOverride where
+  type CommandResponse PEmulationSetDevicePostureOverride = ()
+  commandName _ = "Emulation.setDevicePostureOverride"
+  fromJSON = const . A.Success . const ()
+
+-- | Clears a device posture override set with either setDeviceMetricsOverride()
+--   or setDevicePostureOverride() and starts using posture information from the
+--   platform again.
+--   Does nothing if no override is set.
+
+-- | Parameters of the 'Emulation.clearDevicePostureOverride' command.
+data PEmulationClearDevicePostureOverride = PEmulationClearDevicePostureOverride
+  deriving (Eq, Show)
+pEmulationClearDevicePostureOverride
+  :: PEmulationClearDevicePostureOverride
+pEmulationClearDevicePostureOverride
+  = PEmulationClearDevicePostureOverride
+instance ToJSON PEmulationClearDevicePostureOverride where
+  toJSON _ = A.Null
+instance Command PEmulationClearDevicePostureOverride where
+  type CommandResponse PEmulationClearDevicePostureOverride = ()
+  commandName _ = "Emulation.clearDevicePostureOverride"
+  fromJSON = const . A.Success . const ()
+
+-- | Start using the given display features to pupulate the Viewport Segments API.
+--   This override can also be set in setDeviceMetricsOverride().
+
+-- | Parameters of the 'Emulation.setDisplayFeaturesOverride' command.
+data PEmulationSetDisplayFeaturesOverride = PEmulationSetDisplayFeaturesOverride
+  {
+    pEmulationSetDisplayFeaturesOverrideFeatures :: [EmulationDisplayFeature]
+  }
+  deriving (Eq, Show)
+pEmulationSetDisplayFeaturesOverride
+  :: [EmulationDisplayFeature]
+  -> PEmulationSetDisplayFeaturesOverride
+pEmulationSetDisplayFeaturesOverride
+  arg_pEmulationSetDisplayFeaturesOverrideFeatures
+  = PEmulationSetDisplayFeaturesOverride
+    arg_pEmulationSetDisplayFeaturesOverrideFeatures
+instance ToJSON PEmulationSetDisplayFeaturesOverride where
+  toJSON p = A.object $ catMaybes [
+    ("features" A..=) <$> Just (pEmulationSetDisplayFeaturesOverrideFeatures p)
+    ]
+instance Command PEmulationSetDisplayFeaturesOverride where
+  type CommandResponse PEmulationSetDisplayFeaturesOverride = ()
+  commandName _ = "Emulation.setDisplayFeaturesOverride"
+  fromJSON = const . A.Success . const ()
+
+-- | Clears the display features override set with either setDeviceMetricsOverride()
+--   or setDisplayFeaturesOverride() and starts using display features from the
+--   platform again.
+--   Does nothing if no override is set.
+
+-- | Parameters of the 'Emulation.clearDisplayFeaturesOverride' command.
+data PEmulationClearDisplayFeaturesOverride = PEmulationClearDisplayFeaturesOverride
+  deriving (Eq, Show)
+pEmulationClearDisplayFeaturesOverride
+  :: PEmulationClearDisplayFeaturesOverride
+pEmulationClearDisplayFeaturesOverride
+  = PEmulationClearDisplayFeaturesOverride
+instance ToJSON PEmulationClearDisplayFeaturesOverride where
+  toJSON _ = A.Null
+instance Command PEmulationClearDisplayFeaturesOverride where
+  type CommandResponse PEmulationClearDisplayFeaturesOverride = ()
+  commandName _ = "Emulation.clearDisplayFeaturesOverride"
   fromJSON = const . A.Success . const ()
 
 
@@ -3016,13 +3869,14 @@ instance Command PEmulationSetEmulatedMedia where
 -- | Emulates the given vision deficiency.
 
 -- | Parameters of the 'Emulation.setEmulatedVisionDeficiency' command.
-data PEmulationSetEmulatedVisionDeficiencyType = PEmulationSetEmulatedVisionDeficiencyTypeNone | PEmulationSetEmulatedVisionDeficiencyTypeAchromatopsia | PEmulationSetEmulatedVisionDeficiencyTypeBlurredVision | PEmulationSetEmulatedVisionDeficiencyTypeDeuteranopia | PEmulationSetEmulatedVisionDeficiencyTypeProtanopia | PEmulationSetEmulatedVisionDeficiencyTypeTritanopia
+data PEmulationSetEmulatedVisionDeficiencyType = PEmulationSetEmulatedVisionDeficiencyTypeNone | PEmulationSetEmulatedVisionDeficiencyTypeBlurredVision | PEmulationSetEmulatedVisionDeficiencyTypeReducedContrast | PEmulationSetEmulatedVisionDeficiencyTypeAchromatopsia | PEmulationSetEmulatedVisionDeficiencyTypeDeuteranopia | PEmulationSetEmulatedVisionDeficiencyTypeProtanopia | PEmulationSetEmulatedVisionDeficiencyTypeTritanopia
   deriving (Ord, Eq, Show, Read)
 instance FromJSON PEmulationSetEmulatedVisionDeficiencyType where
   parseJSON = A.withText "PEmulationSetEmulatedVisionDeficiencyType" $ \v -> case v of
     "none" -> pure PEmulationSetEmulatedVisionDeficiencyTypeNone
-    "achromatopsia" -> pure PEmulationSetEmulatedVisionDeficiencyTypeAchromatopsia
     "blurredVision" -> pure PEmulationSetEmulatedVisionDeficiencyTypeBlurredVision
+    "reducedContrast" -> pure PEmulationSetEmulatedVisionDeficiencyTypeReducedContrast
+    "achromatopsia" -> pure PEmulationSetEmulatedVisionDeficiencyTypeAchromatopsia
     "deuteranopia" -> pure PEmulationSetEmulatedVisionDeficiencyTypeDeuteranopia
     "protanopia" -> pure PEmulationSetEmulatedVisionDeficiencyTypeProtanopia
     "tritanopia" -> pure PEmulationSetEmulatedVisionDeficiencyTypeTritanopia
@@ -3030,20 +3884,23 @@ instance FromJSON PEmulationSetEmulatedVisionDeficiencyType where
 instance ToJSON PEmulationSetEmulatedVisionDeficiencyType where
   toJSON v = A.String $ case v of
     PEmulationSetEmulatedVisionDeficiencyTypeNone -> "none"
-    PEmulationSetEmulatedVisionDeficiencyTypeAchromatopsia -> "achromatopsia"
     PEmulationSetEmulatedVisionDeficiencyTypeBlurredVision -> "blurredVision"
+    PEmulationSetEmulatedVisionDeficiencyTypeReducedContrast -> "reducedContrast"
+    PEmulationSetEmulatedVisionDeficiencyTypeAchromatopsia -> "achromatopsia"
     PEmulationSetEmulatedVisionDeficiencyTypeDeuteranopia -> "deuteranopia"
     PEmulationSetEmulatedVisionDeficiencyTypeProtanopia -> "protanopia"
     PEmulationSetEmulatedVisionDeficiencyTypeTritanopia -> "tritanopia"
 data PEmulationSetEmulatedVisionDeficiency = PEmulationSetEmulatedVisionDeficiency
   {
-    -- | Vision deficiency to emulate.
+    -- | Vision deficiency to emulate. Order: best-effort emulations come first, followed by any
+    --   physiologically accurate emulations for medically recognized color vision deficiencies.
     pEmulationSetEmulatedVisionDeficiencyType :: PEmulationSetEmulatedVisionDeficiencyType
   }
   deriving (Eq, Show)
 pEmulationSetEmulatedVisionDeficiency
   {-
-  -- | Vision deficiency to emulate.
+  -- | Vision deficiency to emulate. Order: best-effort emulations come first, followed by any
+  --   physiologically accurate emulations for medically recognized color vision deficiencies.
   -}
   :: PEmulationSetEmulatedVisionDeficiencyType
   -> PEmulationSetEmulatedVisionDeficiency
@@ -3060,8 +3917,30 @@ instance Command PEmulationSetEmulatedVisionDeficiency where
   commandName _ = "Emulation.setEmulatedVisionDeficiency"
   fromJSON = const . A.Success . const ()
 
--- | Overrides the Geolocation Position or Error. Omitting any of the parameters emulates position
---   unavailable.
+-- | Emulates the given OS text scale.
+
+-- | Parameters of the 'Emulation.setEmulatedOSTextScale' command.
+data PEmulationSetEmulatedOSTextScale = PEmulationSetEmulatedOSTextScale
+  {
+    pEmulationSetEmulatedOSTextScaleScale :: Maybe Double
+  }
+  deriving (Eq, Show)
+pEmulationSetEmulatedOSTextScale
+  :: PEmulationSetEmulatedOSTextScale
+pEmulationSetEmulatedOSTextScale
+  = PEmulationSetEmulatedOSTextScale
+    Nothing
+instance ToJSON PEmulationSetEmulatedOSTextScale where
+  toJSON p = A.object $ catMaybes [
+    ("scale" A..=) <$> (pEmulationSetEmulatedOSTextScaleScale p)
+    ]
+instance Command PEmulationSetEmulatedOSTextScale where
+  type CommandResponse PEmulationSetEmulatedOSTextScale = ()
+  commandName _ = "Emulation.setEmulatedOSTextScale"
+  fromJSON = const . A.Success . const ()
+
+-- | Overrides the Geolocation Position or Error. Omitting latitude, longitude or
+--   accuracy emulates position unavailable.
 
 -- | Parameters of the 'Emulation.setGeolocationOverride' command.
 data PEmulationSetGeolocationOverride = PEmulationSetGeolocationOverride
@@ -3071,7 +3950,15 @@ data PEmulationSetGeolocationOverride = PEmulationSetGeolocationOverride
     -- | Mock longitude
     pEmulationSetGeolocationOverrideLongitude :: Maybe Double,
     -- | Mock accuracy
-    pEmulationSetGeolocationOverrideAccuracy :: Maybe Double
+    pEmulationSetGeolocationOverrideAccuracy :: Maybe Double,
+    -- | Mock altitude
+    pEmulationSetGeolocationOverrideAltitude :: Maybe Double,
+    -- | Mock altitudeAccuracy
+    pEmulationSetGeolocationOverrideAltitudeAccuracy :: Maybe Double,
+    -- | Mock heading
+    pEmulationSetGeolocationOverrideHeading :: Maybe Double,
+    -- | Mock speed
+    pEmulationSetGeolocationOverrideSpeed :: Maybe Double
   }
   deriving (Eq, Show)
 pEmulationSetGeolocationOverride
@@ -3081,15 +3968,185 @@ pEmulationSetGeolocationOverride
     Nothing
     Nothing
     Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
 instance ToJSON PEmulationSetGeolocationOverride where
   toJSON p = A.object $ catMaybes [
     ("latitude" A..=) <$> (pEmulationSetGeolocationOverrideLatitude p),
     ("longitude" A..=) <$> (pEmulationSetGeolocationOverrideLongitude p),
-    ("accuracy" A..=) <$> (pEmulationSetGeolocationOverrideAccuracy p)
+    ("accuracy" A..=) <$> (pEmulationSetGeolocationOverrideAccuracy p),
+    ("altitude" A..=) <$> (pEmulationSetGeolocationOverrideAltitude p),
+    ("altitudeAccuracy" A..=) <$> (pEmulationSetGeolocationOverrideAltitudeAccuracy p),
+    ("heading" A..=) <$> (pEmulationSetGeolocationOverrideHeading p),
+    ("speed" A..=) <$> (pEmulationSetGeolocationOverrideSpeed p)
     ]
 instance Command PEmulationSetGeolocationOverride where
   type CommandResponse PEmulationSetGeolocationOverride = ()
   commandName _ = "Emulation.setGeolocationOverride"
+  fromJSON = const . A.Success . const ()
+
+
+-- | Parameters of the 'Emulation.getOverriddenSensorInformation' command.
+data PEmulationGetOverriddenSensorInformation = PEmulationGetOverriddenSensorInformation
+  {
+    pEmulationGetOverriddenSensorInformationType :: EmulationSensorType
+  }
+  deriving (Eq, Show)
+pEmulationGetOverriddenSensorInformation
+  :: EmulationSensorType
+  -> PEmulationGetOverriddenSensorInformation
+pEmulationGetOverriddenSensorInformation
+  arg_pEmulationGetOverriddenSensorInformationType
+  = PEmulationGetOverriddenSensorInformation
+    arg_pEmulationGetOverriddenSensorInformationType
+instance ToJSON PEmulationGetOverriddenSensorInformation where
+  toJSON p = A.object $ catMaybes [
+    ("type" A..=) <$> Just (pEmulationGetOverriddenSensorInformationType p)
+    ]
+data EmulationGetOverriddenSensorInformation = EmulationGetOverriddenSensorInformation
+  {
+    emulationGetOverriddenSensorInformationRequestedSamplingFrequency :: Double
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationGetOverriddenSensorInformation where
+  parseJSON = A.withObject "EmulationGetOverriddenSensorInformation" $ \o -> EmulationGetOverriddenSensorInformation
+    <$> o A..: "requestedSamplingFrequency"
+instance Command PEmulationGetOverriddenSensorInformation where
+  type CommandResponse PEmulationGetOverriddenSensorInformation = EmulationGetOverriddenSensorInformation
+  commandName _ = "Emulation.getOverriddenSensorInformation"
+
+-- | Overrides a platform sensor of a given type. If |enabled| is true, calls to
+--   Sensor.start() will use a virtual sensor as backend rather than fetching
+--   data from a real hardware sensor. Otherwise, existing virtual
+--   sensor-backend Sensor objects will fire an error event and new calls to
+--   Sensor.start() will attempt to use a real sensor instead.
+
+-- | Parameters of the 'Emulation.setSensorOverrideEnabled' command.
+data PEmulationSetSensorOverrideEnabled = PEmulationSetSensorOverrideEnabled
+  {
+    pEmulationSetSensorOverrideEnabledEnabled :: Bool,
+    pEmulationSetSensorOverrideEnabledType :: EmulationSensorType,
+    pEmulationSetSensorOverrideEnabledMetadata :: Maybe EmulationSensorMetadata
+  }
+  deriving (Eq, Show)
+pEmulationSetSensorOverrideEnabled
+  :: Bool
+  -> EmulationSensorType
+  -> PEmulationSetSensorOverrideEnabled
+pEmulationSetSensorOverrideEnabled
+  arg_pEmulationSetSensorOverrideEnabledEnabled
+  arg_pEmulationSetSensorOverrideEnabledType
+  = PEmulationSetSensorOverrideEnabled
+    arg_pEmulationSetSensorOverrideEnabledEnabled
+    arg_pEmulationSetSensorOverrideEnabledType
+    Nothing
+instance ToJSON PEmulationSetSensorOverrideEnabled where
+  toJSON p = A.object $ catMaybes [
+    ("enabled" A..=) <$> Just (pEmulationSetSensorOverrideEnabledEnabled p),
+    ("type" A..=) <$> Just (pEmulationSetSensorOverrideEnabledType p),
+    ("metadata" A..=) <$> (pEmulationSetSensorOverrideEnabledMetadata p)
+    ]
+instance Command PEmulationSetSensorOverrideEnabled where
+  type CommandResponse PEmulationSetSensorOverrideEnabled = ()
+  commandName _ = "Emulation.setSensorOverrideEnabled"
+  fromJSON = const . A.Success . const ()
+
+-- | Updates the sensor readings reported by a sensor type previously overridden
+--   by setSensorOverrideEnabled.
+
+-- | Parameters of the 'Emulation.setSensorOverrideReadings' command.
+data PEmulationSetSensorOverrideReadings = PEmulationSetSensorOverrideReadings
+  {
+    pEmulationSetSensorOverrideReadingsType :: EmulationSensorType,
+    pEmulationSetSensorOverrideReadingsReading :: EmulationSensorReading
+  }
+  deriving (Eq, Show)
+pEmulationSetSensorOverrideReadings
+  :: EmulationSensorType
+  -> EmulationSensorReading
+  -> PEmulationSetSensorOverrideReadings
+pEmulationSetSensorOverrideReadings
+  arg_pEmulationSetSensorOverrideReadingsType
+  arg_pEmulationSetSensorOverrideReadingsReading
+  = PEmulationSetSensorOverrideReadings
+    arg_pEmulationSetSensorOverrideReadingsType
+    arg_pEmulationSetSensorOverrideReadingsReading
+instance ToJSON PEmulationSetSensorOverrideReadings where
+  toJSON p = A.object $ catMaybes [
+    ("type" A..=) <$> Just (pEmulationSetSensorOverrideReadingsType p),
+    ("reading" A..=) <$> Just (pEmulationSetSensorOverrideReadingsReading p)
+    ]
+instance Command PEmulationSetSensorOverrideReadings where
+  type CommandResponse PEmulationSetSensorOverrideReadings = ()
+  commandName _ = "Emulation.setSensorOverrideReadings"
+  fromJSON = const . A.Success . const ()
+
+-- | Overrides a pressure source of a given type, as used by the Compute
+--   Pressure API, so that updates to PressureObserver.observe() are provided
+--   via setPressureStateOverride instead of being retrieved from
+--   platform-provided telemetry data.
+
+-- | Parameters of the 'Emulation.setPressureSourceOverrideEnabled' command.
+data PEmulationSetPressureSourceOverrideEnabled = PEmulationSetPressureSourceOverrideEnabled
+  {
+    pEmulationSetPressureSourceOverrideEnabledEnabled :: Bool,
+    pEmulationSetPressureSourceOverrideEnabledSource :: EmulationPressureSource,
+    pEmulationSetPressureSourceOverrideEnabledMetadata :: Maybe EmulationPressureMetadata
+  }
+  deriving (Eq, Show)
+pEmulationSetPressureSourceOverrideEnabled
+  :: Bool
+  -> EmulationPressureSource
+  -> PEmulationSetPressureSourceOverrideEnabled
+pEmulationSetPressureSourceOverrideEnabled
+  arg_pEmulationSetPressureSourceOverrideEnabledEnabled
+  arg_pEmulationSetPressureSourceOverrideEnabledSource
+  = PEmulationSetPressureSourceOverrideEnabled
+    arg_pEmulationSetPressureSourceOverrideEnabledEnabled
+    arg_pEmulationSetPressureSourceOverrideEnabledSource
+    Nothing
+instance ToJSON PEmulationSetPressureSourceOverrideEnabled where
+  toJSON p = A.object $ catMaybes [
+    ("enabled" A..=) <$> Just (pEmulationSetPressureSourceOverrideEnabledEnabled p),
+    ("source" A..=) <$> Just (pEmulationSetPressureSourceOverrideEnabledSource p),
+    ("metadata" A..=) <$> (pEmulationSetPressureSourceOverrideEnabledMetadata p)
+    ]
+instance Command PEmulationSetPressureSourceOverrideEnabled where
+  type CommandResponse PEmulationSetPressureSourceOverrideEnabled = ()
+  commandName _ = "Emulation.setPressureSourceOverrideEnabled"
+  fromJSON = const . A.Success . const ()
+
+-- | Provides a given pressure state that will be processed and eventually be
+--   delivered to PressureObserver users. |source| must have been previously
+--   overridden by setPressureSourceOverrideEnabled.
+
+-- | Parameters of the 'Emulation.setPressureStateOverride' command.
+data PEmulationSetPressureStateOverride = PEmulationSetPressureStateOverride
+  {
+    pEmulationSetPressureStateOverrideSource :: EmulationPressureSource,
+    pEmulationSetPressureStateOverrideState :: EmulationPressureState
+  }
+  deriving (Eq, Show)
+pEmulationSetPressureStateOverride
+  :: EmulationPressureSource
+  -> EmulationPressureState
+  -> PEmulationSetPressureStateOverride
+pEmulationSetPressureStateOverride
+  arg_pEmulationSetPressureStateOverrideSource
+  arg_pEmulationSetPressureStateOverrideState
+  = PEmulationSetPressureStateOverride
+    arg_pEmulationSetPressureStateOverrideSource
+    arg_pEmulationSetPressureStateOverrideState
+instance ToJSON PEmulationSetPressureStateOverride where
+  toJSON p = A.object $ catMaybes [
+    ("source" A..=) <$> Just (pEmulationSetPressureStateOverrideSource p),
+    ("state" A..=) <$> Just (pEmulationSetPressureStateOverrideState p)
+    ]
+instance Command PEmulationSetPressureStateOverride where
+  type CommandResponse PEmulationSetPressureStateOverride = ()
+  commandName _ = "Emulation.setPressureStateOverride"
   fromJSON = const . A.Success . const ()
 
 -- | Overrides the Idle state.
@@ -3309,15 +4366,17 @@ instance Command PEmulationSetLocaleOverride where
 -- | Parameters of the 'Emulation.setTimezoneOverride' command.
 data PEmulationSetTimezoneOverride = PEmulationSetTimezoneOverride
   {
-    -- | The timezone identifier. If empty, disables the override and
-    --   restores default host system timezone.
+    -- | The timezone identifier. List of supported timezones:
+    --   https://source.chromium.org/chromium/chromium/deps/icu.git/+/faee8bc70570192d82d2978a71e2a615788597d1:source/data/misc/metaZones.txt
+    --   If empty, disables the override and restores default host system timezone.
     pEmulationSetTimezoneOverrideTimezoneId :: T.Text
   }
   deriving (Eq, Show)
 pEmulationSetTimezoneOverride
   {-
-  -- | The timezone identifier. If empty, disables the override and
-  --   restores default host system timezone.
+  -- | The timezone identifier. List of supported timezones:
+  --   https://source.chromium.org/chromium/chromium/deps/icu.git/+/faee8bc70570192d82d2978a71e2a615788597d1:source/data/misc/metaZones.txt
+  --   If empty, disables the override and restores default host system timezone.
   -}
   :: T.Text
   -> PEmulationSetTimezoneOverride
@@ -3361,6 +4420,29 @@ instance Command PEmulationSetDisabledImageTypes where
   commandName _ = "Emulation.setDisabledImageTypes"
   fromJSON = const . A.Success . const ()
 
+-- | Override the value of navigator.connection.saveData
+
+-- | Parameters of the 'Emulation.setDataSaverOverride' command.
+data PEmulationSetDataSaverOverride = PEmulationSetDataSaverOverride
+  {
+    -- | Override value. Omitting the parameter disables the override.
+    pEmulationSetDataSaverOverrideDataSaverEnabled :: Maybe Bool
+  }
+  deriving (Eq, Show)
+pEmulationSetDataSaverOverride
+  :: PEmulationSetDataSaverOverride
+pEmulationSetDataSaverOverride
+  = PEmulationSetDataSaverOverride
+    Nothing
+instance ToJSON PEmulationSetDataSaverOverride where
+  toJSON p = A.object $ catMaybes [
+    ("dataSaverEnabled" A..=) <$> (pEmulationSetDataSaverOverrideDataSaverEnabled p)
+    ]
+instance Command PEmulationSetDataSaverOverride where
+  type CommandResponse PEmulationSetDataSaverOverride = ()
+  commandName _ = "Emulation.setDataSaverOverride"
+  fromJSON = const . A.Success . const ()
+
 
 -- | Parameters of the 'Emulation.setHardwareConcurrencyOverride' command.
 data PEmulationSetHardwareConcurrencyOverride = PEmulationSetHardwareConcurrencyOverride
@@ -3389,13 +4471,14 @@ instance Command PEmulationSetHardwareConcurrencyOverride where
   fromJSON = const . A.Success . const ()
 
 -- | Allows overriding user agent with the given string.
+--   `userAgentMetadata` must be set for Client Hint headers to be sent.
 
 -- | Parameters of the 'Emulation.setUserAgentOverride' command.
 data PEmulationSetUserAgentOverride = PEmulationSetUserAgentOverride
   {
     -- | User agent to use.
     pEmulationSetUserAgentOverrideUserAgent :: T.Text,
-    -- | Browser langugage to emulate.
+    -- | Browser language to emulate.
     pEmulationSetUserAgentOverrideAcceptLanguage :: Maybe T.Text,
     -- | The platform navigator.platform should return.
     pEmulationSetUserAgentOverridePlatform :: Maybe T.Text,
@@ -3456,9 +4539,276 @@ instance Command PEmulationSetAutomationOverride where
   commandName _ = "Emulation.setAutomationOverride"
   fromJSON = const . A.Success . const ()
 
+-- | Allows overriding the difference between the small and large viewport sizes, which determine the
+--   value of the `svh` and `lvh` unit, respectively. Only supported for top-level frames.
+
+-- | Parameters of the 'Emulation.setSmallViewportHeightDifferenceOverride' command.
+data PEmulationSetSmallViewportHeightDifferenceOverride = PEmulationSetSmallViewportHeightDifferenceOverride
+  {
+    -- | This will cause an element of size 100svh to be `difference` pixels smaller than an element
+    --   of size 100lvh.
+    pEmulationSetSmallViewportHeightDifferenceOverrideDifference :: Int
+  }
+  deriving (Eq, Show)
+pEmulationSetSmallViewportHeightDifferenceOverride
+  {-
+  -- | This will cause an element of size 100svh to be `difference` pixels smaller than an element
+  --   of size 100lvh.
+  -}
+  :: Int
+  -> PEmulationSetSmallViewportHeightDifferenceOverride
+pEmulationSetSmallViewportHeightDifferenceOverride
+  arg_pEmulationSetSmallViewportHeightDifferenceOverrideDifference
+  = PEmulationSetSmallViewportHeightDifferenceOverride
+    arg_pEmulationSetSmallViewportHeightDifferenceOverrideDifference
+instance ToJSON PEmulationSetSmallViewportHeightDifferenceOverride where
+  toJSON p = A.object $ catMaybes [
+    ("difference" A..=) <$> Just (pEmulationSetSmallViewportHeightDifferenceOverrideDifference p)
+    ]
+instance Command PEmulationSetSmallViewportHeightDifferenceOverride where
+  type CommandResponse PEmulationSetSmallViewportHeightDifferenceOverride = ()
+  commandName _ = "Emulation.setSmallViewportHeightDifferenceOverride"
+  fromJSON = const . A.Success . const ()
+
+-- | Returns device's screen configuration. In headful mode, the physical screens configuration is returned,
+--   whereas in headless mode, a virtual headless screen configuration is provided instead.
+
+-- | Parameters of the 'Emulation.getScreenInfos' command.
+data PEmulationGetScreenInfos = PEmulationGetScreenInfos
+  deriving (Eq, Show)
+pEmulationGetScreenInfos
+  :: PEmulationGetScreenInfos
+pEmulationGetScreenInfos
+  = PEmulationGetScreenInfos
+instance ToJSON PEmulationGetScreenInfos where
+  toJSON _ = A.Null
+data EmulationGetScreenInfos = EmulationGetScreenInfos
+  {
+    emulationGetScreenInfosScreenInfos :: [EmulationScreenInfo]
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationGetScreenInfos where
+  parseJSON = A.withObject "EmulationGetScreenInfos" $ \o -> EmulationGetScreenInfos
+    <$> o A..: "screenInfos"
+instance Command PEmulationGetScreenInfos where
+  type CommandResponse PEmulationGetScreenInfos = EmulationGetScreenInfos
+  commandName _ = "Emulation.getScreenInfos"
+
+-- | Add a new screen to the device. Only supported in headless mode.
+
+-- | Parameters of the 'Emulation.addScreen' command.
+data PEmulationAddScreen = PEmulationAddScreen
+  {
+    -- | Offset of the left edge of the screen in pixels.
+    pEmulationAddScreenLeft :: Int,
+    -- | Offset of the top edge of the screen in pixels.
+    pEmulationAddScreenTop :: Int,
+    -- | The width of the screen in pixels.
+    pEmulationAddScreenWidth :: Int,
+    -- | The height of the screen in pixels.
+    pEmulationAddScreenHeight :: Int,
+    -- | Specifies the screen's work area. Default is entire screen.
+    pEmulationAddScreenWorkAreaInsets :: Maybe EmulationWorkAreaInsets,
+    -- | Specifies the screen's device pixel ratio. Default is 1.
+    pEmulationAddScreenDevicePixelRatio :: Maybe Double,
+    -- | Specifies the screen's rotation angle. Available values are 0, 90, 180 and 270. Default is 0.
+    pEmulationAddScreenRotation :: Maybe Int,
+    -- | Specifies the screen's color depth in bits. Default is 24.
+    pEmulationAddScreenColorDepth :: Maybe Int,
+    -- | Specifies the descriptive label for the screen. Default is none.
+    pEmulationAddScreenLabel :: Maybe T.Text,
+    -- | Indicates whether the screen is internal to the device or external, attached to the device. Default is false.
+    pEmulationAddScreenIsInternal :: Maybe Bool
+  }
+  deriving (Eq, Show)
+pEmulationAddScreen
+  {-
+  -- | Offset of the left edge of the screen in pixels.
+  -}
+  :: Int
+  {-
+  -- | Offset of the top edge of the screen in pixels.
+  -}
+  -> Int
+  {-
+  -- | The width of the screen in pixels.
+  -}
+  -> Int
+  {-
+  -- | The height of the screen in pixels.
+  -}
+  -> Int
+  -> PEmulationAddScreen
+pEmulationAddScreen
+  arg_pEmulationAddScreenLeft
+  arg_pEmulationAddScreenTop
+  arg_pEmulationAddScreenWidth
+  arg_pEmulationAddScreenHeight
+  = PEmulationAddScreen
+    arg_pEmulationAddScreenLeft
+    arg_pEmulationAddScreenTop
+    arg_pEmulationAddScreenWidth
+    arg_pEmulationAddScreenHeight
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+instance ToJSON PEmulationAddScreen where
+  toJSON p = A.object $ catMaybes [
+    ("left" A..=) <$> Just (pEmulationAddScreenLeft p),
+    ("top" A..=) <$> Just (pEmulationAddScreenTop p),
+    ("width" A..=) <$> Just (pEmulationAddScreenWidth p),
+    ("height" A..=) <$> Just (pEmulationAddScreenHeight p),
+    ("workAreaInsets" A..=) <$> (pEmulationAddScreenWorkAreaInsets p),
+    ("devicePixelRatio" A..=) <$> (pEmulationAddScreenDevicePixelRatio p),
+    ("rotation" A..=) <$> (pEmulationAddScreenRotation p),
+    ("colorDepth" A..=) <$> (pEmulationAddScreenColorDepth p),
+    ("label" A..=) <$> (pEmulationAddScreenLabel p),
+    ("isInternal" A..=) <$> (pEmulationAddScreenIsInternal p)
+    ]
+data EmulationAddScreen = EmulationAddScreen
+  {
+    emulationAddScreenScreenInfo :: EmulationScreenInfo
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationAddScreen where
+  parseJSON = A.withObject "EmulationAddScreen" $ \o -> EmulationAddScreen
+    <$> o A..: "screenInfo"
+instance Command PEmulationAddScreen where
+  type CommandResponse PEmulationAddScreen = EmulationAddScreen
+  commandName _ = "Emulation.addScreen"
+
+-- | Updates specified screen parameters. Only supported in headless mode.
+
+-- | Parameters of the 'Emulation.updateScreen' command.
+data PEmulationUpdateScreen = PEmulationUpdateScreen
+  {
+    -- | Target screen identifier.
+    pEmulationUpdateScreenScreenId :: EmulationScreenId,
+    -- | Offset of the left edge of the screen in pixels.
+    pEmulationUpdateScreenLeft :: Maybe Int,
+    -- | Offset of the top edge of the screen in pixels.
+    pEmulationUpdateScreenTop :: Maybe Int,
+    -- | The width of the screen in pixels.
+    pEmulationUpdateScreenWidth :: Maybe Int,
+    -- | The height of the screen in pixels.
+    pEmulationUpdateScreenHeight :: Maybe Int,
+    -- | Specifies the screen's work area.
+    pEmulationUpdateScreenWorkAreaInsets :: Maybe EmulationWorkAreaInsets,
+    -- | Specifies the screen's device pixel ratio.
+    pEmulationUpdateScreenDevicePixelRatio :: Maybe Double,
+    -- | Specifies the screen's rotation angle. Available values are 0, 90, 180 and 270.
+    pEmulationUpdateScreenRotation :: Maybe Int,
+    -- | Specifies the screen's color depth in bits.
+    pEmulationUpdateScreenColorDepth :: Maybe Int,
+    -- | Specifies the descriptive label for the screen.
+    pEmulationUpdateScreenLabel :: Maybe T.Text,
+    -- | Indicates whether the screen is internal to the device or external, attached to the device. Default is false.
+    pEmulationUpdateScreenIsInternal :: Maybe Bool
+  }
+  deriving (Eq, Show)
+pEmulationUpdateScreen
+  {-
+  -- | Target screen identifier.
+  -}
+  :: EmulationScreenId
+  -> PEmulationUpdateScreen
+pEmulationUpdateScreen
+  arg_pEmulationUpdateScreenScreenId
+  = PEmulationUpdateScreen
+    arg_pEmulationUpdateScreenScreenId
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+instance ToJSON PEmulationUpdateScreen where
+  toJSON p = A.object $ catMaybes [
+    ("screenId" A..=) <$> Just (pEmulationUpdateScreenScreenId p),
+    ("left" A..=) <$> (pEmulationUpdateScreenLeft p),
+    ("top" A..=) <$> (pEmulationUpdateScreenTop p),
+    ("width" A..=) <$> (pEmulationUpdateScreenWidth p),
+    ("height" A..=) <$> (pEmulationUpdateScreenHeight p),
+    ("workAreaInsets" A..=) <$> (pEmulationUpdateScreenWorkAreaInsets p),
+    ("devicePixelRatio" A..=) <$> (pEmulationUpdateScreenDevicePixelRatio p),
+    ("rotation" A..=) <$> (pEmulationUpdateScreenRotation p),
+    ("colorDepth" A..=) <$> (pEmulationUpdateScreenColorDepth p),
+    ("label" A..=) <$> (pEmulationUpdateScreenLabel p),
+    ("isInternal" A..=) <$> (pEmulationUpdateScreenIsInternal p)
+    ]
+data EmulationUpdateScreen = EmulationUpdateScreen
+  {
+    emulationUpdateScreenScreenInfo :: EmulationScreenInfo
+  }
+  deriving (Eq, Show)
+instance FromJSON EmulationUpdateScreen where
+  parseJSON = A.withObject "EmulationUpdateScreen" $ \o -> EmulationUpdateScreen
+    <$> o A..: "screenInfo"
+instance Command PEmulationUpdateScreen where
+  type CommandResponse PEmulationUpdateScreen = EmulationUpdateScreen
+  commandName _ = "Emulation.updateScreen"
+
+-- | Remove screen from the device. Only supported in headless mode.
+
+-- | Parameters of the 'Emulation.removeScreen' command.
+data PEmulationRemoveScreen = PEmulationRemoveScreen
+  {
+    pEmulationRemoveScreenScreenId :: EmulationScreenId
+  }
+  deriving (Eq, Show)
+pEmulationRemoveScreen
+  :: EmulationScreenId
+  -> PEmulationRemoveScreen
+pEmulationRemoveScreen
+  arg_pEmulationRemoveScreenScreenId
+  = PEmulationRemoveScreen
+    arg_pEmulationRemoveScreenScreenId
+instance ToJSON PEmulationRemoveScreen where
+  toJSON p = A.object $ catMaybes [
+    ("screenId" A..=) <$> Just (pEmulationRemoveScreenScreenId p)
+    ]
+instance Command PEmulationRemoveScreen where
+  type CommandResponse PEmulationRemoveScreen = ()
+  commandName _ = "Emulation.removeScreen"
+  fromJSON = const . A.Success . const ()
+
+-- | Set primary screen. Only supported in headless mode.
+--   Note that this changes the coordinate system origin to the top-left
+--   of the new primary screen, updating the bounds and work areas
+--   of all existing screens accordingly.
+
+-- | Parameters of the 'Emulation.setPrimaryScreen' command.
+data PEmulationSetPrimaryScreen = PEmulationSetPrimaryScreen
+  {
+    pEmulationSetPrimaryScreenScreenId :: EmulationScreenId
+  }
+  deriving (Eq, Show)
+pEmulationSetPrimaryScreen
+  :: EmulationScreenId
+  -> PEmulationSetPrimaryScreen
+pEmulationSetPrimaryScreen
+  arg_pEmulationSetPrimaryScreenScreenId
+  = PEmulationSetPrimaryScreen
+    arg_pEmulationSetPrimaryScreenScreenId
+instance ToJSON PEmulationSetPrimaryScreen where
+  toJSON p = A.object $ catMaybes [
+    ("screenId" A..=) <$> Just (pEmulationSetPrimaryScreenScreenId p)
+    ]
+instance Command PEmulationSetPrimaryScreen where
+  type CommandResponse PEmulationSetPrimaryScreen = ()
+  commandName _ = "Emulation.setPrimaryScreen"
+  fromJSON = const . A.Success . const ()
+
 -- | Type 'Network.ResourceType'.
 --   Resource type as it was perceived by the rendering engine.
-data NetworkResourceType = NetworkResourceTypeDocument | NetworkResourceTypeStylesheet | NetworkResourceTypeImage | NetworkResourceTypeMedia | NetworkResourceTypeFont | NetworkResourceTypeScript | NetworkResourceTypeTextTrack | NetworkResourceTypeXHR | NetworkResourceTypeFetch | NetworkResourceTypePrefetch | NetworkResourceTypeEventSource | NetworkResourceTypeWebSocket | NetworkResourceTypeManifest | NetworkResourceTypeSignedExchange | NetworkResourceTypePing | NetworkResourceTypeCSPViolationReport | NetworkResourceTypePreflight | NetworkResourceTypeOther
+data NetworkResourceType = NetworkResourceTypeDocument | NetworkResourceTypeStylesheet | NetworkResourceTypeImage | NetworkResourceTypeMedia | NetworkResourceTypeFont | NetworkResourceTypeScript | NetworkResourceTypeTextTrack | NetworkResourceTypeXHR | NetworkResourceTypeFetch | NetworkResourceTypePrefetch | NetworkResourceTypeEventSource | NetworkResourceTypeWebSocket | NetworkResourceTypeManifest | NetworkResourceTypeSignedExchange | NetworkResourceTypePing | NetworkResourceTypeCSPViolationReport | NetworkResourceTypePreflight | NetworkResourceTypeFedCM | NetworkResourceTypeOther
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkResourceType where
   parseJSON = A.withText "NetworkResourceType" $ \v -> case v of
@@ -3479,6 +4829,7 @@ instance FromJSON NetworkResourceType where
     "Ping" -> pure NetworkResourceTypePing
     "CSPViolationReport" -> pure NetworkResourceTypeCSPViolationReport
     "Preflight" -> pure NetworkResourceTypePreflight
+    "FedCM" -> pure NetworkResourceTypeFedCM
     "Other" -> pure NetworkResourceTypeOther
     "_" -> fail "failed to parse NetworkResourceType"
 instance ToJSON NetworkResourceType where
@@ -3500,6 +4851,7 @@ instance ToJSON NetworkResourceType where
     NetworkResourceTypePing -> "Ping"
     NetworkResourceTypeCSPViolationReport -> "CSPViolationReport"
     NetworkResourceTypePreflight -> "Preflight"
+    NetworkResourceTypeFedCM -> "FedCM"
     NetworkResourceTypeOther -> "Other"
 
 -- | Type 'Network.LoaderId'.
@@ -3507,12 +4859,10 @@ instance ToJSON NetworkResourceType where
 type NetworkLoaderId = T.Text
 
 -- | Type 'Network.RequestId'.
---   Unique request identifier.
+--   Unique network request identifier.
+--   Note that this does not identify individual HTTP requests that are part of
+--   a network request.
 type NetworkRequestId = T.Text
-
--- | Type 'Network.InterceptionId'.
---   Unique intercepted request identifier.
-type NetworkInterceptionId = T.Text
 
 -- | Type 'Network.ErrorReason'.
 --   Network level fetch failure reason.
@@ -3675,6 +5025,10 @@ data NetworkResourceTiming = NetworkResourceTiming
     networkResourceTimingWorkerFetchStart :: Double,
     -- | Settled fetch event respondWith promise.
     networkResourceTimingWorkerRespondWithSettled :: Double,
+    -- | Started ServiceWorker static routing source evaluation.
+    networkResourceTimingWorkerRouterEvaluationStart :: Maybe Double,
+    -- | Started cache lookup when the source was evaluated to `cache`.
+    networkResourceTimingWorkerCacheLookupStart :: Maybe Double,
     -- | Started sending request.
     networkResourceTimingSendStart :: Double,
     -- | Finished sending request.
@@ -3683,6 +5037,8 @@ data NetworkResourceTiming = NetworkResourceTiming
     networkResourceTimingPushStart :: Double,
     -- | Time the server finished pushing request.
     networkResourceTimingPushEnd :: Double,
+    -- | Started receiving response headers.
+    networkResourceTimingReceiveHeadersStart :: Double,
     -- | Finished receiving response headers.
     networkResourceTimingReceiveHeadersEnd :: Double
   }
@@ -3702,10 +5058,13 @@ instance FromJSON NetworkResourceTiming where
     <*> o A..: "workerReady"
     <*> o A..: "workerFetchStart"
     <*> o A..: "workerRespondWithSettled"
+    <*> o A..:? "workerRouterEvaluationStart"
+    <*> o A..:? "workerCacheLookupStart"
     <*> o A..: "sendStart"
     <*> o A..: "sendEnd"
     <*> o A..: "pushStart"
     <*> o A..: "pushEnd"
+    <*> o A..: "receiveHeadersStart"
     <*> o A..: "receiveHeadersEnd"
 instance ToJSON NetworkResourceTiming where
   toJSON p = A.object $ catMaybes [
@@ -3722,10 +5081,13 @@ instance ToJSON NetworkResourceTiming where
     ("workerReady" A..=) <$> Just (networkResourceTimingWorkerReady p),
     ("workerFetchStart" A..=) <$> Just (networkResourceTimingWorkerFetchStart p),
     ("workerRespondWithSettled" A..=) <$> Just (networkResourceTimingWorkerRespondWithSettled p),
+    ("workerRouterEvaluationStart" A..=) <$> (networkResourceTimingWorkerRouterEvaluationStart p),
+    ("workerCacheLookupStart" A..=) <$> (networkResourceTimingWorkerCacheLookupStart p),
     ("sendStart" A..=) <$> Just (networkResourceTimingSendStart p),
     ("sendEnd" A..=) <$> Just (networkResourceTimingSendEnd p),
     ("pushStart" A..=) <$> Just (networkResourceTimingPushStart p),
     ("pushEnd" A..=) <$> Just (networkResourceTimingPushEnd p),
+    ("receiveHeadersStart" A..=) <$> Just (networkResourceTimingReceiveHeadersStart p),
     ("receiveHeadersEnd" A..=) <$> Just (networkResourceTimingReceiveHeadersEnd p)
     ]
 
@@ -3748,6 +5110,26 @@ instance ToJSON NetworkResourcePriority where
     NetworkResourcePriorityMedium -> "Medium"
     NetworkResourcePriorityHigh -> "High"
     NetworkResourcePriorityVeryHigh -> "VeryHigh"
+
+-- | Type 'Network.RenderBlockingBehavior'.
+--   The render-blocking behavior of a resource request.
+data NetworkRenderBlockingBehavior = NetworkRenderBlockingBehaviorBlocking | NetworkRenderBlockingBehaviorInBodyParserBlocking | NetworkRenderBlockingBehaviorNonBlocking | NetworkRenderBlockingBehaviorNonBlockingDynamic | NetworkRenderBlockingBehaviorPotentiallyBlocking
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkRenderBlockingBehavior where
+  parseJSON = A.withText "NetworkRenderBlockingBehavior" $ \v -> case v of
+    "Blocking" -> pure NetworkRenderBlockingBehaviorBlocking
+    "InBodyParserBlocking" -> pure NetworkRenderBlockingBehaviorInBodyParserBlocking
+    "NonBlocking" -> pure NetworkRenderBlockingBehaviorNonBlocking
+    "NonBlockingDynamic" -> pure NetworkRenderBlockingBehaviorNonBlockingDynamic
+    "PotentiallyBlocking" -> pure NetworkRenderBlockingBehaviorPotentiallyBlocking
+    "_" -> fail "failed to parse NetworkRenderBlockingBehavior"
+instance ToJSON NetworkRenderBlockingBehavior where
+  toJSON v = A.String $ case v of
+    NetworkRenderBlockingBehaviorBlocking -> "Blocking"
+    NetworkRenderBlockingBehaviorInBodyParserBlocking -> "InBodyParserBlocking"
+    NetworkRenderBlockingBehaviorNonBlocking -> "NonBlocking"
+    NetworkRenderBlockingBehaviorNonBlockingDynamic -> "NonBlockingDynamic"
+    NetworkRenderBlockingBehaviorPotentiallyBlocking -> "PotentiallyBlocking"
 
 -- | Type 'Network.PostDataEntry'.
 --   Post data entry for HTTP request
@@ -3799,11 +5181,9 @@ data NetworkRequest = NetworkRequest
     networkRequestMethod :: T.Text,
     -- | HTTP request headers.
     networkRequestHeaders :: NetworkHeaders,
-    -- | HTTP POST request data.
-    networkRequestPostData :: Maybe T.Text,
     -- | True when the request has POST data. Note that postData might still be omitted when this flag is true when the data is too long.
     networkRequestHasPostData :: Maybe Bool,
-    -- | Request body elements. This will be converted from base64 to binary
+    -- | Request body elements (post data broken into individual entries).
     networkRequestPostDataEntries :: Maybe [NetworkPostDataEntry],
     -- | The mixed content type of the request.
     networkRequestMixedContentType :: Maybe SecurityMixedContentType,
@@ -3817,8 +5197,10 @@ data NetworkRequest = NetworkRequest
     --   passed by the developer (e.g. via "fetch") as understood by the backend.
     networkRequestTrustTokenParams :: Maybe NetworkTrustTokenParams,
     -- | True if this resource request is considered to be the 'same site' as the
-    --   request correspondinfg to the main frame.
-    networkRequestIsSameSite :: Maybe Bool
+    --   request corresponding to the main frame.
+    networkRequestIsSameSite :: Maybe Bool,
+    -- | True when the resource request is ad-related.
+    networkRequestIsAdRelated :: Maybe Bool
   }
   deriving (Eq, Show)
 instance FromJSON NetworkRequest where
@@ -3827,7 +5209,6 @@ instance FromJSON NetworkRequest where
     <*> o A..:? "urlFragment"
     <*> o A..: "method"
     <*> o A..: "headers"
-    <*> o A..:? "postData"
     <*> o A..:? "hasPostData"
     <*> o A..:? "postDataEntries"
     <*> o A..:? "mixedContentType"
@@ -3836,13 +5217,13 @@ instance FromJSON NetworkRequest where
     <*> o A..:? "isLinkPreload"
     <*> o A..:? "trustTokenParams"
     <*> o A..:? "isSameSite"
+    <*> o A..:? "isAdRelated"
 instance ToJSON NetworkRequest where
   toJSON p = A.object $ catMaybes [
     ("url" A..=) <$> Just (networkRequestUrl p),
     ("urlFragment" A..=) <$> (networkRequestUrlFragment p),
     ("method" A..=) <$> Just (networkRequestMethod p),
     ("headers" A..=) <$> Just (networkRequestHeaders p),
-    ("postData" A..=) <$> (networkRequestPostData p),
     ("hasPostData" A..=) <$> (networkRequestHasPostData p),
     ("postDataEntries" A..=) <$> (networkRequestPostDataEntries p),
     ("mixedContentType" A..=) <$> (networkRequestMixedContentType p),
@@ -3850,7 +5231,8 @@ instance ToJSON NetworkRequest where
     ("referrerPolicy" A..=) <$> Just (networkRequestReferrerPolicy p),
     ("isLinkPreload" A..=) <$> (networkRequestIsLinkPreload p),
     ("trustTokenParams" A..=) <$> (networkRequestTrustTokenParams p),
-    ("isSameSite" A..=) <$> (networkRequestIsSameSite p)
+    ("isSameSite" A..=) <$> (networkRequestIsSameSite p),
+    ("isAdRelated" A..=) <$> (networkRequestIsAdRelated p)
     ]
 
 -- | Type 'Network.SignedCertificateTimestamp'.
@@ -3990,7 +5372,7 @@ instance ToJSON NetworkCertificateTransparencyCompliance where
 
 -- | Type 'Network.BlockedReason'.
 --   The reason why request was blocked.
-data NetworkBlockedReason = NetworkBlockedReasonOther | NetworkBlockedReasonCsp | NetworkBlockedReasonMixedContent | NetworkBlockedReasonOrigin | NetworkBlockedReasonInspector | NetworkBlockedReasonSubresourceFilter | NetworkBlockedReasonContentType | NetworkBlockedReasonCoepFrameResourceNeedsCoepHeader | NetworkBlockedReasonCoopSandboxedIframeCannotNavigateToCoopPage | NetworkBlockedReasonCorpNotSameOrigin | NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep | NetworkBlockedReasonCorpNotSameSite
+data NetworkBlockedReason = NetworkBlockedReasonOther | NetworkBlockedReasonCsp | NetworkBlockedReasonMixedContent | NetworkBlockedReasonOrigin | NetworkBlockedReasonInspector | NetworkBlockedReasonIntegrity | NetworkBlockedReasonSubresourceFilter | NetworkBlockedReasonContentType | NetworkBlockedReasonCoepFrameResourceNeedsCoepHeader | NetworkBlockedReasonCoopSandboxedIframeCannotNavigateToCoopPage | NetworkBlockedReasonCorpNotSameOrigin | NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep | NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip | NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip | NetworkBlockedReasonCorpNotSameSite | NetworkBlockedReasonSriMessageSignatureMismatch
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkBlockedReason where
   parseJSON = A.withText "NetworkBlockedReason" $ \v -> case v of
@@ -3999,13 +5381,17 @@ instance FromJSON NetworkBlockedReason where
     "mixed-content" -> pure NetworkBlockedReasonMixedContent
     "origin" -> pure NetworkBlockedReasonOrigin
     "inspector" -> pure NetworkBlockedReasonInspector
+    "integrity" -> pure NetworkBlockedReasonIntegrity
     "subresource-filter" -> pure NetworkBlockedReasonSubresourceFilter
     "content-type" -> pure NetworkBlockedReasonContentType
     "coep-frame-resource-needs-coep-header" -> pure NetworkBlockedReasonCoepFrameResourceNeedsCoepHeader
     "coop-sandboxed-iframe-cannot-navigate-to-coop-page" -> pure NetworkBlockedReasonCoopSandboxedIframeCannotNavigateToCoopPage
     "corp-not-same-origin" -> pure NetworkBlockedReasonCorpNotSameOrigin
     "corp-not-same-origin-after-defaulted-to-same-origin-by-coep" -> pure NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep
+    "corp-not-same-origin-after-defaulted-to-same-origin-by-dip" -> pure NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip
+    "corp-not-same-origin-after-defaulted-to-same-origin-by-coep-and-dip" -> pure NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip
     "corp-not-same-site" -> pure NetworkBlockedReasonCorpNotSameSite
+    "sri-message-signature-mismatch" -> pure NetworkBlockedReasonSriMessageSignatureMismatch
     "_" -> fail "failed to parse NetworkBlockedReason"
 instance ToJSON NetworkBlockedReason where
   toJSON v = A.String $ case v of
@@ -4014,17 +5400,21 @@ instance ToJSON NetworkBlockedReason where
     NetworkBlockedReasonMixedContent -> "mixed-content"
     NetworkBlockedReasonOrigin -> "origin"
     NetworkBlockedReasonInspector -> "inspector"
+    NetworkBlockedReasonIntegrity -> "integrity"
     NetworkBlockedReasonSubresourceFilter -> "subresource-filter"
     NetworkBlockedReasonContentType -> "content-type"
     NetworkBlockedReasonCoepFrameResourceNeedsCoepHeader -> "coep-frame-resource-needs-coep-header"
     NetworkBlockedReasonCoopSandboxedIframeCannotNavigateToCoopPage -> "coop-sandboxed-iframe-cannot-navigate-to-coop-page"
     NetworkBlockedReasonCorpNotSameOrigin -> "corp-not-same-origin"
     NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep -> "corp-not-same-origin-after-defaulted-to-same-origin-by-coep"
+    NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip -> "corp-not-same-origin-after-defaulted-to-same-origin-by-dip"
+    NetworkBlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip -> "corp-not-same-origin-after-defaulted-to-same-origin-by-coep-and-dip"
     NetworkBlockedReasonCorpNotSameSite -> "corp-not-same-site"
+    NetworkBlockedReasonSriMessageSignatureMismatch -> "sri-message-signature-mismatch"
 
 -- | Type 'Network.CorsError'.
 --   The reason why request was blocked.
-data NetworkCorsError = NetworkCorsErrorDisallowedByMode | NetworkCorsErrorInvalidResponse | NetworkCorsErrorWildcardOriginNotAllowed | NetworkCorsErrorMissingAllowOriginHeader | NetworkCorsErrorMultipleAllowOriginValues | NetworkCorsErrorInvalidAllowOriginValue | NetworkCorsErrorAllowOriginMismatch | NetworkCorsErrorInvalidAllowCredentials | NetworkCorsErrorCorsDisabledScheme | NetworkCorsErrorPreflightInvalidStatus | NetworkCorsErrorPreflightDisallowedRedirect | NetworkCorsErrorPreflightWildcardOriginNotAllowed | NetworkCorsErrorPreflightMissingAllowOriginHeader | NetworkCorsErrorPreflightMultipleAllowOriginValues | NetworkCorsErrorPreflightInvalidAllowOriginValue | NetworkCorsErrorPreflightAllowOriginMismatch | NetworkCorsErrorPreflightInvalidAllowCredentials | NetworkCorsErrorPreflightMissingAllowExternal | NetworkCorsErrorPreflightInvalidAllowExternal | NetworkCorsErrorPreflightMissingAllowPrivateNetwork | NetworkCorsErrorPreflightInvalidAllowPrivateNetwork | NetworkCorsErrorInvalidAllowMethodsPreflightResponse | NetworkCorsErrorInvalidAllowHeadersPreflightResponse | NetworkCorsErrorMethodDisallowedByPreflightResponse | NetworkCorsErrorHeaderDisallowedByPreflightResponse | NetworkCorsErrorRedirectContainsCredentials | NetworkCorsErrorInsecurePrivateNetwork | NetworkCorsErrorInvalidPrivateNetworkAccess | NetworkCorsErrorUnexpectedPrivateNetworkAccess | NetworkCorsErrorNoCorsRedirectModeNotFollow
+data NetworkCorsError = NetworkCorsErrorDisallowedByMode | NetworkCorsErrorInvalidResponse | NetworkCorsErrorWildcardOriginNotAllowed | NetworkCorsErrorMissingAllowOriginHeader | NetworkCorsErrorMultipleAllowOriginValues | NetworkCorsErrorInvalidAllowOriginValue | NetworkCorsErrorAllowOriginMismatch | NetworkCorsErrorInvalidAllowCredentials | NetworkCorsErrorCorsDisabledScheme | NetworkCorsErrorPreflightInvalidStatus | NetworkCorsErrorPreflightDisallowedRedirect | NetworkCorsErrorPreflightWildcardOriginNotAllowed | NetworkCorsErrorPreflightMissingAllowOriginHeader | NetworkCorsErrorPreflightMultipleAllowOriginValues | NetworkCorsErrorPreflightInvalidAllowOriginValue | NetworkCorsErrorPreflightAllowOriginMismatch | NetworkCorsErrorPreflightInvalidAllowCredentials | NetworkCorsErrorPreflightMissingAllowExternal | NetworkCorsErrorPreflightInvalidAllowExternal | NetworkCorsErrorInvalidAllowMethodsPreflightResponse | NetworkCorsErrorInvalidAllowHeadersPreflightResponse | NetworkCorsErrorMethodDisallowedByPreflightResponse | NetworkCorsErrorHeaderDisallowedByPreflightResponse | NetworkCorsErrorRedirectContainsCredentials | NetworkCorsErrorInsecureLocalNetwork | NetworkCorsErrorInvalidLocalNetworkAccess | NetworkCorsErrorNoCorsRedirectModeNotFollow | NetworkCorsErrorLocalNetworkAccessPermissionDenied
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkCorsError where
   parseJSON = A.withText "NetworkCorsError" $ \v -> case v of
@@ -4047,17 +5437,15 @@ instance FromJSON NetworkCorsError where
     "PreflightInvalidAllowCredentials" -> pure NetworkCorsErrorPreflightInvalidAllowCredentials
     "PreflightMissingAllowExternal" -> pure NetworkCorsErrorPreflightMissingAllowExternal
     "PreflightInvalidAllowExternal" -> pure NetworkCorsErrorPreflightInvalidAllowExternal
-    "PreflightMissingAllowPrivateNetwork" -> pure NetworkCorsErrorPreflightMissingAllowPrivateNetwork
-    "PreflightInvalidAllowPrivateNetwork" -> pure NetworkCorsErrorPreflightInvalidAllowPrivateNetwork
     "InvalidAllowMethodsPreflightResponse" -> pure NetworkCorsErrorInvalidAllowMethodsPreflightResponse
     "InvalidAllowHeadersPreflightResponse" -> pure NetworkCorsErrorInvalidAllowHeadersPreflightResponse
     "MethodDisallowedByPreflightResponse" -> pure NetworkCorsErrorMethodDisallowedByPreflightResponse
     "HeaderDisallowedByPreflightResponse" -> pure NetworkCorsErrorHeaderDisallowedByPreflightResponse
     "RedirectContainsCredentials" -> pure NetworkCorsErrorRedirectContainsCredentials
-    "InsecurePrivateNetwork" -> pure NetworkCorsErrorInsecurePrivateNetwork
-    "InvalidPrivateNetworkAccess" -> pure NetworkCorsErrorInvalidPrivateNetworkAccess
-    "UnexpectedPrivateNetworkAccess" -> pure NetworkCorsErrorUnexpectedPrivateNetworkAccess
+    "InsecureLocalNetwork" -> pure NetworkCorsErrorInsecureLocalNetwork
+    "InvalidLocalNetworkAccess" -> pure NetworkCorsErrorInvalidLocalNetworkAccess
     "NoCorsRedirectModeNotFollow" -> pure NetworkCorsErrorNoCorsRedirectModeNotFollow
+    "LocalNetworkAccessPermissionDenied" -> pure NetworkCorsErrorLocalNetworkAccessPermissionDenied
     "_" -> fail "failed to parse NetworkCorsError"
 instance ToJSON NetworkCorsError where
   toJSON v = A.String $ case v of
@@ -4080,17 +5468,15 @@ instance ToJSON NetworkCorsError where
     NetworkCorsErrorPreflightInvalidAllowCredentials -> "PreflightInvalidAllowCredentials"
     NetworkCorsErrorPreflightMissingAllowExternal -> "PreflightMissingAllowExternal"
     NetworkCorsErrorPreflightInvalidAllowExternal -> "PreflightInvalidAllowExternal"
-    NetworkCorsErrorPreflightMissingAllowPrivateNetwork -> "PreflightMissingAllowPrivateNetwork"
-    NetworkCorsErrorPreflightInvalidAllowPrivateNetwork -> "PreflightInvalidAllowPrivateNetwork"
     NetworkCorsErrorInvalidAllowMethodsPreflightResponse -> "InvalidAllowMethodsPreflightResponse"
     NetworkCorsErrorInvalidAllowHeadersPreflightResponse -> "InvalidAllowHeadersPreflightResponse"
     NetworkCorsErrorMethodDisallowedByPreflightResponse -> "MethodDisallowedByPreflightResponse"
     NetworkCorsErrorHeaderDisallowedByPreflightResponse -> "HeaderDisallowedByPreflightResponse"
     NetworkCorsErrorRedirectContainsCredentials -> "RedirectContainsCredentials"
-    NetworkCorsErrorInsecurePrivateNetwork -> "InsecurePrivateNetwork"
-    NetworkCorsErrorInvalidPrivateNetworkAccess -> "InvalidPrivateNetworkAccess"
-    NetworkCorsErrorUnexpectedPrivateNetworkAccess -> "UnexpectedPrivateNetworkAccess"
+    NetworkCorsErrorInsecureLocalNetwork -> "InsecureLocalNetwork"
+    NetworkCorsErrorInvalidLocalNetworkAccess -> "InvalidLocalNetworkAccess"
     NetworkCorsErrorNoCorsRedirectModeNotFollow -> "NoCorsRedirectModeNotFollow"
+    NetworkCorsErrorLocalNetworkAccessPermissionDenied -> "LocalNetworkAccessPermissionDenied"
 
 -- | Type 'Network.CorsErrorStatus'.
 data NetworkCorsErrorStatus = NetworkCorsErrorStatus
@@ -4144,8 +5530,8 @@ instance ToJSON NetworkTrustTokenParamsRefreshPolicy where
     NetworkTrustTokenParamsRefreshPolicyRefresh -> "Refresh"
 data NetworkTrustTokenParams = NetworkTrustTokenParams
   {
-    networkTrustTokenParamsType :: NetworkTrustTokenOperationType,
-    -- | Only set for "token-redemption" type and determine whether
+    networkTrustTokenParamsOperation :: NetworkTrustTokenOperationType,
+    -- | Only set for "token-redemption" operation and determine whether
     --   to request a fresh SRR or use a still valid cached SRR.
     networkTrustTokenParamsRefreshPolicy :: NetworkTrustTokenParamsRefreshPolicy,
     -- | Origins of issuers from whom to request tokens or redemption
@@ -4155,12 +5541,12 @@ data NetworkTrustTokenParams = NetworkTrustTokenParams
   deriving (Eq, Show)
 instance FromJSON NetworkTrustTokenParams where
   parseJSON = A.withObject "NetworkTrustTokenParams" $ \o -> NetworkTrustTokenParams
-    <$> o A..: "type"
+    <$> o A..: "operation"
     <*> o A..: "refreshPolicy"
     <*> o A..:? "issuers"
 instance ToJSON NetworkTrustTokenParams where
   toJSON p = A.object $ catMaybes [
-    ("type" A..=) <$> Just (networkTrustTokenParamsType p),
+    ("operation" A..=) <$> Just (networkTrustTokenParamsOperation p),
     ("refreshPolicy" A..=) <$> Just (networkTrustTokenParamsRefreshPolicy p),
     ("issuers" A..=) <$> (networkTrustTokenParamsIssuers p)
     ]
@@ -4206,6 +5592,51 @@ instance ToJSON NetworkAlternateProtocolUsage where
     NetworkAlternateProtocolUsageDnsAlpnH3JobWonRace -> "dnsAlpnH3JobWonRace"
     NetworkAlternateProtocolUsageUnspecifiedReason -> "unspecifiedReason"
 
+-- | Type 'Network.ServiceWorkerRouterSource'.
+--   Source of service worker router.
+data NetworkServiceWorkerRouterSource = NetworkServiceWorkerRouterSourceNetwork | NetworkServiceWorkerRouterSourceCache | NetworkServiceWorkerRouterSourceFetchEvent | NetworkServiceWorkerRouterSourceRaceNetworkAndFetchHandler | NetworkServiceWorkerRouterSourceRaceNetworkAndCache
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkServiceWorkerRouterSource where
+  parseJSON = A.withText "NetworkServiceWorkerRouterSource" $ \v -> case v of
+    "network" -> pure NetworkServiceWorkerRouterSourceNetwork
+    "cache" -> pure NetworkServiceWorkerRouterSourceCache
+    "fetch-event" -> pure NetworkServiceWorkerRouterSourceFetchEvent
+    "race-network-and-fetch-handler" -> pure NetworkServiceWorkerRouterSourceRaceNetworkAndFetchHandler
+    "race-network-and-cache" -> pure NetworkServiceWorkerRouterSourceRaceNetworkAndCache
+    "_" -> fail "failed to parse NetworkServiceWorkerRouterSource"
+instance ToJSON NetworkServiceWorkerRouterSource where
+  toJSON v = A.String $ case v of
+    NetworkServiceWorkerRouterSourceNetwork -> "network"
+    NetworkServiceWorkerRouterSourceCache -> "cache"
+    NetworkServiceWorkerRouterSourceFetchEvent -> "fetch-event"
+    NetworkServiceWorkerRouterSourceRaceNetworkAndFetchHandler -> "race-network-and-fetch-handler"
+    NetworkServiceWorkerRouterSourceRaceNetworkAndCache -> "race-network-and-cache"
+
+-- | Type 'Network.ServiceWorkerRouterInfo'.
+data NetworkServiceWorkerRouterInfo = NetworkServiceWorkerRouterInfo
+  {
+    -- | ID of the rule matched. If there is a matched rule, this field will
+    --   be set, otherwiser no value will be set.
+    networkServiceWorkerRouterInfoRuleIdMatched :: Maybe Int,
+    -- | The router source of the matched rule. If there is a matched rule, this
+    --   field will be set, otherwise no value will be set.
+    networkServiceWorkerRouterInfoMatchedSourceType :: Maybe NetworkServiceWorkerRouterSource,
+    -- | The actual router source used.
+    networkServiceWorkerRouterInfoActualSourceType :: Maybe NetworkServiceWorkerRouterSource
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkServiceWorkerRouterInfo where
+  parseJSON = A.withObject "NetworkServiceWorkerRouterInfo" $ \o -> NetworkServiceWorkerRouterInfo
+    <$> o A..:? "ruleIdMatched"
+    <*> o A..:? "matchedSourceType"
+    <*> o A..:? "actualSourceType"
+instance ToJSON NetworkServiceWorkerRouterInfo where
+  toJSON p = A.object $ catMaybes [
+    ("ruleIdMatched" A..=) <$> (networkServiceWorkerRouterInfoRuleIdMatched p),
+    ("matchedSourceType" A..=) <$> (networkServiceWorkerRouterInfoMatchedSourceType p),
+    ("actualSourceType" A..=) <$> (networkServiceWorkerRouterInfoActualSourceType p)
+    ]
+
 -- | Type 'Network.Response'.
 --   HTTP response data.
 data NetworkResponse = NetworkResponse
@@ -4220,6 +5651,8 @@ data NetworkResponse = NetworkResponse
     networkResponseHeaders :: NetworkHeaders,
     -- | Resource mimeType as determined by the browser.
     networkResponseMimeType :: T.Text,
+    -- | Resource charset as determined by the browser (if applicable).
+    networkResponseCharset :: T.Text,
     -- | Refined HTTP request headers that were actually transmitted over the network.
     networkResponseRequestHeaders :: Maybe NetworkHeaders,
     -- | Specifies whether physical connection was actually reused for this request.
@@ -4236,6 +5669,13 @@ data NetworkResponse = NetworkResponse
     networkResponseFromServiceWorker :: Maybe Bool,
     -- | Specifies that the request was served from the prefetch cache.
     networkResponseFromPrefetchCache :: Maybe Bool,
+    -- | Specifies that the request was served from the prefetch cache.
+    networkResponseFromEarlyHints :: Maybe Bool,
+    -- | Information about how ServiceWorker Static Router API was used. If this
+    --   field is set with `matchedSourceType` field, a matching rule is found.
+    --   If this field is set without `matchedSource`, no matching rule is found.
+    --   Otherwise, the API is not used.
+    networkResponseServiceWorkerRouterInfo :: Maybe NetworkServiceWorkerRouterInfo,
     -- | Total number of bytes received for this request so far.
     networkResponseEncodedDataLength :: Double,
     -- | Timing information for the given request.
@@ -4263,6 +5703,7 @@ instance FromJSON NetworkResponse where
     <*> o A..: "statusText"
     <*> o A..: "headers"
     <*> o A..: "mimeType"
+    <*> o A..: "charset"
     <*> o A..:? "requestHeaders"
     <*> o A..: "connectionReused"
     <*> o A..: "connectionId"
@@ -4271,6 +5712,8 @@ instance FromJSON NetworkResponse where
     <*> o A..:? "fromDiskCache"
     <*> o A..:? "fromServiceWorker"
     <*> o A..:? "fromPrefetchCache"
+    <*> o A..:? "fromEarlyHints"
+    <*> o A..:? "serviceWorkerRouterInfo"
     <*> o A..: "encodedDataLength"
     <*> o A..:? "timing"
     <*> o A..:? "serviceWorkerResponseSource"
@@ -4287,6 +5730,7 @@ instance ToJSON NetworkResponse where
     ("statusText" A..=) <$> Just (networkResponseStatusText p),
     ("headers" A..=) <$> Just (networkResponseHeaders p),
     ("mimeType" A..=) <$> Just (networkResponseMimeType p),
+    ("charset" A..=) <$> Just (networkResponseCharset p),
     ("requestHeaders" A..=) <$> (networkResponseRequestHeaders p),
     ("connectionReused" A..=) <$> Just (networkResponseConnectionReused p),
     ("connectionId" A..=) <$> Just (networkResponseConnectionId p),
@@ -4295,6 +5739,8 @@ instance ToJSON NetworkResponse where
     ("fromDiskCache" A..=) <$> (networkResponseFromDiskCache p),
     ("fromServiceWorker" A..=) <$> (networkResponseFromServiceWorker p),
     ("fromPrefetchCache" A..=) <$> (networkResponseFromPrefetchCache p),
+    ("fromEarlyHints" A..=) <$> (networkResponseFromEarlyHints p),
+    ("serviceWorkerRouterInfo" A..=) <$> (networkResponseServiceWorkerRouterInfo p),
     ("encodedDataLength" A..=) <$> Just (networkResponseEncodedDataLength p),
     ("timing" A..=) <$> (networkResponseTiming p),
     ("serviceWorkerResponseSource" A..=) <$> (networkResponseServiceWorkerResponseSource p),
@@ -4414,7 +5860,7 @@ instance ToJSON NetworkCachedResource where
 
 -- | Type 'Network.Initiator'.
 --   Information about the request initiator.
-data NetworkInitiatorType = NetworkInitiatorTypeParser | NetworkInitiatorTypeScript | NetworkInitiatorTypePreload | NetworkInitiatorTypeSignedExchange | NetworkInitiatorTypePreflight | NetworkInitiatorTypeOther
+data NetworkInitiatorType = NetworkInitiatorTypeParser | NetworkInitiatorTypeScript | NetworkInitiatorTypePreload | NetworkInitiatorTypeSignedExchange | NetworkInitiatorTypePreflight | NetworkInitiatorTypeFedCM | NetworkInitiatorTypeOther
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkInitiatorType where
   parseJSON = A.withText "NetworkInitiatorType" $ \v -> case v of
@@ -4423,6 +5869,7 @@ instance FromJSON NetworkInitiatorType where
     "preload" -> pure NetworkInitiatorTypePreload
     "SignedExchange" -> pure NetworkInitiatorTypeSignedExchange
     "preflight" -> pure NetworkInitiatorTypePreflight
+    "FedCM" -> pure NetworkInitiatorTypeFedCM
     "other" -> pure NetworkInitiatorTypeOther
     "_" -> fail "failed to parse NetworkInitiatorType"
 instance ToJSON NetworkInitiatorType where
@@ -4432,12 +5879,14 @@ instance ToJSON NetworkInitiatorType where
     NetworkInitiatorTypePreload -> "preload"
     NetworkInitiatorTypeSignedExchange -> "SignedExchange"
     NetworkInitiatorTypePreflight -> "preflight"
+    NetworkInitiatorTypeFedCM -> "FedCM"
     NetworkInitiatorTypeOther -> "other"
 data NetworkInitiator = NetworkInitiator
   {
     -- | Type of this initiator.
     networkInitiatorType :: NetworkInitiatorType,
     -- | Initiator JavaScript stack trace, set for Script only.
+    --   Requires the Debugger domain to be enabled.
     networkInitiatorStack :: Maybe Runtime.RuntimeStackTrace,
     -- | Initiator URL, set for Parser type or for Script type (when script is importing module) or for SignedExchange type.
     networkInitiatorUrl :: Maybe T.Text,
@@ -4469,6 +5918,28 @@ instance ToJSON NetworkInitiator where
     ("requestId" A..=) <$> (networkInitiatorRequestId p)
     ]
 
+-- | Type 'Network.CookiePartitionKey'.
+--   cookiePartitionKey object
+--   The representation of the components of the key that are created by the cookiePartitionKey class contained in net/cookies/cookie_partition_key.h.
+data NetworkCookiePartitionKey = NetworkCookiePartitionKey
+  {
+    -- | The site of the top-level URL the browser was visiting at the start
+    --   of the request to the endpoint that set the cookie.
+    networkCookiePartitionKeyTopLevelSite :: T.Text,
+    -- | Indicates if the cookie has any ancestors that are cross-site to the topLevelSite.
+    networkCookiePartitionKeyHasCrossSiteAncestor :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkCookiePartitionKey where
+  parseJSON = A.withObject "NetworkCookiePartitionKey" $ \o -> NetworkCookiePartitionKey
+    <$> o A..: "topLevelSite"
+    <*> o A..: "hasCrossSiteAncestor"
+instance ToJSON NetworkCookiePartitionKey where
+  toJSON p = A.object $ catMaybes [
+    ("topLevelSite" A..=) <$> Just (networkCookiePartitionKeyTopLevelSite p),
+    ("hasCrossSiteAncestor" A..=) <$> Just (networkCookiePartitionKeyHasCrossSiteAncestor p)
+    ]
+
 -- | Type 'Network.Cookie'.
 --   Cookie object
 data NetworkCookie = NetworkCookie
@@ -4482,6 +5953,9 @@ data NetworkCookie = NetworkCookie
     -- | Cookie path.
     networkCookiePath :: T.Text,
     -- | Cookie expiration date as the number of seconds since the UNIX epoch.
+    --   The value is set to -1 if the expiry date is not set.
+    --   The value can be null for values that cannot be represented in
+    --   JSON (±Inf).
     networkCookieExpires :: Double,
     -- | Cookie size.
     networkCookieSize :: Int,
@@ -4495,17 +5969,14 @@ data NetworkCookie = NetworkCookie
     networkCookieSameSite :: Maybe NetworkCookieSameSite,
     -- | Cookie Priority
     networkCookiePriority :: NetworkCookiePriority,
-    -- | True if cookie is SameParty.
-    networkCookieSameParty :: Bool,
     -- | Cookie source scheme type.
     networkCookieSourceScheme :: NetworkCookieSourceScheme,
     -- | Cookie source port. Valid values are {-1, [1, 65535]}, -1 indicates an unspecified port.
     --   An unspecified port value allows protocol clients to emulate legacy cookie scope for the port.
     --   This is a temporary ability and it will be removed in the future.
     networkCookieSourcePort :: Int,
-    -- | Cookie partition key. The site of the top-level URL the browser was visiting at the start
-    --   of the request to the endpoint that set the cookie.
-    networkCookiePartitionKey :: Maybe T.Text,
+    -- | Cookie partition key.
+    networkCookiePartitionKey :: Maybe NetworkCookiePartitionKey,
     -- | True if cookie partition key is opaque.
     networkCookiePartitionKeyOpaque :: Maybe Bool
   }
@@ -4523,7 +5994,6 @@ instance FromJSON NetworkCookie where
     <*> o A..: "session"
     <*> o A..:? "sameSite"
     <*> o A..: "priority"
-    <*> o A..: "sameParty"
     <*> o A..: "sourceScheme"
     <*> o A..: "sourcePort"
     <*> o A..:? "partitionKey"
@@ -4541,7 +6011,6 @@ instance ToJSON NetworkCookie where
     ("session" A..=) <$> Just (networkCookieSession p),
     ("sameSite" A..=) <$> (networkCookieSameSite p),
     ("priority" A..=) <$> Just (networkCookiePriority p),
-    ("sameParty" A..=) <$> Just (networkCookieSameParty p),
     ("sourceScheme" A..=) <$> Just (networkCookieSourceScheme p),
     ("sourcePort" A..=) <$> Just (networkCookieSourcePort p),
     ("partitionKey" A..=) <$> (networkCookiePartitionKey p),
@@ -4550,7 +6019,7 @@ instance ToJSON NetworkCookie where
 
 -- | Type 'Network.SetCookieBlockedReason'.
 --   Types of reasons why a cookie may not be stored from a response.
-data NetworkSetCookieBlockedReason = NetworkSetCookieBlockedReasonSecureOnly | NetworkSetCookieBlockedReasonSameSiteStrict | NetworkSetCookieBlockedReasonSameSiteLax | NetworkSetCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax | NetworkSetCookieBlockedReasonSameSiteNoneInsecure | NetworkSetCookieBlockedReasonUserPreferences | NetworkSetCookieBlockedReasonSyntaxError | NetworkSetCookieBlockedReasonSchemeNotSupported | NetworkSetCookieBlockedReasonOverwriteSecure | NetworkSetCookieBlockedReasonInvalidDomain | NetworkSetCookieBlockedReasonInvalidPrefix | NetworkSetCookieBlockedReasonUnknownError | NetworkSetCookieBlockedReasonSchemefulSameSiteStrict | NetworkSetCookieBlockedReasonSchemefulSameSiteLax | NetworkSetCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax | NetworkSetCookieBlockedReasonSamePartyFromCrossPartyContext | NetworkSetCookieBlockedReasonSamePartyConflictsWithOtherAttributes | NetworkSetCookieBlockedReasonNameValuePairExceedsMaxSize
+data NetworkSetCookieBlockedReason = NetworkSetCookieBlockedReasonSecureOnly | NetworkSetCookieBlockedReasonSameSiteStrict | NetworkSetCookieBlockedReasonSameSiteLax | NetworkSetCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax | NetworkSetCookieBlockedReasonSameSiteNoneInsecure | NetworkSetCookieBlockedReasonUserPreferences | NetworkSetCookieBlockedReasonThirdPartyPhaseout | NetworkSetCookieBlockedReasonThirdPartyBlockedInFirstPartySet | NetworkSetCookieBlockedReasonSyntaxError | NetworkSetCookieBlockedReasonSchemeNotSupported | NetworkSetCookieBlockedReasonOverwriteSecure | NetworkSetCookieBlockedReasonInvalidDomain | NetworkSetCookieBlockedReasonInvalidPrefix | NetworkSetCookieBlockedReasonUnknownError | NetworkSetCookieBlockedReasonSchemefulSameSiteStrict | NetworkSetCookieBlockedReasonSchemefulSameSiteLax | NetworkSetCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax | NetworkSetCookieBlockedReasonNameValuePairExceedsMaxSize | NetworkSetCookieBlockedReasonDisallowedCharacter | NetworkSetCookieBlockedReasonNoCookieContent
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkSetCookieBlockedReason where
   parseJSON = A.withText "NetworkSetCookieBlockedReason" $ \v -> case v of
@@ -4560,6 +6029,8 @@ instance FromJSON NetworkSetCookieBlockedReason where
     "SameSiteUnspecifiedTreatedAsLax" -> pure NetworkSetCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax
     "SameSiteNoneInsecure" -> pure NetworkSetCookieBlockedReasonSameSiteNoneInsecure
     "UserPreferences" -> pure NetworkSetCookieBlockedReasonUserPreferences
+    "ThirdPartyPhaseout" -> pure NetworkSetCookieBlockedReasonThirdPartyPhaseout
+    "ThirdPartyBlockedInFirstPartySet" -> pure NetworkSetCookieBlockedReasonThirdPartyBlockedInFirstPartySet
     "SyntaxError" -> pure NetworkSetCookieBlockedReasonSyntaxError
     "SchemeNotSupported" -> pure NetworkSetCookieBlockedReasonSchemeNotSupported
     "OverwriteSecure" -> pure NetworkSetCookieBlockedReasonOverwriteSecure
@@ -4569,9 +6040,9 @@ instance FromJSON NetworkSetCookieBlockedReason where
     "SchemefulSameSiteStrict" -> pure NetworkSetCookieBlockedReasonSchemefulSameSiteStrict
     "SchemefulSameSiteLax" -> pure NetworkSetCookieBlockedReasonSchemefulSameSiteLax
     "SchemefulSameSiteUnspecifiedTreatedAsLax" -> pure NetworkSetCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax
-    "SamePartyFromCrossPartyContext" -> pure NetworkSetCookieBlockedReasonSamePartyFromCrossPartyContext
-    "SamePartyConflictsWithOtherAttributes" -> pure NetworkSetCookieBlockedReasonSamePartyConflictsWithOtherAttributes
     "NameValuePairExceedsMaxSize" -> pure NetworkSetCookieBlockedReasonNameValuePairExceedsMaxSize
+    "DisallowedCharacter" -> pure NetworkSetCookieBlockedReasonDisallowedCharacter
+    "NoCookieContent" -> pure NetworkSetCookieBlockedReasonNoCookieContent
     "_" -> fail "failed to parse NetworkSetCookieBlockedReason"
 instance ToJSON NetworkSetCookieBlockedReason where
   toJSON v = A.String $ case v of
@@ -4581,6 +6052,8 @@ instance ToJSON NetworkSetCookieBlockedReason where
     NetworkSetCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax -> "SameSiteUnspecifiedTreatedAsLax"
     NetworkSetCookieBlockedReasonSameSiteNoneInsecure -> "SameSiteNoneInsecure"
     NetworkSetCookieBlockedReasonUserPreferences -> "UserPreferences"
+    NetworkSetCookieBlockedReasonThirdPartyPhaseout -> "ThirdPartyPhaseout"
+    NetworkSetCookieBlockedReasonThirdPartyBlockedInFirstPartySet -> "ThirdPartyBlockedInFirstPartySet"
     NetworkSetCookieBlockedReasonSyntaxError -> "SyntaxError"
     NetworkSetCookieBlockedReasonSchemeNotSupported -> "SchemeNotSupported"
     NetworkSetCookieBlockedReasonOverwriteSecure -> "OverwriteSecure"
@@ -4590,13 +6063,13 @@ instance ToJSON NetworkSetCookieBlockedReason where
     NetworkSetCookieBlockedReasonSchemefulSameSiteStrict -> "SchemefulSameSiteStrict"
     NetworkSetCookieBlockedReasonSchemefulSameSiteLax -> "SchemefulSameSiteLax"
     NetworkSetCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax -> "SchemefulSameSiteUnspecifiedTreatedAsLax"
-    NetworkSetCookieBlockedReasonSamePartyFromCrossPartyContext -> "SamePartyFromCrossPartyContext"
-    NetworkSetCookieBlockedReasonSamePartyConflictsWithOtherAttributes -> "SamePartyConflictsWithOtherAttributes"
     NetworkSetCookieBlockedReasonNameValuePairExceedsMaxSize -> "NameValuePairExceedsMaxSize"
+    NetworkSetCookieBlockedReasonDisallowedCharacter -> "DisallowedCharacter"
+    NetworkSetCookieBlockedReasonNoCookieContent -> "NoCookieContent"
 
 -- | Type 'Network.CookieBlockedReason'.
 --   Types of reasons why a cookie may not be sent with a request.
-data NetworkCookieBlockedReason = NetworkCookieBlockedReasonSecureOnly | NetworkCookieBlockedReasonNotOnPath | NetworkCookieBlockedReasonDomainMismatch | NetworkCookieBlockedReasonSameSiteStrict | NetworkCookieBlockedReasonSameSiteLax | NetworkCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax | NetworkCookieBlockedReasonSameSiteNoneInsecure | NetworkCookieBlockedReasonUserPreferences | NetworkCookieBlockedReasonUnknownError | NetworkCookieBlockedReasonSchemefulSameSiteStrict | NetworkCookieBlockedReasonSchemefulSameSiteLax | NetworkCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax | NetworkCookieBlockedReasonSamePartyFromCrossPartyContext | NetworkCookieBlockedReasonNameValuePairExceedsMaxSize
+data NetworkCookieBlockedReason = NetworkCookieBlockedReasonSecureOnly | NetworkCookieBlockedReasonNotOnPath | NetworkCookieBlockedReasonDomainMismatch | NetworkCookieBlockedReasonSameSiteStrict | NetworkCookieBlockedReasonSameSiteLax | NetworkCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax | NetworkCookieBlockedReasonSameSiteNoneInsecure | NetworkCookieBlockedReasonUserPreferences | NetworkCookieBlockedReasonThirdPartyPhaseout | NetworkCookieBlockedReasonThirdPartyBlockedInFirstPartySet | NetworkCookieBlockedReasonUnknownError | NetworkCookieBlockedReasonSchemefulSameSiteStrict | NetworkCookieBlockedReasonSchemefulSameSiteLax | NetworkCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax | NetworkCookieBlockedReasonNameValuePairExceedsMaxSize | NetworkCookieBlockedReasonPortMismatch | NetworkCookieBlockedReasonSchemeMismatch | NetworkCookieBlockedReasonAnonymousContext
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkCookieBlockedReason where
   parseJSON = A.withText "NetworkCookieBlockedReason" $ \v -> case v of
@@ -4608,12 +6081,16 @@ instance FromJSON NetworkCookieBlockedReason where
     "SameSiteUnspecifiedTreatedAsLax" -> pure NetworkCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax
     "SameSiteNoneInsecure" -> pure NetworkCookieBlockedReasonSameSiteNoneInsecure
     "UserPreferences" -> pure NetworkCookieBlockedReasonUserPreferences
+    "ThirdPartyPhaseout" -> pure NetworkCookieBlockedReasonThirdPartyPhaseout
+    "ThirdPartyBlockedInFirstPartySet" -> pure NetworkCookieBlockedReasonThirdPartyBlockedInFirstPartySet
     "UnknownError" -> pure NetworkCookieBlockedReasonUnknownError
     "SchemefulSameSiteStrict" -> pure NetworkCookieBlockedReasonSchemefulSameSiteStrict
     "SchemefulSameSiteLax" -> pure NetworkCookieBlockedReasonSchemefulSameSiteLax
     "SchemefulSameSiteUnspecifiedTreatedAsLax" -> pure NetworkCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax
-    "SamePartyFromCrossPartyContext" -> pure NetworkCookieBlockedReasonSamePartyFromCrossPartyContext
     "NameValuePairExceedsMaxSize" -> pure NetworkCookieBlockedReasonNameValuePairExceedsMaxSize
+    "PortMismatch" -> pure NetworkCookieBlockedReasonPortMismatch
+    "SchemeMismatch" -> pure NetworkCookieBlockedReasonSchemeMismatch
+    "AnonymousContext" -> pure NetworkCookieBlockedReasonAnonymousContext
     "_" -> fail "failed to parse NetworkCookieBlockedReason"
 instance ToJSON NetworkCookieBlockedReason where
   toJSON v = A.String $ case v of
@@ -4625,12 +6102,40 @@ instance ToJSON NetworkCookieBlockedReason where
     NetworkCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax -> "SameSiteUnspecifiedTreatedAsLax"
     NetworkCookieBlockedReasonSameSiteNoneInsecure -> "SameSiteNoneInsecure"
     NetworkCookieBlockedReasonUserPreferences -> "UserPreferences"
+    NetworkCookieBlockedReasonThirdPartyPhaseout -> "ThirdPartyPhaseout"
+    NetworkCookieBlockedReasonThirdPartyBlockedInFirstPartySet -> "ThirdPartyBlockedInFirstPartySet"
     NetworkCookieBlockedReasonUnknownError -> "UnknownError"
     NetworkCookieBlockedReasonSchemefulSameSiteStrict -> "SchemefulSameSiteStrict"
     NetworkCookieBlockedReasonSchemefulSameSiteLax -> "SchemefulSameSiteLax"
     NetworkCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax -> "SchemefulSameSiteUnspecifiedTreatedAsLax"
-    NetworkCookieBlockedReasonSamePartyFromCrossPartyContext -> "SamePartyFromCrossPartyContext"
     NetworkCookieBlockedReasonNameValuePairExceedsMaxSize -> "NameValuePairExceedsMaxSize"
+    NetworkCookieBlockedReasonPortMismatch -> "PortMismatch"
+    NetworkCookieBlockedReasonSchemeMismatch -> "SchemeMismatch"
+    NetworkCookieBlockedReasonAnonymousContext -> "AnonymousContext"
+
+-- | Type 'Network.CookieExemptionReason'.
+--   Types of reasons why a cookie should have been blocked by 3PCD but is exempted for the request.
+data NetworkCookieExemptionReason = NetworkCookieExemptionReasonNone | NetworkCookieExemptionReasonUserSetting | NetworkCookieExemptionReasonEnterprisePolicy | NetworkCookieExemptionReasonStorageAccess | NetworkCookieExemptionReasonTopLevelStorageAccess | NetworkCookieExemptionReasonScheme | NetworkCookieExemptionReasonSameSiteNoneCookiesInSandbox
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkCookieExemptionReason where
+  parseJSON = A.withText "NetworkCookieExemptionReason" $ \v -> case v of
+    "None" -> pure NetworkCookieExemptionReasonNone
+    "UserSetting" -> pure NetworkCookieExemptionReasonUserSetting
+    "EnterprisePolicy" -> pure NetworkCookieExemptionReasonEnterprisePolicy
+    "StorageAccess" -> pure NetworkCookieExemptionReasonStorageAccess
+    "TopLevelStorageAccess" -> pure NetworkCookieExemptionReasonTopLevelStorageAccess
+    "Scheme" -> pure NetworkCookieExemptionReasonScheme
+    "SameSiteNoneCookiesInSandbox" -> pure NetworkCookieExemptionReasonSameSiteNoneCookiesInSandbox
+    "_" -> fail "failed to parse NetworkCookieExemptionReason"
+instance ToJSON NetworkCookieExemptionReason where
+  toJSON v = A.String $ case v of
+    NetworkCookieExemptionReasonNone -> "None"
+    NetworkCookieExemptionReasonUserSetting -> "UserSetting"
+    NetworkCookieExemptionReasonEnterprisePolicy -> "EnterprisePolicy"
+    NetworkCookieExemptionReasonStorageAccess -> "StorageAccess"
+    NetworkCookieExemptionReasonTopLevelStorageAccess -> "TopLevelStorageAccess"
+    NetworkCookieExemptionReasonScheme -> "Scheme"
+    NetworkCookieExemptionReasonSameSiteNoneCookiesInSandbox -> "SameSiteNoneCookiesInSandbox"
 
 -- | Type 'Network.BlockedSetCookieWithReason'.
 --   A cookie which was not stored from a response with the corresponding reason.
@@ -4659,24 +6164,55 @@ instance ToJSON NetworkBlockedSetCookieWithReason where
     ("cookie" A..=) <$> (networkBlockedSetCookieWithReasonCookie p)
     ]
 
--- | Type 'Network.BlockedCookieWithReason'.
---   A cookie with was not sent with a request with the corresponding reason.
-data NetworkBlockedCookieWithReason = NetworkBlockedCookieWithReason
+-- | Type 'Network.ExemptedSetCookieWithReason'.
+--   A cookie should have been blocked by 3PCD but is exempted and stored from a response with the
+--   corresponding reason. A cookie could only have at most one exemption reason.
+data NetworkExemptedSetCookieWithReason = NetworkExemptedSetCookieWithReason
   {
-    -- | The reason(s) the cookie was blocked.
-    networkBlockedCookieWithReasonBlockedReasons :: [NetworkCookieBlockedReason],
-    -- | The cookie object representing the cookie which was not sent.
-    networkBlockedCookieWithReasonCookie :: NetworkCookie
+    -- | The reason the cookie was exempted.
+    networkExemptedSetCookieWithReasonExemptionReason :: NetworkCookieExemptionReason,
+    -- | The string representing this individual cookie as it would appear in the header.
+    networkExemptedSetCookieWithReasonCookieLine :: T.Text,
+    -- | The cookie object representing the cookie.
+    networkExemptedSetCookieWithReasonCookie :: NetworkCookie
   }
   deriving (Eq, Show)
-instance FromJSON NetworkBlockedCookieWithReason where
-  parseJSON = A.withObject "NetworkBlockedCookieWithReason" $ \o -> NetworkBlockedCookieWithReason
-    <$> o A..: "blockedReasons"
+instance FromJSON NetworkExemptedSetCookieWithReason where
+  parseJSON = A.withObject "NetworkExemptedSetCookieWithReason" $ \o -> NetworkExemptedSetCookieWithReason
+    <$> o A..: "exemptionReason"
+    <*> o A..: "cookieLine"
     <*> o A..: "cookie"
-instance ToJSON NetworkBlockedCookieWithReason where
+instance ToJSON NetworkExemptedSetCookieWithReason where
   toJSON p = A.object $ catMaybes [
-    ("blockedReasons" A..=) <$> Just (networkBlockedCookieWithReasonBlockedReasons p),
-    ("cookie" A..=) <$> Just (networkBlockedCookieWithReasonCookie p)
+    ("exemptionReason" A..=) <$> Just (networkExemptedSetCookieWithReasonExemptionReason p),
+    ("cookieLine" A..=) <$> Just (networkExemptedSetCookieWithReasonCookieLine p),
+    ("cookie" A..=) <$> Just (networkExemptedSetCookieWithReasonCookie p)
+    ]
+
+-- | Type 'Network.AssociatedCookie'.
+--   A cookie associated with the request which may or may not be sent with it.
+--   Includes the cookies itself and reasons for blocking or exemption.
+data NetworkAssociatedCookie = NetworkAssociatedCookie
+  {
+    -- | The cookie object representing the cookie which was not sent.
+    networkAssociatedCookieCookie :: NetworkCookie,
+    -- | The reason(s) the cookie was blocked. If empty means the cookie is included.
+    networkAssociatedCookieBlockedReasons :: [NetworkCookieBlockedReason],
+    -- | The reason the cookie should have been blocked by 3PCD but is exempted. A cookie could
+    --   only have at most one exemption reason.
+    networkAssociatedCookieExemptionReason :: Maybe NetworkCookieExemptionReason
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkAssociatedCookie where
+  parseJSON = A.withObject "NetworkAssociatedCookie" $ \o -> NetworkAssociatedCookie
+    <$> o A..: "cookie"
+    <*> o A..: "blockedReasons"
+    <*> o A..:? "exemptionReason"
+instance ToJSON NetworkAssociatedCookie where
+  toJSON p = A.object $ catMaybes [
+    ("cookie" A..=) <$> Just (networkAssociatedCookieCookie p),
+    ("blockedReasons" A..=) <$> Just (networkAssociatedCookieBlockedReasons p),
+    ("exemptionReason" A..=) <$> (networkAssociatedCookieExemptionReason p)
     ]
 
 -- | Type 'Network.CookieParam'.
@@ -4704,18 +6240,14 @@ data NetworkCookieParam = NetworkCookieParam
     networkCookieParamExpires :: Maybe NetworkTimeSinceEpoch,
     -- | Cookie Priority.
     networkCookieParamPriority :: Maybe NetworkCookiePriority,
-    -- | True if cookie is SameParty.
-    networkCookieParamSameParty :: Maybe Bool,
     -- | Cookie source scheme type.
     networkCookieParamSourceScheme :: Maybe NetworkCookieSourceScheme,
     -- | Cookie source port. Valid values are {-1, [1, 65535]}, -1 indicates an unspecified port.
     --   An unspecified port value allows protocol clients to emulate legacy cookie scope for the port.
     --   This is a temporary ability and it will be removed in the future.
     networkCookieParamSourcePort :: Maybe Int,
-    -- | Cookie partition key. The site of the top-level URL the browser was visiting at the start
-    --   of the request to the endpoint that set the cookie.
-    --   If not set, the cookie will be set as not partitioned.
-    networkCookieParamPartitionKey :: Maybe T.Text
+    -- | Cookie partition key. If not set, the cookie will be set as not partitioned.
+    networkCookieParamPartitionKey :: Maybe NetworkCookiePartitionKey
   }
   deriving (Eq, Show)
 instance FromJSON NetworkCookieParam where
@@ -4730,7 +6262,6 @@ instance FromJSON NetworkCookieParam where
     <*> o A..:? "sameSite"
     <*> o A..:? "expires"
     <*> o A..:? "priority"
-    <*> o A..:? "sameParty"
     <*> o A..:? "sourceScheme"
     <*> o A..:? "sourcePort"
     <*> o A..:? "partitionKey"
@@ -4746,7 +6277,6 @@ instance ToJSON NetworkCookieParam where
     ("sameSite" A..=) <$> (networkCookieParamSameSite p),
     ("expires" A..=) <$> (networkCookieParamExpires p),
     ("priority" A..=) <$> (networkCookieParamPriority p),
-    ("sameParty" A..=) <$> (networkCookieParamSameParty p),
     ("sourceScheme" A..=) <$> (networkCookieParamSourceScheme p),
     ("sourcePort" A..=) <$> (networkCookieParamSourcePort p),
     ("partitionKey" A..=) <$> (networkCookieParamPartitionKey p)
@@ -4832,46 +6362,6 @@ instance ToJSON NetworkAuthChallengeResponse where
     ("password" A..=) <$> (networkAuthChallengeResponsePassword p)
     ]
 
--- | Type 'Network.InterceptionStage'.
---   Stages of the interception to begin intercepting. Request will intercept before the request is
---   sent. Response will intercept after the response is received.
-data NetworkInterceptionStage = NetworkInterceptionStageRequest | NetworkInterceptionStageHeadersReceived
-  deriving (Ord, Eq, Show, Read)
-instance FromJSON NetworkInterceptionStage where
-  parseJSON = A.withText "NetworkInterceptionStage" $ \v -> case v of
-    "Request" -> pure NetworkInterceptionStageRequest
-    "HeadersReceived" -> pure NetworkInterceptionStageHeadersReceived
-    "_" -> fail "failed to parse NetworkInterceptionStage"
-instance ToJSON NetworkInterceptionStage where
-  toJSON v = A.String $ case v of
-    NetworkInterceptionStageRequest -> "Request"
-    NetworkInterceptionStageHeadersReceived -> "HeadersReceived"
-
--- | Type 'Network.RequestPattern'.
---   Request pattern for interception.
-data NetworkRequestPattern = NetworkRequestPattern
-  {
-    -- | Wildcards (`'*'` -> zero or more, `'?'` -> exactly one) are allowed. Escape character is
-    --   backslash. Omitting is equivalent to `"*"`.
-    networkRequestPatternUrlPattern :: Maybe T.Text,
-    -- | If set, only requests for matching resource types will be intercepted.
-    networkRequestPatternResourceType :: Maybe NetworkResourceType,
-    -- | Stage at which to begin intercepting requests. Default is Request.
-    networkRequestPatternInterceptionStage :: Maybe NetworkInterceptionStage
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkRequestPattern where
-  parseJSON = A.withObject "NetworkRequestPattern" $ \o -> NetworkRequestPattern
-    <$> o A..:? "urlPattern"
-    <*> o A..:? "resourceType"
-    <*> o A..:? "interceptionStage"
-instance ToJSON NetworkRequestPattern where
-  toJSON p = A.object $ catMaybes [
-    ("urlPattern" A..=) <$> (networkRequestPatternUrlPattern p),
-    ("resourceType" A..=) <$> (networkRequestPatternResourceType p),
-    ("interceptionStage" A..=) <$> (networkRequestPatternInterceptionStage p)
-    ]
-
 -- | Type 'Network.SignedExchangeSignature'.
 --   Information about a signed exchange signature.
 --   https://wicg.github.io/webpackage/draft-yasskin-httpbis-origin-signed-exchanges-impl.html#rfc.section.3.1
@@ -4934,7 +6424,7 @@ data NetworkSignedExchangeHeader = NetworkSignedExchangeHeader
     networkSignedExchangeHeaderResponseHeaders :: NetworkHeaders,
     -- | Signed exchange response signature.
     networkSignedExchangeHeaderSignatures :: [NetworkSignedExchangeSignature],
-    -- | Signed exchange header integrity hash in the form of "sha256-<base64-hash-value>".
+    -- | Signed exchange header integrity hash in the form of `sha256-<base64-hash-value>`.
     networkSignedExchangeHeaderHeaderIntegrity :: T.Text
   }
   deriving (Eq, Show)
@@ -5006,23 +6496,28 @@ data NetworkSignedExchangeInfo = NetworkSignedExchangeInfo
   {
     -- | The outer response of signed HTTP exchange which was received from network.
     networkSignedExchangeInfoOuterResponse :: NetworkResponse,
+    -- | Whether network response for the signed exchange was accompanied by
+    --   extra headers.
+    networkSignedExchangeInfoHasExtraInfo :: Bool,
     -- | Information about the signed exchange header.
     networkSignedExchangeInfoHeader :: Maybe NetworkSignedExchangeHeader,
     -- | Security details for the signed exchange header.
     networkSignedExchangeInfoSecurityDetails :: Maybe NetworkSecurityDetails,
-    -- | Errors occurred while handling the signed exchagne.
+    -- | Errors occurred while handling the signed exchange.
     networkSignedExchangeInfoErrors :: Maybe [NetworkSignedExchangeError]
   }
   deriving (Eq, Show)
 instance FromJSON NetworkSignedExchangeInfo where
   parseJSON = A.withObject "NetworkSignedExchangeInfo" $ \o -> NetworkSignedExchangeInfo
     <$> o A..: "outerResponse"
+    <*> o A..: "hasExtraInfo"
     <*> o A..:? "header"
     <*> o A..:? "securityDetails"
     <*> o A..:? "errors"
 instance ToJSON NetworkSignedExchangeInfo where
   toJSON p = A.object $ catMaybes [
     ("outerResponse" A..=) <$> Just (networkSignedExchangeInfoOuterResponse p),
+    ("hasExtraInfo" A..=) <$> Just (networkSignedExchangeInfoHasExtraInfo p),
     ("header" A..=) <$> (networkSignedExchangeInfoHeader p),
     ("securityDetails" A..=) <$> (networkSignedExchangeInfoSecurityDetails p),
     ("errors" A..=) <$> (networkSignedExchangeInfoErrors p)
@@ -5030,53 +6525,237 @@ instance ToJSON NetworkSignedExchangeInfo where
 
 -- | Type 'Network.ContentEncoding'.
 --   List of content encodings supported by the backend.
-data NetworkContentEncoding = NetworkContentEncodingDeflate | NetworkContentEncodingGzip | NetworkContentEncodingBr
+data NetworkContentEncoding = NetworkContentEncodingDeflate | NetworkContentEncodingGzip | NetworkContentEncodingBr | NetworkContentEncodingZstd
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkContentEncoding where
   parseJSON = A.withText "NetworkContentEncoding" $ \v -> case v of
     "deflate" -> pure NetworkContentEncodingDeflate
     "gzip" -> pure NetworkContentEncodingGzip
     "br" -> pure NetworkContentEncodingBr
+    "zstd" -> pure NetworkContentEncodingZstd
     "_" -> fail "failed to parse NetworkContentEncoding"
 instance ToJSON NetworkContentEncoding where
   toJSON v = A.String $ case v of
     NetworkContentEncodingDeflate -> "deflate"
     NetworkContentEncodingGzip -> "gzip"
     NetworkContentEncodingBr -> "br"
+    NetworkContentEncodingZstd -> "zstd"
 
--- | Type 'Network.PrivateNetworkRequestPolicy'.
-data NetworkPrivateNetworkRequestPolicy = NetworkPrivateNetworkRequestPolicyAllow | NetworkPrivateNetworkRequestPolicyBlockFromInsecureToMorePrivate | NetworkPrivateNetworkRequestPolicyWarnFromInsecureToMorePrivate | NetworkPrivateNetworkRequestPolicyPreflightBlock | NetworkPrivateNetworkRequestPolicyPreflightWarn
+-- | Type 'Network.NetworkConditions'.
+data NetworkNetworkConditions = NetworkNetworkConditions
+  {
+    -- | Only matching requests will be affected by these conditions. Patterns use the URLPattern constructor string
+    --   syntax (https://urlpattern.spec.whatwg.org/) and must be absolute. If the pattern is empty, all requests are
+    --   matched (including p2p connections).
+    networkNetworkConditionsUrlPattern :: T.Text,
+    -- | Minimum latency from request sent to response headers received (ms).
+    networkNetworkConditionsLatency :: Double,
+    -- | Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
+    networkNetworkConditionsDownloadThroughput :: Double,
+    -- | Maximal aggregated upload throughput (bytes/sec).  -1 disables upload throttling.
+    networkNetworkConditionsUploadThroughput :: Double,
+    -- | Connection type if known.
+    networkNetworkConditionsConnectionType :: Maybe NetworkConnectionType,
+    -- | WebRTC packet loss (percent, 0-100). 0 disables packet loss emulation, 100 drops all the packets.
+    networkNetworkConditionsPacketLoss :: Maybe Double,
+    -- | WebRTC packet queue length (packet). 0 removes any queue length limitations.
+    networkNetworkConditionsPacketQueueLength :: Maybe Int,
+    -- | WebRTC packetReordering feature.
+    networkNetworkConditionsPacketReordering :: Maybe Bool,
+    -- | True to emulate internet disconnection.
+    networkNetworkConditionsOffline :: Maybe Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkNetworkConditions where
+  parseJSON = A.withObject "NetworkNetworkConditions" $ \o -> NetworkNetworkConditions
+    <$> o A..: "urlPattern"
+    <*> o A..: "latency"
+    <*> o A..: "downloadThroughput"
+    <*> o A..: "uploadThroughput"
+    <*> o A..:? "connectionType"
+    <*> o A..:? "packetLoss"
+    <*> o A..:? "packetQueueLength"
+    <*> o A..:? "packetReordering"
+    <*> o A..:? "offline"
+instance ToJSON NetworkNetworkConditions where
+  toJSON p = A.object $ catMaybes [
+    ("urlPattern" A..=) <$> Just (networkNetworkConditionsUrlPattern p),
+    ("latency" A..=) <$> Just (networkNetworkConditionsLatency p),
+    ("downloadThroughput" A..=) <$> Just (networkNetworkConditionsDownloadThroughput p),
+    ("uploadThroughput" A..=) <$> Just (networkNetworkConditionsUploadThroughput p),
+    ("connectionType" A..=) <$> (networkNetworkConditionsConnectionType p),
+    ("packetLoss" A..=) <$> (networkNetworkConditionsPacketLoss p),
+    ("packetQueueLength" A..=) <$> (networkNetworkConditionsPacketQueueLength p),
+    ("packetReordering" A..=) <$> (networkNetworkConditionsPacketReordering p),
+    ("offline" A..=) <$> (networkNetworkConditionsOffline p)
+    ]
+
+-- | Type 'Network.BlockPattern'.
+data NetworkBlockPattern = NetworkBlockPattern
+  {
+    -- | URL pattern to match. Patterns use the URLPattern constructor string syntax
+    --   (https://urlpattern.spec.whatwg.org/) and must be absolute. Example: `*://*:*/*.css`.
+    networkBlockPatternUrlPattern :: T.Text,
+    -- | Whether or not to block the pattern. If false, a matching request will not be blocked even if it matches a later
+    --   `BlockPattern`.
+    networkBlockPatternBlock :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkBlockPattern where
+  parseJSON = A.withObject "NetworkBlockPattern" $ \o -> NetworkBlockPattern
+    <$> o A..: "urlPattern"
+    <*> o A..: "block"
+instance ToJSON NetworkBlockPattern where
+  toJSON p = A.object $ catMaybes [
+    ("urlPattern" A..=) <$> Just (networkBlockPatternUrlPattern p),
+    ("block" A..=) <$> Just (networkBlockPatternBlock p)
+    ]
+
+-- | Type 'Network.DirectSocketDnsQueryType'.
+data NetworkDirectSocketDnsQueryType = NetworkDirectSocketDnsQueryTypeIpv4 | NetworkDirectSocketDnsQueryTypeIpv6
   deriving (Ord, Eq, Show, Read)
-instance FromJSON NetworkPrivateNetworkRequestPolicy where
-  parseJSON = A.withText "NetworkPrivateNetworkRequestPolicy" $ \v -> case v of
-    "Allow" -> pure NetworkPrivateNetworkRequestPolicyAllow
-    "BlockFromInsecureToMorePrivate" -> pure NetworkPrivateNetworkRequestPolicyBlockFromInsecureToMorePrivate
-    "WarnFromInsecureToMorePrivate" -> pure NetworkPrivateNetworkRequestPolicyWarnFromInsecureToMorePrivate
-    "PreflightBlock" -> pure NetworkPrivateNetworkRequestPolicyPreflightBlock
-    "PreflightWarn" -> pure NetworkPrivateNetworkRequestPolicyPreflightWarn
-    "_" -> fail "failed to parse NetworkPrivateNetworkRequestPolicy"
-instance ToJSON NetworkPrivateNetworkRequestPolicy where
+instance FromJSON NetworkDirectSocketDnsQueryType where
+  parseJSON = A.withText "NetworkDirectSocketDnsQueryType" $ \v -> case v of
+    "ipv4" -> pure NetworkDirectSocketDnsQueryTypeIpv4
+    "ipv6" -> pure NetworkDirectSocketDnsQueryTypeIpv6
+    "_" -> fail "failed to parse NetworkDirectSocketDnsQueryType"
+instance ToJSON NetworkDirectSocketDnsQueryType where
   toJSON v = A.String $ case v of
-    NetworkPrivateNetworkRequestPolicyAllow -> "Allow"
-    NetworkPrivateNetworkRequestPolicyBlockFromInsecureToMorePrivate -> "BlockFromInsecureToMorePrivate"
-    NetworkPrivateNetworkRequestPolicyWarnFromInsecureToMorePrivate -> "WarnFromInsecureToMorePrivate"
-    NetworkPrivateNetworkRequestPolicyPreflightBlock -> "PreflightBlock"
-    NetworkPrivateNetworkRequestPolicyPreflightWarn -> "PreflightWarn"
+    NetworkDirectSocketDnsQueryTypeIpv4 -> "ipv4"
+    NetworkDirectSocketDnsQueryTypeIpv6 -> "ipv6"
+
+-- | Type 'Network.DirectTCPSocketOptions'.
+data NetworkDirectTCPSocketOptions = NetworkDirectTCPSocketOptions
+  {
+    -- | TCP_NODELAY option
+    networkDirectTCPSocketOptionsNoDelay :: Bool,
+    -- | Expected to be unsigned integer.
+    networkDirectTCPSocketOptionsKeepAliveDelay :: Maybe Double,
+    -- | Expected to be unsigned integer.
+    networkDirectTCPSocketOptionsSendBufferSize :: Maybe Double,
+    -- | Expected to be unsigned integer.
+    networkDirectTCPSocketOptionsReceiveBufferSize :: Maybe Double,
+    networkDirectTCPSocketOptionsDnsQueryType :: Maybe NetworkDirectSocketDnsQueryType
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketOptions where
+  parseJSON = A.withObject "NetworkDirectTCPSocketOptions" $ \o -> NetworkDirectTCPSocketOptions
+    <$> o A..: "noDelay"
+    <*> o A..:? "keepAliveDelay"
+    <*> o A..:? "sendBufferSize"
+    <*> o A..:? "receiveBufferSize"
+    <*> o A..:? "dnsQueryType"
+instance ToJSON NetworkDirectTCPSocketOptions where
+  toJSON p = A.object $ catMaybes [
+    ("noDelay" A..=) <$> Just (networkDirectTCPSocketOptionsNoDelay p),
+    ("keepAliveDelay" A..=) <$> (networkDirectTCPSocketOptionsKeepAliveDelay p),
+    ("sendBufferSize" A..=) <$> (networkDirectTCPSocketOptionsSendBufferSize p),
+    ("receiveBufferSize" A..=) <$> (networkDirectTCPSocketOptionsReceiveBufferSize p),
+    ("dnsQueryType" A..=) <$> (networkDirectTCPSocketOptionsDnsQueryType p)
+    ]
+
+-- | Type 'Network.DirectUDPSocketOptions'.
+data NetworkDirectUDPSocketOptions = NetworkDirectUDPSocketOptions
+  {
+    networkDirectUDPSocketOptionsRemoteAddr :: Maybe T.Text,
+    -- | Unsigned int 16.
+    networkDirectUDPSocketOptionsRemotePort :: Maybe Int,
+    networkDirectUDPSocketOptionsLocalAddr :: Maybe T.Text,
+    -- | Unsigned int 16.
+    networkDirectUDPSocketOptionsLocalPort :: Maybe Int,
+    networkDirectUDPSocketOptionsDnsQueryType :: Maybe NetworkDirectSocketDnsQueryType,
+    -- | Expected to be unsigned integer.
+    networkDirectUDPSocketOptionsSendBufferSize :: Maybe Double,
+    -- | Expected to be unsigned integer.
+    networkDirectUDPSocketOptionsReceiveBufferSize :: Maybe Double,
+    networkDirectUDPSocketOptionsMulticastLoopback :: Maybe Bool,
+    -- | Unsigned int 8.
+    networkDirectUDPSocketOptionsMulticastTimeToLive :: Maybe Int,
+    networkDirectUDPSocketOptionsMulticastAllowAddressSharing :: Maybe Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketOptions where
+  parseJSON = A.withObject "NetworkDirectUDPSocketOptions" $ \o -> NetworkDirectUDPSocketOptions
+    <$> o A..:? "remoteAddr"
+    <*> o A..:? "remotePort"
+    <*> o A..:? "localAddr"
+    <*> o A..:? "localPort"
+    <*> o A..:? "dnsQueryType"
+    <*> o A..:? "sendBufferSize"
+    <*> o A..:? "receiveBufferSize"
+    <*> o A..:? "multicastLoopback"
+    <*> o A..:? "multicastTimeToLive"
+    <*> o A..:? "multicastAllowAddressSharing"
+instance ToJSON NetworkDirectUDPSocketOptions where
+  toJSON p = A.object $ catMaybes [
+    ("remoteAddr" A..=) <$> (networkDirectUDPSocketOptionsRemoteAddr p),
+    ("remotePort" A..=) <$> (networkDirectUDPSocketOptionsRemotePort p),
+    ("localAddr" A..=) <$> (networkDirectUDPSocketOptionsLocalAddr p),
+    ("localPort" A..=) <$> (networkDirectUDPSocketOptionsLocalPort p),
+    ("dnsQueryType" A..=) <$> (networkDirectUDPSocketOptionsDnsQueryType p),
+    ("sendBufferSize" A..=) <$> (networkDirectUDPSocketOptionsSendBufferSize p),
+    ("receiveBufferSize" A..=) <$> (networkDirectUDPSocketOptionsReceiveBufferSize p),
+    ("multicastLoopback" A..=) <$> (networkDirectUDPSocketOptionsMulticastLoopback p),
+    ("multicastTimeToLive" A..=) <$> (networkDirectUDPSocketOptionsMulticastTimeToLive p),
+    ("multicastAllowAddressSharing" A..=) <$> (networkDirectUDPSocketOptionsMulticastAllowAddressSharing p)
+    ]
+
+-- | Type 'Network.DirectUDPMessage'.
+data NetworkDirectUDPMessage = NetworkDirectUDPMessage
+  {
+    networkDirectUDPMessageData :: T.Text,
+    -- | Null for connected mode.
+    networkDirectUDPMessageRemoteAddr :: Maybe T.Text,
+    -- | Null for connected mode.
+    --   Expected to be unsigned integer.
+    networkDirectUDPMessageRemotePort :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPMessage where
+  parseJSON = A.withObject "NetworkDirectUDPMessage" $ \o -> NetworkDirectUDPMessage
+    <$> o A..: "data"
+    <*> o A..:? "remoteAddr"
+    <*> o A..:? "remotePort"
+instance ToJSON NetworkDirectUDPMessage where
+  toJSON p = A.object $ catMaybes [
+    ("data" A..=) <$> Just (networkDirectUDPMessageData p),
+    ("remoteAddr" A..=) <$> (networkDirectUDPMessageRemoteAddr p),
+    ("remotePort" A..=) <$> (networkDirectUDPMessageRemotePort p)
+    ]
+
+-- | Type 'Network.LocalNetworkAccessRequestPolicy'.
+data NetworkLocalNetworkAccessRequestPolicy = NetworkLocalNetworkAccessRequestPolicyAllow | NetworkLocalNetworkAccessRequestPolicyBlockFromInsecureToMorePrivate | NetworkLocalNetworkAccessRequestPolicyWarnFromInsecureToMorePrivate | NetworkLocalNetworkAccessRequestPolicyPermissionBlock | NetworkLocalNetworkAccessRequestPolicyPermissionWarn
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkLocalNetworkAccessRequestPolicy where
+  parseJSON = A.withText "NetworkLocalNetworkAccessRequestPolicy" $ \v -> case v of
+    "Allow" -> pure NetworkLocalNetworkAccessRequestPolicyAllow
+    "BlockFromInsecureToMorePrivate" -> pure NetworkLocalNetworkAccessRequestPolicyBlockFromInsecureToMorePrivate
+    "WarnFromInsecureToMorePrivate" -> pure NetworkLocalNetworkAccessRequestPolicyWarnFromInsecureToMorePrivate
+    "PermissionBlock" -> pure NetworkLocalNetworkAccessRequestPolicyPermissionBlock
+    "PermissionWarn" -> pure NetworkLocalNetworkAccessRequestPolicyPermissionWarn
+    "_" -> fail "failed to parse NetworkLocalNetworkAccessRequestPolicy"
+instance ToJSON NetworkLocalNetworkAccessRequestPolicy where
+  toJSON v = A.String $ case v of
+    NetworkLocalNetworkAccessRequestPolicyAllow -> "Allow"
+    NetworkLocalNetworkAccessRequestPolicyBlockFromInsecureToMorePrivate -> "BlockFromInsecureToMorePrivate"
+    NetworkLocalNetworkAccessRequestPolicyWarnFromInsecureToMorePrivate -> "WarnFromInsecureToMorePrivate"
+    NetworkLocalNetworkAccessRequestPolicyPermissionBlock -> "PermissionBlock"
+    NetworkLocalNetworkAccessRequestPolicyPermissionWarn -> "PermissionWarn"
 
 -- | Type 'Network.IPAddressSpace'.
-data NetworkIPAddressSpace = NetworkIPAddressSpaceLocal | NetworkIPAddressSpacePrivate | NetworkIPAddressSpacePublic | NetworkIPAddressSpaceUnknown
+data NetworkIPAddressSpace = NetworkIPAddressSpaceLoopback | NetworkIPAddressSpaceLocal | NetworkIPAddressSpacePublic | NetworkIPAddressSpaceUnknown
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkIPAddressSpace where
   parseJSON = A.withText "NetworkIPAddressSpace" $ \v -> case v of
+    "Loopback" -> pure NetworkIPAddressSpaceLoopback
     "Local" -> pure NetworkIPAddressSpaceLocal
-    "Private" -> pure NetworkIPAddressSpacePrivate
     "Public" -> pure NetworkIPAddressSpacePublic
     "Unknown" -> pure NetworkIPAddressSpaceUnknown
     "_" -> fail "failed to parse NetworkIPAddressSpace"
 instance ToJSON NetworkIPAddressSpace where
   toJSON v = A.String $ case v of
+    NetworkIPAddressSpaceLoopback -> "Loopback"
     NetworkIPAddressSpaceLocal -> "Local"
-    NetworkIPAddressSpacePrivate -> "Private"
     NetworkIPAddressSpacePublic -> "Public"
     NetworkIPAddressSpaceUnknown -> "Unknown"
 
@@ -5102,23 +6781,100 @@ data NetworkClientSecurityState = NetworkClientSecurityState
   {
     networkClientSecurityStateInitiatorIsSecureContext :: Bool,
     networkClientSecurityStateInitiatorIPAddressSpace :: NetworkIPAddressSpace,
-    networkClientSecurityStatePrivateNetworkRequestPolicy :: NetworkPrivateNetworkRequestPolicy
+    networkClientSecurityStateLocalNetworkAccessRequestPolicy :: NetworkLocalNetworkAccessRequestPolicy
   }
   deriving (Eq, Show)
 instance FromJSON NetworkClientSecurityState where
   parseJSON = A.withObject "NetworkClientSecurityState" $ \o -> NetworkClientSecurityState
     <$> o A..: "initiatorIsSecureContext"
     <*> o A..: "initiatorIPAddressSpace"
-    <*> o A..: "privateNetworkRequestPolicy"
+    <*> o A..: "localNetworkAccessRequestPolicy"
 instance ToJSON NetworkClientSecurityState where
   toJSON p = A.object $ catMaybes [
     ("initiatorIsSecureContext" A..=) <$> Just (networkClientSecurityStateInitiatorIsSecureContext p),
     ("initiatorIPAddressSpace" A..=) <$> Just (networkClientSecurityStateInitiatorIPAddressSpace p),
-    ("privateNetworkRequestPolicy" A..=) <$> Just (networkClientSecurityStatePrivateNetworkRequestPolicy p)
+    ("localNetworkAccessRequestPolicy" A..=) <$> Just (networkClientSecurityStateLocalNetworkAccessRequestPolicy p)
+    ]
+
+-- | Type 'Network.AdScriptIdentifier'.
+--   Identifies the script on the stack that caused a resource or element to be
+--   labeled as an ad. For resources, this indicates the context that triggered
+--   the fetch. For elements, this indicates the context that caused the element
+--   to be appended to the DOM.
+data NetworkAdScriptIdentifier = NetworkAdScriptIdentifier
+  {
+    -- | The script's V8 identifier.
+    networkAdScriptIdentifierScriptId :: Runtime.RuntimeScriptId,
+    -- | V8's debugging ID for the v8::Context.
+    networkAdScriptIdentifierDebuggerId :: Runtime.RuntimeUniqueDebuggerId,
+    -- | The script's url (or generated name based on id if inline script).
+    networkAdScriptIdentifierName :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkAdScriptIdentifier where
+  parseJSON = A.withObject "NetworkAdScriptIdentifier" $ \o -> NetworkAdScriptIdentifier
+    <$> o A..: "scriptId"
+    <*> o A..: "debuggerId"
+    <*> o A..: "name"
+instance ToJSON NetworkAdScriptIdentifier where
+  toJSON p = A.object $ catMaybes [
+    ("scriptId" A..=) <$> Just (networkAdScriptIdentifierScriptId p),
+    ("debuggerId" A..=) <$> Just (networkAdScriptIdentifierDebuggerId p),
+    ("name" A..=) <$> Just (networkAdScriptIdentifierName p)
+    ]
+
+-- | Type 'Network.AdAncestry'.
+--   Encapsulates the script ancestry and the root script filter list rule that
+--   caused the resource or element to be labeled as an ad.
+data NetworkAdAncestry = NetworkAdAncestry
+  {
+    -- | A chain of `AdScriptIdentifier`s representing the ancestry of an ad
+    --   script that led to the creation of a resource or element. The chain is
+    --   ordered from the script itself (lowest level) up to its root ancestor
+    --   that was flagged by a filter list.
+    networkAdAncestryAncestryChain :: [NetworkAdScriptIdentifier],
+    -- | The filter list rule that caused the root (last) script in
+    --   `ancestryChain` to be tagged as an ad.
+    networkAdAncestryRootScriptFilterlistRule :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkAdAncestry where
+  parseJSON = A.withObject "NetworkAdAncestry" $ \o -> NetworkAdAncestry
+    <$> o A..: "ancestryChain"
+    <*> o A..:? "rootScriptFilterlistRule"
+instance ToJSON NetworkAdAncestry where
+  toJSON p = A.object $ catMaybes [
+    ("ancestryChain" A..=) <$> Just (networkAdAncestryAncestryChain p),
+    ("rootScriptFilterlistRule" A..=) <$> (networkAdAncestryRootScriptFilterlistRule p)
+    ]
+
+-- | Type 'Network.AdProvenance'.
+--   Represents the provenance of an ad resource or element. Only one of
+--   `filterlistRule` or `adScriptAncestry` can be set. If `filterlistRule`
+--   is provided, the resource URL directly matches a filter list rule. If
+--   `adScriptAncestry` is provided, an ad script initiated the resource fetch or
+--   appended the element to the DOM. If neither is provided, the entity is
+--   known to be an ad, but provenance tracking information is unavailable.
+data NetworkAdProvenance = NetworkAdProvenance
+  {
+    -- | The filterlist rule that matched, if any.
+    networkAdProvenanceFilterlistRule :: Maybe T.Text,
+    -- | The script ancestry that created the ad, if any.
+    networkAdProvenanceAdScriptAncestry :: Maybe NetworkAdAncestry
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkAdProvenance where
+  parseJSON = A.withObject "NetworkAdProvenance" $ \o -> NetworkAdProvenance
+    <$> o A..:? "filterlistRule"
+    <*> o A..:? "adScriptAncestry"
+instance ToJSON NetworkAdProvenance where
+  toJSON p = A.object $ catMaybes [
+    ("filterlistRule" A..=) <$> (networkAdProvenanceFilterlistRule p),
+    ("adScriptAncestry" A..=) <$> (networkAdProvenanceAdScriptAncestry p)
     ]
 
 -- | Type 'Network.CrossOriginOpenerPolicyValue'.
-data NetworkCrossOriginOpenerPolicyValue = NetworkCrossOriginOpenerPolicyValueSameOrigin | NetworkCrossOriginOpenerPolicyValueSameOriginAllowPopups | NetworkCrossOriginOpenerPolicyValueRestrictProperties | NetworkCrossOriginOpenerPolicyValueUnsafeNone | NetworkCrossOriginOpenerPolicyValueSameOriginPlusCoep | NetworkCrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep
+data NetworkCrossOriginOpenerPolicyValue = NetworkCrossOriginOpenerPolicyValueSameOrigin | NetworkCrossOriginOpenerPolicyValueSameOriginAllowPopups | NetworkCrossOriginOpenerPolicyValueRestrictProperties | NetworkCrossOriginOpenerPolicyValueUnsafeNone | NetworkCrossOriginOpenerPolicyValueSameOriginPlusCoep | NetworkCrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep | NetworkCrossOriginOpenerPolicyValueNoopenerAllowPopups
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkCrossOriginOpenerPolicyValue where
   parseJSON = A.withText "NetworkCrossOriginOpenerPolicyValue" $ \v -> case v of
@@ -5128,6 +6884,7 @@ instance FromJSON NetworkCrossOriginOpenerPolicyValue where
     "UnsafeNone" -> pure NetworkCrossOriginOpenerPolicyValueUnsafeNone
     "SameOriginPlusCoep" -> pure NetworkCrossOriginOpenerPolicyValueSameOriginPlusCoep
     "RestrictPropertiesPlusCoep" -> pure NetworkCrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep
+    "NoopenerAllowPopups" -> pure NetworkCrossOriginOpenerPolicyValueNoopenerAllowPopups
     "_" -> fail "failed to parse NetworkCrossOriginOpenerPolicyValue"
 instance ToJSON NetworkCrossOriginOpenerPolicyValue where
   toJSON v = A.String $ case v of
@@ -5137,6 +6894,7 @@ instance ToJSON NetworkCrossOriginOpenerPolicyValue where
     NetworkCrossOriginOpenerPolicyValueUnsafeNone -> "UnsafeNone"
     NetworkCrossOriginOpenerPolicyValueSameOriginPlusCoep -> "SameOriginPlusCoep"
     NetworkCrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep -> "RestrictPropertiesPlusCoep"
+    NetworkCrossOriginOpenerPolicyValueNoopenerAllowPopups -> "NoopenerAllowPopups"
 
 -- | Type 'Network.CrossOriginOpenerPolicyStatus'.
 data NetworkCrossOriginOpenerPolicyStatus = NetworkCrossOriginOpenerPolicyStatus
@@ -5199,21 +6957,57 @@ instance ToJSON NetworkCrossOriginEmbedderPolicyStatus where
     ("reportOnlyReportingEndpoint" A..=) <$> (networkCrossOriginEmbedderPolicyStatusReportOnlyReportingEndpoint p)
     ]
 
+-- | Type 'Network.ContentSecurityPolicySource'.
+data NetworkContentSecurityPolicySource = NetworkContentSecurityPolicySourceHTTP | NetworkContentSecurityPolicySourceMeta
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkContentSecurityPolicySource where
+  parseJSON = A.withText "NetworkContentSecurityPolicySource" $ \v -> case v of
+    "HTTP" -> pure NetworkContentSecurityPolicySourceHTTP
+    "Meta" -> pure NetworkContentSecurityPolicySourceMeta
+    "_" -> fail "failed to parse NetworkContentSecurityPolicySource"
+instance ToJSON NetworkContentSecurityPolicySource where
+  toJSON v = A.String $ case v of
+    NetworkContentSecurityPolicySourceHTTP -> "HTTP"
+    NetworkContentSecurityPolicySourceMeta -> "Meta"
+
+-- | Type 'Network.ContentSecurityPolicyStatus'.
+data NetworkContentSecurityPolicyStatus = NetworkContentSecurityPolicyStatus
+  {
+    networkContentSecurityPolicyStatusEffectiveDirectives :: T.Text,
+    networkContentSecurityPolicyStatusIsEnforced :: Bool,
+    networkContentSecurityPolicyStatusSource :: NetworkContentSecurityPolicySource
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkContentSecurityPolicyStatus where
+  parseJSON = A.withObject "NetworkContentSecurityPolicyStatus" $ \o -> NetworkContentSecurityPolicyStatus
+    <$> o A..: "effectiveDirectives"
+    <*> o A..: "isEnforced"
+    <*> o A..: "source"
+instance ToJSON NetworkContentSecurityPolicyStatus where
+  toJSON p = A.object $ catMaybes [
+    ("effectiveDirectives" A..=) <$> Just (networkContentSecurityPolicyStatusEffectiveDirectives p),
+    ("isEnforced" A..=) <$> Just (networkContentSecurityPolicyStatusIsEnforced p),
+    ("source" A..=) <$> Just (networkContentSecurityPolicyStatusSource p)
+    ]
+
 -- | Type 'Network.SecurityIsolationStatus'.
 data NetworkSecurityIsolationStatus = NetworkSecurityIsolationStatus
   {
     networkSecurityIsolationStatusCoop :: Maybe NetworkCrossOriginOpenerPolicyStatus,
-    networkSecurityIsolationStatusCoep :: Maybe NetworkCrossOriginEmbedderPolicyStatus
+    networkSecurityIsolationStatusCoep :: Maybe NetworkCrossOriginEmbedderPolicyStatus,
+    networkSecurityIsolationStatusCsp :: Maybe [NetworkContentSecurityPolicyStatus]
   }
   deriving (Eq, Show)
 instance FromJSON NetworkSecurityIsolationStatus where
   parseJSON = A.withObject "NetworkSecurityIsolationStatus" $ \o -> NetworkSecurityIsolationStatus
     <$> o A..:? "coop"
     <*> o A..:? "coep"
+    <*> o A..:? "csp"
 instance ToJSON NetworkSecurityIsolationStatus where
   toJSON p = A.object $ catMaybes [
     ("coop" A..=) <$> (networkSecurityIsolationStatusCoop p),
-    ("coep" A..=) <$> (networkSecurityIsolationStatusCoep p)
+    ("coep" A..=) <$> (networkSecurityIsolationStatusCoep p),
+    ("csp" A..=) <$> (networkSecurityIsolationStatusCsp p)
     ]
 
 -- | Type 'Network.ReportStatus'.
@@ -5301,6 +7095,558 @@ instance ToJSON NetworkReportingApiEndpoint where
     ("groupName" A..=) <$> Just (networkReportingApiEndpointGroupName p)
     ]
 
+-- | Type 'Network.DeviceBoundSessionKey'.
+--   Unique identifier for a device bound session.
+data NetworkDeviceBoundSessionKey = NetworkDeviceBoundSessionKey
+  {
+    -- | The site the session is set up for.
+    networkDeviceBoundSessionKeySite :: T.Text,
+    -- | The id of the session.
+    networkDeviceBoundSessionKeyId :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionKey where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionKey" $ \o -> NetworkDeviceBoundSessionKey
+    <$> o A..: "site"
+    <*> o A..: "id"
+instance ToJSON NetworkDeviceBoundSessionKey where
+  toJSON p = A.object $ catMaybes [
+    ("site" A..=) <$> Just (networkDeviceBoundSessionKeySite p),
+    ("id" A..=) <$> Just (networkDeviceBoundSessionKeyId p)
+    ]
+
+-- | Type 'Network.DeviceBoundSessionWithUsage'.
+--   How a device bound session was used during a request.
+data NetworkDeviceBoundSessionWithUsageUsage = NetworkDeviceBoundSessionWithUsageUsageNotInScope | NetworkDeviceBoundSessionWithUsageUsageInScopeRefreshNotYetNeeded | NetworkDeviceBoundSessionWithUsageUsageInScopeRefreshNotAllowed | NetworkDeviceBoundSessionWithUsageUsageProactiveRefreshNotPossible | NetworkDeviceBoundSessionWithUsageUsageProactiveRefreshAttempted | NetworkDeviceBoundSessionWithUsageUsageDeferred
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkDeviceBoundSessionWithUsageUsage where
+  parseJSON = A.withText "NetworkDeviceBoundSessionWithUsageUsage" $ \v -> case v of
+    "NotInScope" -> pure NetworkDeviceBoundSessionWithUsageUsageNotInScope
+    "InScopeRefreshNotYetNeeded" -> pure NetworkDeviceBoundSessionWithUsageUsageInScopeRefreshNotYetNeeded
+    "InScopeRefreshNotAllowed" -> pure NetworkDeviceBoundSessionWithUsageUsageInScopeRefreshNotAllowed
+    "ProactiveRefreshNotPossible" -> pure NetworkDeviceBoundSessionWithUsageUsageProactiveRefreshNotPossible
+    "ProactiveRefreshAttempted" -> pure NetworkDeviceBoundSessionWithUsageUsageProactiveRefreshAttempted
+    "Deferred" -> pure NetworkDeviceBoundSessionWithUsageUsageDeferred
+    "_" -> fail "failed to parse NetworkDeviceBoundSessionWithUsageUsage"
+instance ToJSON NetworkDeviceBoundSessionWithUsageUsage where
+  toJSON v = A.String $ case v of
+    NetworkDeviceBoundSessionWithUsageUsageNotInScope -> "NotInScope"
+    NetworkDeviceBoundSessionWithUsageUsageInScopeRefreshNotYetNeeded -> "InScopeRefreshNotYetNeeded"
+    NetworkDeviceBoundSessionWithUsageUsageInScopeRefreshNotAllowed -> "InScopeRefreshNotAllowed"
+    NetworkDeviceBoundSessionWithUsageUsageProactiveRefreshNotPossible -> "ProactiveRefreshNotPossible"
+    NetworkDeviceBoundSessionWithUsageUsageProactiveRefreshAttempted -> "ProactiveRefreshAttempted"
+    NetworkDeviceBoundSessionWithUsageUsageDeferred -> "Deferred"
+data NetworkDeviceBoundSessionWithUsage = NetworkDeviceBoundSessionWithUsage
+  {
+    -- | The key for the session.
+    networkDeviceBoundSessionWithUsageSessionKey :: NetworkDeviceBoundSessionKey,
+    -- | How the session was used (or not used).
+    networkDeviceBoundSessionWithUsageUsage :: NetworkDeviceBoundSessionWithUsageUsage
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionWithUsage where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionWithUsage" $ \o -> NetworkDeviceBoundSessionWithUsage
+    <$> o A..: "sessionKey"
+    <*> o A..: "usage"
+instance ToJSON NetworkDeviceBoundSessionWithUsage where
+  toJSON p = A.object $ catMaybes [
+    ("sessionKey" A..=) <$> Just (networkDeviceBoundSessionWithUsageSessionKey p),
+    ("usage" A..=) <$> Just (networkDeviceBoundSessionWithUsageUsage p)
+    ]
+
+-- | Type 'Network.DeviceBoundSessionCookieCraving'.
+--   A device bound session's cookie craving.
+data NetworkDeviceBoundSessionCookieCraving = NetworkDeviceBoundSessionCookieCraving
+  {
+    -- | The name of the craving.
+    networkDeviceBoundSessionCookieCravingName :: T.Text,
+    -- | The domain of the craving.
+    networkDeviceBoundSessionCookieCravingDomain :: T.Text,
+    -- | The path of the craving.
+    networkDeviceBoundSessionCookieCravingPath :: T.Text,
+    -- | The `Secure` attribute of the craving attributes.
+    networkDeviceBoundSessionCookieCravingSecure :: Bool,
+    -- | The `HttpOnly` attribute of the craving attributes.
+    networkDeviceBoundSessionCookieCravingHttpOnly :: Bool,
+    -- | The `SameSite` attribute of the craving attributes.
+    networkDeviceBoundSessionCookieCravingSameSite :: Maybe NetworkCookieSameSite
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionCookieCraving where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionCookieCraving" $ \o -> NetworkDeviceBoundSessionCookieCraving
+    <$> o A..: "name"
+    <*> o A..: "domain"
+    <*> o A..: "path"
+    <*> o A..: "secure"
+    <*> o A..: "httpOnly"
+    <*> o A..:? "sameSite"
+instance ToJSON NetworkDeviceBoundSessionCookieCraving where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> Just (networkDeviceBoundSessionCookieCravingName p),
+    ("domain" A..=) <$> Just (networkDeviceBoundSessionCookieCravingDomain p),
+    ("path" A..=) <$> Just (networkDeviceBoundSessionCookieCravingPath p),
+    ("secure" A..=) <$> Just (networkDeviceBoundSessionCookieCravingSecure p),
+    ("httpOnly" A..=) <$> Just (networkDeviceBoundSessionCookieCravingHttpOnly p),
+    ("sameSite" A..=) <$> (networkDeviceBoundSessionCookieCravingSameSite p)
+    ]
+
+-- | Type 'Network.DeviceBoundSessionUrlRule'.
+--   A device bound session's inclusion URL rule.
+data NetworkDeviceBoundSessionUrlRuleRuleType = NetworkDeviceBoundSessionUrlRuleRuleTypeExclude | NetworkDeviceBoundSessionUrlRuleRuleTypeInclude
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkDeviceBoundSessionUrlRuleRuleType where
+  parseJSON = A.withText "NetworkDeviceBoundSessionUrlRuleRuleType" $ \v -> case v of
+    "Exclude" -> pure NetworkDeviceBoundSessionUrlRuleRuleTypeExclude
+    "Include" -> pure NetworkDeviceBoundSessionUrlRuleRuleTypeInclude
+    "_" -> fail "failed to parse NetworkDeviceBoundSessionUrlRuleRuleType"
+instance ToJSON NetworkDeviceBoundSessionUrlRuleRuleType where
+  toJSON v = A.String $ case v of
+    NetworkDeviceBoundSessionUrlRuleRuleTypeExclude -> "Exclude"
+    NetworkDeviceBoundSessionUrlRuleRuleTypeInclude -> "Include"
+data NetworkDeviceBoundSessionUrlRule = NetworkDeviceBoundSessionUrlRule
+  {
+    -- | See comments on `net::device_bound_sessions::SessionInclusionRules::UrlRule::rule_type`.
+    networkDeviceBoundSessionUrlRuleRuleType :: NetworkDeviceBoundSessionUrlRuleRuleType,
+    -- | See comments on `net::device_bound_sessions::SessionInclusionRules::UrlRule::host_pattern`.
+    networkDeviceBoundSessionUrlRuleHostPattern :: T.Text,
+    -- | See comments on `net::device_bound_sessions::SessionInclusionRules::UrlRule::path_prefix`.
+    networkDeviceBoundSessionUrlRulePathPrefix :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionUrlRule where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionUrlRule" $ \o -> NetworkDeviceBoundSessionUrlRule
+    <$> o A..: "ruleType"
+    <*> o A..: "hostPattern"
+    <*> o A..: "pathPrefix"
+instance ToJSON NetworkDeviceBoundSessionUrlRule where
+  toJSON p = A.object $ catMaybes [
+    ("ruleType" A..=) <$> Just (networkDeviceBoundSessionUrlRuleRuleType p),
+    ("hostPattern" A..=) <$> Just (networkDeviceBoundSessionUrlRuleHostPattern p),
+    ("pathPrefix" A..=) <$> Just (networkDeviceBoundSessionUrlRulePathPrefix p)
+    ]
+
+-- | Type 'Network.DeviceBoundSessionInclusionRules'.
+--   A device bound session's inclusion rules.
+data NetworkDeviceBoundSessionInclusionRules = NetworkDeviceBoundSessionInclusionRules
+  {
+    -- | See comments on `net::device_bound_sessions::SessionInclusionRules::origin_`.
+    networkDeviceBoundSessionInclusionRulesOrigin :: T.Text,
+    -- | Whether the whole site is included. See comments on
+    --   `net::device_bound_sessions::SessionInclusionRules::include_site_` for more
+    --   details; this boolean is true if that value is populated.
+    networkDeviceBoundSessionInclusionRulesIncludeSite :: Bool,
+    -- | See comments on `net::device_bound_sessions::SessionInclusionRules::url_rules_`.
+    networkDeviceBoundSessionInclusionRulesUrlRules :: [NetworkDeviceBoundSessionUrlRule]
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionInclusionRules where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionInclusionRules" $ \o -> NetworkDeviceBoundSessionInclusionRules
+    <$> o A..: "origin"
+    <*> o A..: "includeSite"
+    <*> o A..: "urlRules"
+instance ToJSON NetworkDeviceBoundSessionInclusionRules where
+  toJSON p = A.object $ catMaybes [
+    ("origin" A..=) <$> Just (networkDeviceBoundSessionInclusionRulesOrigin p),
+    ("includeSite" A..=) <$> Just (networkDeviceBoundSessionInclusionRulesIncludeSite p),
+    ("urlRules" A..=) <$> Just (networkDeviceBoundSessionInclusionRulesUrlRules p)
+    ]
+
+-- | Type 'Network.DeviceBoundSession'.
+--   A device bound session.
+data NetworkDeviceBoundSession = NetworkDeviceBoundSession
+  {
+    -- | The site and session ID of the session.
+    networkDeviceBoundSessionKey :: NetworkDeviceBoundSessionKey,
+    -- | See comments on `net::device_bound_sessions::Session::refresh_url_`.
+    networkDeviceBoundSessionRefreshUrl :: T.Text,
+    -- | See comments on `net::device_bound_sessions::Session::inclusion_rules_`.
+    networkDeviceBoundSessionInclusionRules :: NetworkDeviceBoundSessionInclusionRules,
+    -- | See comments on `net::device_bound_sessions::Session::cookie_cravings_`.
+    networkDeviceBoundSessionCookieCravings :: [NetworkDeviceBoundSessionCookieCraving],
+    -- | See comments on `net::device_bound_sessions::Session::expiry_date_`.
+    networkDeviceBoundSessionExpiryDate :: NetworkTimeSinceEpoch,
+    -- | See comments on `net::device_bound_sessions::Session::cached_challenge__`.
+    networkDeviceBoundSessionCachedChallenge :: Maybe T.Text,
+    -- | See comments on `net::device_bound_sessions::Session::allowed_refresh_initiators_`.
+    networkDeviceBoundSessionAllowedRefreshInitiators :: [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSession where
+  parseJSON = A.withObject "NetworkDeviceBoundSession" $ \o -> NetworkDeviceBoundSession
+    <$> o A..: "key"
+    <*> o A..: "refreshUrl"
+    <*> o A..: "inclusionRules"
+    <*> o A..: "cookieCravings"
+    <*> o A..: "expiryDate"
+    <*> o A..:? "cachedChallenge"
+    <*> o A..: "allowedRefreshInitiators"
+instance ToJSON NetworkDeviceBoundSession where
+  toJSON p = A.object $ catMaybes [
+    ("key" A..=) <$> Just (networkDeviceBoundSessionKey p),
+    ("refreshUrl" A..=) <$> Just (networkDeviceBoundSessionRefreshUrl p),
+    ("inclusionRules" A..=) <$> Just (networkDeviceBoundSessionInclusionRules p),
+    ("cookieCravings" A..=) <$> Just (networkDeviceBoundSessionCookieCravings p),
+    ("expiryDate" A..=) <$> Just (networkDeviceBoundSessionExpiryDate p),
+    ("cachedChallenge" A..=) <$> (networkDeviceBoundSessionCachedChallenge p),
+    ("allowedRefreshInitiators" A..=) <$> Just (networkDeviceBoundSessionAllowedRefreshInitiators p)
+    ]
+
+-- | Type 'Network.DeviceBoundSessionEventId'.
+--   A unique identifier for a device bound session event.
+type NetworkDeviceBoundSessionEventId = T.Text
+
+-- | Type 'Network.DeviceBoundSessionFetchResult'.
+--   A fetch result for a device bound session creation or refresh.
+--   LINT.IfChange(DeviceBoundSessionFetchResult)
+data NetworkDeviceBoundSessionFetchResult = NetworkDeviceBoundSessionFetchResultSuccess | NetworkDeviceBoundSessionFetchResultSigningKeyGenerationError | NetworkDeviceBoundSessionFetchResultAttestationKeyGenerationError | NetworkDeviceBoundSessionFetchResultSigningError | NetworkDeviceBoundSessionFetchResultTransientSigningError | NetworkDeviceBoundSessionFetchResultServerRequestedTermination | NetworkDeviceBoundSessionFetchResultInvalidSessionId | NetworkDeviceBoundSessionFetchResultInvalidChallenge | NetworkDeviceBoundSessionFetchResultTooManyChallenges | NetworkDeviceBoundSessionFetchResultInvalidFetcherUrl | NetworkDeviceBoundSessionFetchResultInvalidRefreshUrl | NetworkDeviceBoundSessionFetchResultTransientHttpError | NetworkDeviceBoundSessionFetchResultScopeOriginSameSiteMismatch | NetworkDeviceBoundSessionFetchResultRefreshUrlSameSiteMismatch | NetworkDeviceBoundSessionFetchResultMismatchedSessionId | NetworkDeviceBoundSessionFetchResultMissingScope | NetworkDeviceBoundSessionFetchResultNoCredentials | NetworkDeviceBoundSessionFetchResultSubdomainRegistrationWellKnownUnavailable | NetworkDeviceBoundSessionFetchResultSubdomainRegistrationUnauthorized | NetworkDeviceBoundSessionFetchResultSubdomainRegistrationWellKnownMalformed | NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownUnavailable | NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownUnavailable | NetworkDeviceBoundSessionFetchResultFederatedKeyThumbprintMismatch | NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionUrl | NetworkDeviceBoundSessionFetchResultInvalidFederatedKey | NetworkDeviceBoundSessionFetchResultTooManyRelyingOriginLabels | NetworkDeviceBoundSessionFetchResultBoundCookieSetForbidden | NetworkDeviceBoundSessionFetchResultNetError | NetworkDeviceBoundSessionFetchResultProxyError | NetworkDeviceBoundSessionFetchResultEmptySessionConfig | NetworkDeviceBoundSessionFetchResultInvalidCredentialsConfig | NetworkDeviceBoundSessionFetchResultInvalidCredentialsType | NetworkDeviceBoundSessionFetchResultInvalidCredentialsEmptyName | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookie | NetworkDeviceBoundSessionFetchResultPersistentHttpError | NetworkDeviceBoundSessionFetchResultRegistrationAttemptedChallenge | NetworkDeviceBoundSessionFetchResultInvalidScopeOrigin | NetworkDeviceBoundSessionFetchResultScopeOriginContainsPath | NetworkDeviceBoundSessionFetchResultRefreshInitiatorNotString | NetworkDeviceBoundSessionFetchResultRefreshInitiatorInvalidHostPattern | NetworkDeviceBoundSessionFetchResultInvalidScopeSpecification | NetworkDeviceBoundSessionFetchResultMissingScopeSpecificationType | NetworkDeviceBoundSessionFetchResultEmptyScopeSpecificationDomain | NetworkDeviceBoundSessionFetchResultEmptyScopeSpecificationPath | NetworkDeviceBoundSessionFetchResultInvalidScopeSpecificationType | NetworkDeviceBoundSessionFetchResultInvalidScopeIncludeSite | NetworkDeviceBoundSessionFetchResultMissingScopeIncludeSite | NetworkDeviceBoundSessionFetchResultFederatedNotAuthorizedByProvider | NetworkDeviceBoundSessionFetchResultFederatedNotAuthorizedByRelyingParty | NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownMalformed | NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownHasProviderOrigin | NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownMalformed | NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownHasRelyingOrigins | NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionProviderSessionMissing | NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionWrongProviderOrigin | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieCreationTime | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieName | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieParsing | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieUnpermittedAttribute | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieInvalidDomain | NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookiePrefix | NetworkDeviceBoundSessionFetchResultInvalidScopeRulePath | NetworkDeviceBoundSessionFetchResultInvalidScopeRuleHostPattern | NetworkDeviceBoundSessionFetchResultScopeRuleOriginScopedHostPatternMismatch | NetworkDeviceBoundSessionFetchResultScopeRuleSiteScopedHostPatternMismatch | NetworkDeviceBoundSessionFetchResultSigningQuotaExceeded | NetworkDeviceBoundSessionFetchResultInvalidConfigJson | NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionProviderFailedToRestoreKey | NetworkDeviceBoundSessionFetchResultFailedToUnwrapKey | NetworkDeviceBoundSessionFetchResultSessionDeletedDuringRefresh | NetworkDeviceBoundSessionFetchResultCrossOriginRegistrationSiteNotIncluded | NetworkDeviceBoundSessionFetchResultInvalidPreProvisionedKeyInitiatorMissing | NetworkDeviceBoundSessionFetchResultPreProvisionedKeyAccessNotGranted | NetworkDeviceBoundSessionFetchResultPreProvisionedKeyNotFound
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkDeviceBoundSessionFetchResult where
+  parseJSON = A.withText "NetworkDeviceBoundSessionFetchResult" $ \v -> case v of
+    "Success" -> pure NetworkDeviceBoundSessionFetchResultSuccess
+    "SigningKeyGenerationError" -> pure NetworkDeviceBoundSessionFetchResultSigningKeyGenerationError
+    "AttestationKeyGenerationError" -> pure NetworkDeviceBoundSessionFetchResultAttestationKeyGenerationError
+    "SigningError" -> pure NetworkDeviceBoundSessionFetchResultSigningError
+    "TransientSigningError" -> pure NetworkDeviceBoundSessionFetchResultTransientSigningError
+    "ServerRequestedTermination" -> pure NetworkDeviceBoundSessionFetchResultServerRequestedTermination
+    "InvalidSessionId" -> pure NetworkDeviceBoundSessionFetchResultInvalidSessionId
+    "InvalidChallenge" -> pure NetworkDeviceBoundSessionFetchResultInvalidChallenge
+    "TooManyChallenges" -> pure NetworkDeviceBoundSessionFetchResultTooManyChallenges
+    "InvalidFetcherUrl" -> pure NetworkDeviceBoundSessionFetchResultInvalidFetcherUrl
+    "InvalidRefreshUrl" -> pure NetworkDeviceBoundSessionFetchResultInvalidRefreshUrl
+    "TransientHttpError" -> pure NetworkDeviceBoundSessionFetchResultTransientHttpError
+    "ScopeOriginSameSiteMismatch" -> pure NetworkDeviceBoundSessionFetchResultScopeOriginSameSiteMismatch
+    "RefreshUrlSameSiteMismatch" -> pure NetworkDeviceBoundSessionFetchResultRefreshUrlSameSiteMismatch
+    "MismatchedSessionId" -> pure NetworkDeviceBoundSessionFetchResultMismatchedSessionId
+    "MissingScope" -> pure NetworkDeviceBoundSessionFetchResultMissingScope
+    "NoCredentials" -> pure NetworkDeviceBoundSessionFetchResultNoCredentials
+    "SubdomainRegistrationWellKnownUnavailable" -> pure NetworkDeviceBoundSessionFetchResultSubdomainRegistrationWellKnownUnavailable
+    "SubdomainRegistrationUnauthorized" -> pure NetworkDeviceBoundSessionFetchResultSubdomainRegistrationUnauthorized
+    "SubdomainRegistrationWellKnownMalformed" -> pure NetworkDeviceBoundSessionFetchResultSubdomainRegistrationWellKnownMalformed
+    "SessionProviderWellKnownUnavailable" -> pure NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownUnavailable
+    "RelyingPartyWellKnownUnavailable" -> pure NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownUnavailable
+    "FederatedKeyThumbprintMismatch" -> pure NetworkDeviceBoundSessionFetchResultFederatedKeyThumbprintMismatch
+    "InvalidFederatedSessionUrl" -> pure NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionUrl
+    "InvalidFederatedKey" -> pure NetworkDeviceBoundSessionFetchResultInvalidFederatedKey
+    "TooManyRelyingOriginLabels" -> pure NetworkDeviceBoundSessionFetchResultTooManyRelyingOriginLabels
+    "BoundCookieSetForbidden" -> pure NetworkDeviceBoundSessionFetchResultBoundCookieSetForbidden
+    "NetError" -> pure NetworkDeviceBoundSessionFetchResultNetError
+    "ProxyError" -> pure NetworkDeviceBoundSessionFetchResultProxyError
+    "EmptySessionConfig" -> pure NetworkDeviceBoundSessionFetchResultEmptySessionConfig
+    "InvalidCredentialsConfig" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsConfig
+    "InvalidCredentialsType" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsType
+    "InvalidCredentialsEmptyName" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsEmptyName
+    "InvalidCredentialsCookie" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookie
+    "PersistentHttpError" -> pure NetworkDeviceBoundSessionFetchResultPersistentHttpError
+    "RegistrationAttemptedChallenge" -> pure NetworkDeviceBoundSessionFetchResultRegistrationAttemptedChallenge
+    "InvalidScopeOrigin" -> pure NetworkDeviceBoundSessionFetchResultInvalidScopeOrigin
+    "ScopeOriginContainsPath" -> pure NetworkDeviceBoundSessionFetchResultScopeOriginContainsPath
+    "RefreshInitiatorNotString" -> pure NetworkDeviceBoundSessionFetchResultRefreshInitiatorNotString
+    "RefreshInitiatorInvalidHostPattern" -> pure NetworkDeviceBoundSessionFetchResultRefreshInitiatorInvalidHostPattern
+    "InvalidScopeSpecification" -> pure NetworkDeviceBoundSessionFetchResultInvalidScopeSpecification
+    "MissingScopeSpecificationType" -> pure NetworkDeviceBoundSessionFetchResultMissingScopeSpecificationType
+    "EmptyScopeSpecificationDomain" -> pure NetworkDeviceBoundSessionFetchResultEmptyScopeSpecificationDomain
+    "EmptyScopeSpecificationPath" -> pure NetworkDeviceBoundSessionFetchResultEmptyScopeSpecificationPath
+    "InvalidScopeSpecificationType" -> pure NetworkDeviceBoundSessionFetchResultInvalidScopeSpecificationType
+    "InvalidScopeIncludeSite" -> pure NetworkDeviceBoundSessionFetchResultInvalidScopeIncludeSite
+    "MissingScopeIncludeSite" -> pure NetworkDeviceBoundSessionFetchResultMissingScopeIncludeSite
+    "FederatedNotAuthorizedByProvider" -> pure NetworkDeviceBoundSessionFetchResultFederatedNotAuthorizedByProvider
+    "FederatedNotAuthorizedByRelyingParty" -> pure NetworkDeviceBoundSessionFetchResultFederatedNotAuthorizedByRelyingParty
+    "SessionProviderWellKnownMalformed" -> pure NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownMalformed
+    "SessionProviderWellKnownHasProviderOrigin" -> pure NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownHasProviderOrigin
+    "RelyingPartyWellKnownMalformed" -> pure NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownMalformed
+    "RelyingPartyWellKnownHasRelyingOrigins" -> pure NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownHasRelyingOrigins
+    "InvalidFederatedSessionProviderSessionMissing" -> pure NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionProviderSessionMissing
+    "InvalidFederatedSessionWrongProviderOrigin" -> pure NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionWrongProviderOrigin
+    "InvalidCredentialsCookieCreationTime" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieCreationTime
+    "InvalidCredentialsCookieName" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieName
+    "InvalidCredentialsCookieParsing" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieParsing
+    "InvalidCredentialsCookieUnpermittedAttribute" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieUnpermittedAttribute
+    "InvalidCredentialsCookieInvalidDomain" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieInvalidDomain
+    "InvalidCredentialsCookiePrefix" -> pure NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookiePrefix
+    "InvalidScopeRulePath" -> pure NetworkDeviceBoundSessionFetchResultInvalidScopeRulePath
+    "InvalidScopeRuleHostPattern" -> pure NetworkDeviceBoundSessionFetchResultInvalidScopeRuleHostPattern
+    "ScopeRuleOriginScopedHostPatternMismatch" -> pure NetworkDeviceBoundSessionFetchResultScopeRuleOriginScopedHostPatternMismatch
+    "ScopeRuleSiteScopedHostPatternMismatch" -> pure NetworkDeviceBoundSessionFetchResultScopeRuleSiteScopedHostPatternMismatch
+    "SigningQuotaExceeded" -> pure NetworkDeviceBoundSessionFetchResultSigningQuotaExceeded
+    "InvalidConfigJson" -> pure NetworkDeviceBoundSessionFetchResultInvalidConfigJson
+    "InvalidFederatedSessionProviderFailedToRestoreKey" -> pure NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionProviderFailedToRestoreKey
+    "FailedToUnwrapKey" -> pure NetworkDeviceBoundSessionFetchResultFailedToUnwrapKey
+    "SessionDeletedDuringRefresh" -> pure NetworkDeviceBoundSessionFetchResultSessionDeletedDuringRefresh
+    "CrossOriginRegistrationSiteNotIncluded" -> pure NetworkDeviceBoundSessionFetchResultCrossOriginRegistrationSiteNotIncluded
+    "InvalidPreProvisionedKeyInitiatorMissing" -> pure NetworkDeviceBoundSessionFetchResultInvalidPreProvisionedKeyInitiatorMissing
+    "PreProvisionedKeyAccessNotGranted" -> pure NetworkDeviceBoundSessionFetchResultPreProvisionedKeyAccessNotGranted
+    "PreProvisionedKeyNotFound" -> pure NetworkDeviceBoundSessionFetchResultPreProvisionedKeyNotFound
+    "_" -> fail "failed to parse NetworkDeviceBoundSessionFetchResult"
+instance ToJSON NetworkDeviceBoundSessionFetchResult where
+  toJSON v = A.String $ case v of
+    NetworkDeviceBoundSessionFetchResultSuccess -> "Success"
+    NetworkDeviceBoundSessionFetchResultSigningKeyGenerationError -> "SigningKeyGenerationError"
+    NetworkDeviceBoundSessionFetchResultAttestationKeyGenerationError -> "AttestationKeyGenerationError"
+    NetworkDeviceBoundSessionFetchResultSigningError -> "SigningError"
+    NetworkDeviceBoundSessionFetchResultTransientSigningError -> "TransientSigningError"
+    NetworkDeviceBoundSessionFetchResultServerRequestedTermination -> "ServerRequestedTermination"
+    NetworkDeviceBoundSessionFetchResultInvalidSessionId -> "InvalidSessionId"
+    NetworkDeviceBoundSessionFetchResultInvalidChallenge -> "InvalidChallenge"
+    NetworkDeviceBoundSessionFetchResultTooManyChallenges -> "TooManyChallenges"
+    NetworkDeviceBoundSessionFetchResultInvalidFetcherUrl -> "InvalidFetcherUrl"
+    NetworkDeviceBoundSessionFetchResultInvalidRefreshUrl -> "InvalidRefreshUrl"
+    NetworkDeviceBoundSessionFetchResultTransientHttpError -> "TransientHttpError"
+    NetworkDeviceBoundSessionFetchResultScopeOriginSameSiteMismatch -> "ScopeOriginSameSiteMismatch"
+    NetworkDeviceBoundSessionFetchResultRefreshUrlSameSiteMismatch -> "RefreshUrlSameSiteMismatch"
+    NetworkDeviceBoundSessionFetchResultMismatchedSessionId -> "MismatchedSessionId"
+    NetworkDeviceBoundSessionFetchResultMissingScope -> "MissingScope"
+    NetworkDeviceBoundSessionFetchResultNoCredentials -> "NoCredentials"
+    NetworkDeviceBoundSessionFetchResultSubdomainRegistrationWellKnownUnavailable -> "SubdomainRegistrationWellKnownUnavailable"
+    NetworkDeviceBoundSessionFetchResultSubdomainRegistrationUnauthorized -> "SubdomainRegistrationUnauthorized"
+    NetworkDeviceBoundSessionFetchResultSubdomainRegistrationWellKnownMalformed -> "SubdomainRegistrationWellKnownMalformed"
+    NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownUnavailable -> "SessionProviderWellKnownUnavailable"
+    NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownUnavailable -> "RelyingPartyWellKnownUnavailable"
+    NetworkDeviceBoundSessionFetchResultFederatedKeyThumbprintMismatch -> "FederatedKeyThumbprintMismatch"
+    NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionUrl -> "InvalidFederatedSessionUrl"
+    NetworkDeviceBoundSessionFetchResultInvalidFederatedKey -> "InvalidFederatedKey"
+    NetworkDeviceBoundSessionFetchResultTooManyRelyingOriginLabels -> "TooManyRelyingOriginLabels"
+    NetworkDeviceBoundSessionFetchResultBoundCookieSetForbidden -> "BoundCookieSetForbidden"
+    NetworkDeviceBoundSessionFetchResultNetError -> "NetError"
+    NetworkDeviceBoundSessionFetchResultProxyError -> "ProxyError"
+    NetworkDeviceBoundSessionFetchResultEmptySessionConfig -> "EmptySessionConfig"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsConfig -> "InvalidCredentialsConfig"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsType -> "InvalidCredentialsType"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsEmptyName -> "InvalidCredentialsEmptyName"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookie -> "InvalidCredentialsCookie"
+    NetworkDeviceBoundSessionFetchResultPersistentHttpError -> "PersistentHttpError"
+    NetworkDeviceBoundSessionFetchResultRegistrationAttemptedChallenge -> "RegistrationAttemptedChallenge"
+    NetworkDeviceBoundSessionFetchResultInvalidScopeOrigin -> "InvalidScopeOrigin"
+    NetworkDeviceBoundSessionFetchResultScopeOriginContainsPath -> "ScopeOriginContainsPath"
+    NetworkDeviceBoundSessionFetchResultRefreshInitiatorNotString -> "RefreshInitiatorNotString"
+    NetworkDeviceBoundSessionFetchResultRefreshInitiatorInvalidHostPattern -> "RefreshInitiatorInvalidHostPattern"
+    NetworkDeviceBoundSessionFetchResultInvalidScopeSpecification -> "InvalidScopeSpecification"
+    NetworkDeviceBoundSessionFetchResultMissingScopeSpecificationType -> "MissingScopeSpecificationType"
+    NetworkDeviceBoundSessionFetchResultEmptyScopeSpecificationDomain -> "EmptyScopeSpecificationDomain"
+    NetworkDeviceBoundSessionFetchResultEmptyScopeSpecificationPath -> "EmptyScopeSpecificationPath"
+    NetworkDeviceBoundSessionFetchResultInvalidScopeSpecificationType -> "InvalidScopeSpecificationType"
+    NetworkDeviceBoundSessionFetchResultInvalidScopeIncludeSite -> "InvalidScopeIncludeSite"
+    NetworkDeviceBoundSessionFetchResultMissingScopeIncludeSite -> "MissingScopeIncludeSite"
+    NetworkDeviceBoundSessionFetchResultFederatedNotAuthorizedByProvider -> "FederatedNotAuthorizedByProvider"
+    NetworkDeviceBoundSessionFetchResultFederatedNotAuthorizedByRelyingParty -> "FederatedNotAuthorizedByRelyingParty"
+    NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownMalformed -> "SessionProviderWellKnownMalformed"
+    NetworkDeviceBoundSessionFetchResultSessionProviderWellKnownHasProviderOrigin -> "SessionProviderWellKnownHasProviderOrigin"
+    NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownMalformed -> "RelyingPartyWellKnownMalformed"
+    NetworkDeviceBoundSessionFetchResultRelyingPartyWellKnownHasRelyingOrigins -> "RelyingPartyWellKnownHasRelyingOrigins"
+    NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionProviderSessionMissing -> "InvalidFederatedSessionProviderSessionMissing"
+    NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionWrongProviderOrigin -> "InvalidFederatedSessionWrongProviderOrigin"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieCreationTime -> "InvalidCredentialsCookieCreationTime"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieName -> "InvalidCredentialsCookieName"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieParsing -> "InvalidCredentialsCookieParsing"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieUnpermittedAttribute -> "InvalidCredentialsCookieUnpermittedAttribute"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookieInvalidDomain -> "InvalidCredentialsCookieInvalidDomain"
+    NetworkDeviceBoundSessionFetchResultInvalidCredentialsCookiePrefix -> "InvalidCredentialsCookiePrefix"
+    NetworkDeviceBoundSessionFetchResultInvalidScopeRulePath -> "InvalidScopeRulePath"
+    NetworkDeviceBoundSessionFetchResultInvalidScopeRuleHostPattern -> "InvalidScopeRuleHostPattern"
+    NetworkDeviceBoundSessionFetchResultScopeRuleOriginScopedHostPatternMismatch -> "ScopeRuleOriginScopedHostPatternMismatch"
+    NetworkDeviceBoundSessionFetchResultScopeRuleSiteScopedHostPatternMismatch -> "ScopeRuleSiteScopedHostPatternMismatch"
+    NetworkDeviceBoundSessionFetchResultSigningQuotaExceeded -> "SigningQuotaExceeded"
+    NetworkDeviceBoundSessionFetchResultInvalidConfigJson -> "InvalidConfigJson"
+    NetworkDeviceBoundSessionFetchResultInvalidFederatedSessionProviderFailedToRestoreKey -> "InvalidFederatedSessionProviderFailedToRestoreKey"
+    NetworkDeviceBoundSessionFetchResultFailedToUnwrapKey -> "FailedToUnwrapKey"
+    NetworkDeviceBoundSessionFetchResultSessionDeletedDuringRefresh -> "SessionDeletedDuringRefresh"
+    NetworkDeviceBoundSessionFetchResultCrossOriginRegistrationSiteNotIncluded -> "CrossOriginRegistrationSiteNotIncluded"
+    NetworkDeviceBoundSessionFetchResultInvalidPreProvisionedKeyInitiatorMissing -> "InvalidPreProvisionedKeyInitiatorMissing"
+    NetworkDeviceBoundSessionFetchResultPreProvisionedKeyAccessNotGranted -> "PreProvisionedKeyAccessNotGranted"
+    NetworkDeviceBoundSessionFetchResultPreProvisionedKeyNotFound -> "PreProvisionedKeyNotFound"
+
+-- | Type 'Network.DeviceBoundSessionFailedRequest'.
+--   Details about a failed device bound session network request.
+data NetworkDeviceBoundSessionFailedRequest = NetworkDeviceBoundSessionFailedRequest
+  {
+    -- | The failed request URL.
+    networkDeviceBoundSessionFailedRequestRequestUrl :: T.Text,
+    -- | The net error of the response if it was not OK.
+    networkDeviceBoundSessionFailedRequestNetError :: Maybe T.Text,
+    -- | The response code if the net error was OK and the response code was not
+    --   200.
+    networkDeviceBoundSessionFailedRequestResponseError :: Maybe Int,
+    -- | The body of the response if the net error was OK, the response code was
+    --   not 200, and the response body was not empty.
+    networkDeviceBoundSessionFailedRequestResponseErrorBody :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionFailedRequest where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionFailedRequest" $ \o -> NetworkDeviceBoundSessionFailedRequest
+    <$> o A..: "requestUrl"
+    <*> o A..:? "netError"
+    <*> o A..:? "responseError"
+    <*> o A..:? "responseErrorBody"
+instance ToJSON NetworkDeviceBoundSessionFailedRequest where
+  toJSON p = A.object $ catMaybes [
+    ("requestUrl" A..=) <$> Just (networkDeviceBoundSessionFailedRequestRequestUrl p),
+    ("netError" A..=) <$> (networkDeviceBoundSessionFailedRequestNetError p),
+    ("responseError" A..=) <$> (networkDeviceBoundSessionFailedRequestResponseError p),
+    ("responseErrorBody" A..=) <$> (networkDeviceBoundSessionFailedRequestResponseErrorBody p)
+    ]
+
+-- | Type 'Network.CreationEventDetails'.
+--   Session event details specific to creation.
+data NetworkCreationEventDetails = NetworkCreationEventDetails
+  {
+    -- | The result of the fetch attempt.
+    networkCreationEventDetailsFetchResult :: NetworkDeviceBoundSessionFetchResult,
+    -- | The session if there was a newly created session. This is populated for
+    --   all successful creation events.
+    networkCreationEventDetailsNewSession :: Maybe NetworkDeviceBoundSession,
+    -- | Details about a failed device bound session network request if there was
+    --   one.
+    networkCreationEventDetailsFailedRequest :: Maybe NetworkDeviceBoundSessionFailedRequest
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkCreationEventDetails where
+  parseJSON = A.withObject "NetworkCreationEventDetails" $ \o -> NetworkCreationEventDetails
+    <$> o A..: "fetchResult"
+    <*> o A..:? "newSession"
+    <*> o A..:? "failedRequest"
+instance ToJSON NetworkCreationEventDetails where
+  toJSON p = A.object $ catMaybes [
+    ("fetchResult" A..=) <$> Just (networkCreationEventDetailsFetchResult p),
+    ("newSession" A..=) <$> (networkCreationEventDetailsNewSession p),
+    ("failedRequest" A..=) <$> (networkCreationEventDetailsFailedRequest p)
+    ]
+
+-- | Type 'Network.RefreshEventDetails'.
+--   Session event details specific to refresh.
+data NetworkRefreshEventDetailsRefreshResult = NetworkRefreshEventDetailsRefreshResultRefreshed | NetworkRefreshEventDetailsRefreshResultInitializedService | NetworkRefreshEventDetailsRefreshResultUnreachable | NetworkRefreshEventDetailsRefreshResultServerError | NetworkRefreshEventDetailsRefreshResultFatalError | NetworkRefreshEventDetailsRefreshResultSigningQuotaExceeded | NetworkRefreshEventDetailsRefreshResultRefreshedAsWaiter | NetworkRefreshEventDetailsRefreshResultTransientSigningError | NetworkRefreshEventDetailsRefreshResultInScopeRefreshNotYetNeeded
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkRefreshEventDetailsRefreshResult where
+  parseJSON = A.withText "NetworkRefreshEventDetailsRefreshResult" $ \v -> case v of
+    "Refreshed" -> pure NetworkRefreshEventDetailsRefreshResultRefreshed
+    "InitializedService" -> pure NetworkRefreshEventDetailsRefreshResultInitializedService
+    "Unreachable" -> pure NetworkRefreshEventDetailsRefreshResultUnreachable
+    "ServerError" -> pure NetworkRefreshEventDetailsRefreshResultServerError
+    "FatalError" -> pure NetworkRefreshEventDetailsRefreshResultFatalError
+    "SigningQuotaExceeded" -> pure NetworkRefreshEventDetailsRefreshResultSigningQuotaExceeded
+    "RefreshedAsWaiter" -> pure NetworkRefreshEventDetailsRefreshResultRefreshedAsWaiter
+    "TransientSigningError" -> pure NetworkRefreshEventDetailsRefreshResultTransientSigningError
+    "InScopeRefreshNotYetNeeded" -> pure NetworkRefreshEventDetailsRefreshResultInScopeRefreshNotYetNeeded
+    "_" -> fail "failed to parse NetworkRefreshEventDetailsRefreshResult"
+instance ToJSON NetworkRefreshEventDetailsRefreshResult where
+  toJSON v = A.String $ case v of
+    NetworkRefreshEventDetailsRefreshResultRefreshed -> "Refreshed"
+    NetworkRefreshEventDetailsRefreshResultInitializedService -> "InitializedService"
+    NetworkRefreshEventDetailsRefreshResultUnreachable -> "Unreachable"
+    NetworkRefreshEventDetailsRefreshResultServerError -> "ServerError"
+    NetworkRefreshEventDetailsRefreshResultFatalError -> "FatalError"
+    NetworkRefreshEventDetailsRefreshResultSigningQuotaExceeded -> "SigningQuotaExceeded"
+    NetworkRefreshEventDetailsRefreshResultRefreshedAsWaiter -> "RefreshedAsWaiter"
+    NetworkRefreshEventDetailsRefreshResultTransientSigningError -> "TransientSigningError"
+    NetworkRefreshEventDetailsRefreshResultInScopeRefreshNotYetNeeded -> "InScopeRefreshNotYetNeeded"
+data NetworkRefreshEventDetails = NetworkRefreshEventDetails
+  {
+    -- | The result of a refresh.
+    --   LINT.IfChange(DeviceBoundSessionRefreshResult)
+    networkRefreshEventDetailsRefreshResult :: NetworkRefreshEventDetailsRefreshResult,
+    -- | LINT.ThenChange(//net/device_bound_sessions/refresh_result.h:DeviceBoundSessionRefreshResult,//content/browser/devtools/protocol/network_handler.cc:DeviceBoundSessionRefreshResult)
+    --   If there was a fetch attempt, the result of that.
+    networkRefreshEventDetailsFetchResult :: Maybe NetworkDeviceBoundSessionFetchResult,
+    -- | The session display if there was a newly created session. This is populated
+    --   for any refresh event that modifies the session config.
+    networkRefreshEventDetailsNewSession :: Maybe NetworkDeviceBoundSession,
+    -- | See comments on `net::device_bound_sessions::RefreshEventResult::was_fully_proactive_refresh`.
+    networkRefreshEventDetailsWasFullyProactiveRefresh :: Bool,
+    -- | Details about a failed device bound session network request if there was
+    --   one.
+    networkRefreshEventDetailsFailedRequest :: Maybe NetworkDeviceBoundSessionFailedRequest
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkRefreshEventDetails where
+  parseJSON = A.withObject "NetworkRefreshEventDetails" $ \o -> NetworkRefreshEventDetails
+    <$> o A..: "refreshResult"
+    <*> o A..:? "fetchResult"
+    <*> o A..:? "newSession"
+    <*> o A..: "wasFullyProactiveRefresh"
+    <*> o A..:? "failedRequest"
+instance ToJSON NetworkRefreshEventDetails where
+  toJSON p = A.object $ catMaybes [
+    ("refreshResult" A..=) <$> Just (networkRefreshEventDetailsRefreshResult p),
+    ("fetchResult" A..=) <$> (networkRefreshEventDetailsFetchResult p),
+    ("newSession" A..=) <$> (networkRefreshEventDetailsNewSession p),
+    ("wasFullyProactiveRefresh" A..=) <$> Just (networkRefreshEventDetailsWasFullyProactiveRefresh p),
+    ("failedRequest" A..=) <$> (networkRefreshEventDetailsFailedRequest p)
+    ]
+
+-- | Type 'Network.TerminationEventDetails'.
+--   Session event details specific to termination.
+data NetworkTerminationEventDetailsDeletionReason = NetworkTerminationEventDetailsDeletionReasonExpired | NetworkTerminationEventDetailsDeletionReasonFailedToRestoreKey | NetworkTerminationEventDetailsDeletionReasonFailedToUnwrapKey | NetworkTerminationEventDetailsDeletionReasonStoragePartitionCleared | NetworkTerminationEventDetailsDeletionReasonClearBrowsingData | NetworkTerminationEventDetailsDeletionReasonServerRequested | NetworkTerminationEventDetailsDeletionReasonInvalidSessionParams | NetworkTerminationEventDetailsDeletionReasonRefreshFatalError | NetworkTerminationEventDetailsDeletionReasonDevTools
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkTerminationEventDetailsDeletionReason where
+  parseJSON = A.withText "NetworkTerminationEventDetailsDeletionReason" $ \v -> case v of
+    "Expired" -> pure NetworkTerminationEventDetailsDeletionReasonExpired
+    "FailedToRestoreKey" -> pure NetworkTerminationEventDetailsDeletionReasonFailedToRestoreKey
+    "FailedToUnwrapKey" -> pure NetworkTerminationEventDetailsDeletionReasonFailedToUnwrapKey
+    "StoragePartitionCleared" -> pure NetworkTerminationEventDetailsDeletionReasonStoragePartitionCleared
+    "ClearBrowsingData" -> pure NetworkTerminationEventDetailsDeletionReasonClearBrowsingData
+    "ServerRequested" -> pure NetworkTerminationEventDetailsDeletionReasonServerRequested
+    "InvalidSessionParams" -> pure NetworkTerminationEventDetailsDeletionReasonInvalidSessionParams
+    "RefreshFatalError" -> pure NetworkTerminationEventDetailsDeletionReasonRefreshFatalError
+    "DevTools" -> pure NetworkTerminationEventDetailsDeletionReasonDevTools
+    "_" -> fail "failed to parse NetworkTerminationEventDetailsDeletionReason"
+instance ToJSON NetworkTerminationEventDetailsDeletionReason where
+  toJSON v = A.String $ case v of
+    NetworkTerminationEventDetailsDeletionReasonExpired -> "Expired"
+    NetworkTerminationEventDetailsDeletionReasonFailedToRestoreKey -> "FailedToRestoreKey"
+    NetworkTerminationEventDetailsDeletionReasonFailedToUnwrapKey -> "FailedToUnwrapKey"
+    NetworkTerminationEventDetailsDeletionReasonStoragePartitionCleared -> "StoragePartitionCleared"
+    NetworkTerminationEventDetailsDeletionReasonClearBrowsingData -> "ClearBrowsingData"
+    NetworkTerminationEventDetailsDeletionReasonServerRequested -> "ServerRequested"
+    NetworkTerminationEventDetailsDeletionReasonInvalidSessionParams -> "InvalidSessionParams"
+    NetworkTerminationEventDetailsDeletionReasonRefreshFatalError -> "RefreshFatalError"
+    NetworkTerminationEventDetailsDeletionReasonDevTools -> "DevTools"
+data NetworkTerminationEventDetails = NetworkTerminationEventDetails
+  {
+    -- | The reason for a session being deleted.
+    networkTerminationEventDetailsDeletionReason :: NetworkTerminationEventDetailsDeletionReason
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkTerminationEventDetails where
+  parseJSON = A.withObject "NetworkTerminationEventDetails" $ \o -> NetworkTerminationEventDetails
+    <$> o A..: "deletionReason"
+instance ToJSON NetworkTerminationEventDetails where
+  toJSON p = A.object $ catMaybes [
+    ("deletionReason" A..=) <$> Just (networkTerminationEventDetailsDeletionReason p)
+    ]
+
+-- | Type 'Network.ChallengeEventDetails'.
+--   Session event details specific to challenges.
+data NetworkChallengeEventDetailsChallengeResult = NetworkChallengeEventDetailsChallengeResultSuccess | NetworkChallengeEventDetailsChallengeResultNoSessionId | NetworkChallengeEventDetailsChallengeResultNoSessionMatch | NetworkChallengeEventDetailsChallengeResultCantSetBoundCookie
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON NetworkChallengeEventDetailsChallengeResult where
+  parseJSON = A.withText "NetworkChallengeEventDetailsChallengeResult" $ \v -> case v of
+    "Success" -> pure NetworkChallengeEventDetailsChallengeResultSuccess
+    "NoSessionId" -> pure NetworkChallengeEventDetailsChallengeResultNoSessionId
+    "NoSessionMatch" -> pure NetworkChallengeEventDetailsChallengeResultNoSessionMatch
+    "CantSetBoundCookie" -> pure NetworkChallengeEventDetailsChallengeResultCantSetBoundCookie
+    "_" -> fail "failed to parse NetworkChallengeEventDetailsChallengeResult"
+instance ToJSON NetworkChallengeEventDetailsChallengeResult where
+  toJSON v = A.String $ case v of
+    NetworkChallengeEventDetailsChallengeResultSuccess -> "Success"
+    NetworkChallengeEventDetailsChallengeResultNoSessionId -> "NoSessionId"
+    NetworkChallengeEventDetailsChallengeResultNoSessionMatch -> "NoSessionMatch"
+    NetworkChallengeEventDetailsChallengeResultCantSetBoundCookie -> "CantSetBoundCookie"
+data NetworkChallengeEventDetails = NetworkChallengeEventDetails
+  {
+    -- | The result of a challenge.
+    networkChallengeEventDetailsChallengeResult :: NetworkChallengeEventDetailsChallengeResult,
+    -- | The challenge set.
+    networkChallengeEventDetailsChallenge :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkChallengeEventDetails where
+  parseJSON = A.withObject "NetworkChallengeEventDetails" $ \o -> NetworkChallengeEventDetails
+    <$> o A..: "challengeResult"
+    <*> o A..: "challenge"
+instance ToJSON NetworkChallengeEventDetails where
+  toJSON p = A.object $ catMaybes [
+    ("challengeResult" A..=) <$> Just (networkChallengeEventDetailsChallengeResult p),
+    ("challenge" A..=) <$> Just (networkChallengeEventDetailsChallenge p)
+    ]
+
 -- | Type 'Network.LoadNetworkResourcePageResult'.
 --   An object providing the result of a network resource load.
 data NetworkLoadNetworkResourcePageResult = NetworkLoadNetworkResourcePageResult
@@ -5363,7 +7709,9 @@ data NetworkDataReceived = NetworkDataReceived
     -- | Data chunk length.
     networkDataReceivedDataLength :: Int,
     -- | Actual bytes received (might be less than dataLength for compressed encodings).
-    networkDataReceivedEncodedDataLength :: Int
+    networkDataReceivedEncodedDataLength :: Int,
+    -- | Data that was received. (Encoded as a base64 string when passed over JSON)
+    networkDataReceivedData :: Maybe T.Text
   }
   deriving (Eq, Show)
 instance FromJSON NetworkDataReceived where
@@ -5372,6 +7720,7 @@ instance FromJSON NetworkDataReceived where
     <*> o A..: "timestamp"
     <*> o A..: "dataLength"
     <*> o A..: "encodedDataLength"
+    <*> o A..:? "data"
 instance Event NetworkDataReceived where
   eventName _ = "Network.dataReceived"
 
@@ -5409,7 +7758,7 @@ data NetworkLoadingFailed = NetworkLoadingFailed
     networkLoadingFailedTimestamp :: NetworkMonotonicTime,
     -- | Resource type.
     networkLoadingFailedType :: NetworkResourceType,
-    -- | User friendly error message.
+    -- | Error message. List of network errors: https://cs.chromium.org/chromium/src/net/base/net_error_list.h
     networkLoadingFailedErrorText :: T.Text,
     -- | True if loading was canceled.
     networkLoadingFailedCanceled :: Maybe Bool,
@@ -5439,10 +7788,7 @@ data NetworkLoadingFinished = NetworkLoadingFinished
     -- | Timestamp.
     networkLoadingFinishedTimestamp :: NetworkMonotonicTime,
     -- | Total number of bytes received for this request.
-    networkLoadingFinishedEncodedDataLength :: Double,
-    -- | Set when 1) response was blocked by Cross-Origin Read Blocking and also
-    --   2) this needs to be reported to the DevTools console.
-    networkLoadingFinishedShouldReportCorbBlocking :: Maybe Bool
+    networkLoadingFinishedEncodedDataLength :: Double
   }
   deriving (Eq, Show)
 instance FromJSON NetworkLoadingFinished where
@@ -5450,7 +7796,6 @@ instance FromJSON NetworkLoadingFinished where
     <$> o A..: "requestId"
     <*> o A..: "timestamp"
     <*> o A..: "encodedDataLength"
-    <*> o A..:? "shouldReportCorbBlocking"
 instance Event NetworkLoadingFinished where
   eventName _ = "Network.loadingFinished"
 
@@ -5495,7 +7840,9 @@ data NetworkRequestWillBeSent = NetworkRequestWillBeSent
     -- | Frame identifier.
     networkRequestWillBeSentFrameId :: Maybe PageFrameId,
     -- | Whether the request is initiated by a user gesture. Defaults to false.
-    networkRequestWillBeSentHasUserGesture :: Maybe Bool
+    networkRequestWillBeSentHasUserGesture :: Maybe Bool,
+    -- | The render-blocking behavior of the request.
+    networkRequestWillBeSentRenderBlockingBehavior :: Maybe NetworkRenderBlockingBehavior
   }
   deriving (Eq, Show)
 instance FromJSON NetworkRequestWillBeSent where
@@ -5512,6 +7859,7 @@ instance FromJSON NetworkRequestWillBeSent where
     <*> o A..:? "type"
     <*> o A..:? "frameId"
     <*> o A..:? "hasUserGesture"
+    <*> o A..:? "renderBlockingBehavior"
 instance Event NetworkRequestWillBeSent where
   eventName _ = "Network.requestWillBeSent"
 
@@ -5769,20 +8117,268 @@ instance FromJSON NetworkWebTransportClosed where
 instance Event NetworkWebTransportClosed where
   eventName _ = "Network.webTransportClosed"
 
+-- | Type of the 'Network.directTCPSocketCreated' event.
+data NetworkDirectTCPSocketCreated = NetworkDirectTCPSocketCreated
+  {
+    networkDirectTCPSocketCreatedIdentifier :: NetworkRequestId,
+    networkDirectTCPSocketCreatedRemoteAddr :: T.Text,
+    -- | Unsigned int 16.
+    networkDirectTCPSocketCreatedRemotePort :: Int,
+    networkDirectTCPSocketCreatedOptions :: NetworkDirectTCPSocketOptions,
+    networkDirectTCPSocketCreatedTimestamp :: NetworkMonotonicTime,
+    networkDirectTCPSocketCreatedInitiator :: Maybe NetworkInitiator
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketCreated where
+  parseJSON = A.withObject "NetworkDirectTCPSocketCreated" $ \o -> NetworkDirectTCPSocketCreated
+    <$> o A..: "identifier"
+    <*> o A..: "remoteAddr"
+    <*> o A..: "remotePort"
+    <*> o A..: "options"
+    <*> o A..: "timestamp"
+    <*> o A..:? "initiator"
+instance Event NetworkDirectTCPSocketCreated where
+  eventName _ = "Network.directTCPSocketCreated"
+
+-- | Type of the 'Network.directTCPSocketOpened' event.
+data NetworkDirectTCPSocketOpened = NetworkDirectTCPSocketOpened
+  {
+    networkDirectTCPSocketOpenedIdentifier :: NetworkRequestId,
+    networkDirectTCPSocketOpenedRemoteAddr :: T.Text,
+    -- | Expected to be unsigned integer.
+    networkDirectTCPSocketOpenedRemotePort :: Int,
+    networkDirectTCPSocketOpenedTimestamp :: NetworkMonotonicTime,
+    networkDirectTCPSocketOpenedLocalAddr :: Maybe T.Text,
+    -- | Expected to be unsigned integer.
+    networkDirectTCPSocketOpenedLocalPort :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketOpened where
+  parseJSON = A.withObject "NetworkDirectTCPSocketOpened" $ \o -> NetworkDirectTCPSocketOpened
+    <$> o A..: "identifier"
+    <*> o A..: "remoteAddr"
+    <*> o A..: "remotePort"
+    <*> o A..: "timestamp"
+    <*> o A..:? "localAddr"
+    <*> o A..:? "localPort"
+instance Event NetworkDirectTCPSocketOpened where
+  eventName _ = "Network.directTCPSocketOpened"
+
+-- | Type of the 'Network.directTCPSocketAborted' event.
+data NetworkDirectTCPSocketAborted = NetworkDirectTCPSocketAborted
+  {
+    networkDirectTCPSocketAbortedIdentifier :: NetworkRequestId,
+    networkDirectTCPSocketAbortedErrorMessage :: NetworkErrorReason,
+    networkDirectTCPSocketAbortedTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketAborted where
+  parseJSON = A.withObject "NetworkDirectTCPSocketAborted" $ \o -> NetworkDirectTCPSocketAborted
+    <$> o A..: "identifier"
+    <*> o A..: "errorMessage"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectTCPSocketAborted where
+  eventName _ = "Network.directTCPSocketAborted"
+
+-- | Type of the 'Network.directTCPSocketClosed' event.
+data NetworkDirectTCPSocketClosed = NetworkDirectTCPSocketClosed
+  {
+    networkDirectTCPSocketClosedIdentifier :: NetworkRequestId,
+    networkDirectTCPSocketClosedTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketClosed where
+  parseJSON = A.withObject "NetworkDirectTCPSocketClosed" $ \o -> NetworkDirectTCPSocketClosed
+    <$> o A..: "identifier"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectTCPSocketClosed where
+  eventName _ = "Network.directTCPSocketClosed"
+
+-- | Type of the 'Network.directTCPSocketChunkSent' event.
+data NetworkDirectTCPSocketChunkSent = NetworkDirectTCPSocketChunkSent
+  {
+    networkDirectTCPSocketChunkSentIdentifier :: NetworkRequestId,
+    networkDirectTCPSocketChunkSentData :: T.Text,
+    networkDirectTCPSocketChunkSentTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketChunkSent where
+  parseJSON = A.withObject "NetworkDirectTCPSocketChunkSent" $ \o -> NetworkDirectTCPSocketChunkSent
+    <$> o A..: "identifier"
+    <*> o A..: "data"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectTCPSocketChunkSent where
+  eventName _ = "Network.directTCPSocketChunkSent"
+
+-- | Type of the 'Network.directTCPSocketChunkReceived' event.
+data NetworkDirectTCPSocketChunkReceived = NetworkDirectTCPSocketChunkReceived
+  {
+    networkDirectTCPSocketChunkReceivedIdentifier :: NetworkRequestId,
+    networkDirectTCPSocketChunkReceivedData :: T.Text,
+    networkDirectTCPSocketChunkReceivedTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectTCPSocketChunkReceived where
+  parseJSON = A.withObject "NetworkDirectTCPSocketChunkReceived" $ \o -> NetworkDirectTCPSocketChunkReceived
+    <$> o A..: "identifier"
+    <*> o A..: "data"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectTCPSocketChunkReceived where
+  eventName _ = "Network.directTCPSocketChunkReceived"
+
+-- | Type of the 'Network.directUDPSocketJoinedMulticastGroup' event.
+data NetworkDirectUDPSocketJoinedMulticastGroup = NetworkDirectUDPSocketJoinedMulticastGroup
+  {
+    networkDirectUDPSocketJoinedMulticastGroupIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketJoinedMulticastGroupIPAddress :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketJoinedMulticastGroup where
+  parseJSON = A.withObject "NetworkDirectUDPSocketJoinedMulticastGroup" $ \o -> NetworkDirectUDPSocketJoinedMulticastGroup
+    <$> o A..: "identifier"
+    <*> o A..: "IPAddress"
+instance Event NetworkDirectUDPSocketJoinedMulticastGroup where
+  eventName _ = "Network.directUDPSocketJoinedMulticastGroup"
+
+-- | Type of the 'Network.directUDPSocketLeftMulticastGroup' event.
+data NetworkDirectUDPSocketLeftMulticastGroup = NetworkDirectUDPSocketLeftMulticastGroup
+  {
+    networkDirectUDPSocketLeftMulticastGroupIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketLeftMulticastGroupIPAddress :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketLeftMulticastGroup where
+  parseJSON = A.withObject "NetworkDirectUDPSocketLeftMulticastGroup" $ \o -> NetworkDirectUDPSocketLeftMulticastGroup
+    <$> o A..: "identifier"
+    <*> o A..: "IPAddress"
+instance Event NetworkDirectUDPSocketLeftMulticastGroup where
+  eventName _ = "Network.directUDPSocketLeftMulticastGroup"
+
+-- | Type of the 'Network.directUDPSocketCreated' event.
+data NetworkDirectUDPSocketCreated = NetworkDirectUDPSocketCreated
+  {
+    networkDirectUDPSocketCreatedIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketCreatedOptions :: NetworkDirectUDPSocketOptions,
+    networkDirectUDPSocketCreatedTimestamp :: NetworkMonotonicTime,
+    networkDirectUDPSocketCreatedInitiator :: Maybe NetworkInitiator
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketCreated where
+  parseJSON = A.withObject "NetworkDirectUDPSocketCreated" $ \o -> NetworkDirectUDPSocketCreated
+    <$> o A..: "identifier"
+    <*> o A..: "options"
+    <*> o A..: "timestamp"
+    <*> o A..:? "initiator"
+instance Event NetworkDirectUDPSocketCreated where
+  eventName _ = "Network.directUDPSocketCreated"
+
+-- | Type of the 'Network.directUDPSocketOpened' event.
+data NetworkDirectUDPSocketOpened = NetworkDirectUDPSocketOpened
+  {
+    networkDirectUDPSocketOpenedIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketOpenedLocalAddr :: T.Text,
+    -- | Expected to be unsigned integer.
+    networkDirectUDPSocketOpenedLocalPort :: Int,
+    networkDirectUDPSocketOpenedTimestamp :: NetworkMonotonicTime,
+    networkDirectUDPSocketOpenedRemoteAddr :: Maybe T.Text,
+    -- | Expected to be unsigned integer.
+    networkDirectUDPSocketOpenedRemotePort :: Maybe Int
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketOpened where
+  parseJSON = A.withObject "NetworkDirectUDPSocketOpened" $ \o -> NetworkDirectUDPSocketOpened
+    <$> o A..: "identifier"
+    <*> o A..: "localAddr"
+    <*> o A..: "localPort"
+    <*> o A..: "timestamp"
+    <*> o A..:? "remoteAddr"
+    <*> o A..:? "remotePort"
+instance Event NetworkDirectUDPSocketOpened where
+  eventName _ = "Network.directUDPSocketOpened"
+
+-- | Type of the 'Network.directUDPSocketAborted' event.
+data NetworkDirectUDPSocketAborted = NetworkDirectUDPSocketAborted
+  {
+    networkDirectUDPSocketAbortedIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketAbortedErrorMessage :: NetworkErrorReason,
+    networkDirectUDPSocketAbortedTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketAborted where
+  parseJSON = A.withObject "NetworkDirectUDPSocketAborted" $ \o -> NetworkDirectUDPSocketAborted
+    <$> o A..: "identifier"
+    <*> o A..: "errorMessage"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectUDPSocketAborted where
+  eventName _ = "Network.directUDPSocketAborted"
+
+-- | Type of the 'Network.directUDPSocketClosed' event.
+data NetworkDirectUDPSocketClosed = NetworkDirectUDPSocketClosed
+  {
+    networkDirectUDPSocketClosedIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketClosedTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketClosed where
+  parseJSON = A.withObject "NetworkDirectUDPSocketClosed" $ \o -> NetworkDirectUDPSocketClosed
+    <$> o A..: "identifier"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectUDPSocketClosed where
+  eventName _ = "Network.directUDPSocketClosed"
+
+-- | Type of the 'Network.directUDPSocketChunkSent' event.
+data NetworkDirectUDPSocketChunkSent = NetworkDirectUDPSocketChunkSent
+  {
+    networkDirectUDPSocketChunkSentIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketChunkSentMessage :: NetworkDirectUDPMessage,
+    networkDirectUDPSocketChunkSentTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketChunkSent where
+  parseJSON = A.withObject "NetworkDirectUDPSocketChunkSent" $ \o -> NetworkDirectUDPSocketChunkSent
+    <$> o A..: "identifier"
+    <*> o A..: "message"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectUDPSocketChunkSent where
+  eventName _ = "Network.directUDPSocketChunkSent"
+
+-- | Type of the 'Network.directUDPSocketChunkReceived' event.
+data NetworkDirectUDPSocketChunkReceived = NetworkDirectUDPSocketChunkReceived
+  {
+    networkDirectUDPSocketChunkReceivedIdentifier :: NetworkRequestId,
+    networkDirectUDPSocketChunkReceivedMessage :: NetworkDirectUDPMessage,
+    networkDirectUDPSocketChunkReceivedTimestamp :: NetworkMonotonicTime
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDirectUDPSocketChunkReceived where
+  parseJSON = A.withObject "NetworkDirectUDPSocketChunkReceived" $ \o -> NetworkDirectUDPSocketChunkReceived
+    <$> o A..: "identifier"
+    <*> o A..: "message"
+    <*> o A..: "timestamp"
+instance Event NetworkDirectUDPSocketChunkReceived where
+  eventName _ = "Network.directUDPSocketChunkReceived"
+
 -- | Type of the 'Network.requestWillBeSentExtraInfo' event.
 data NetworkRequestWillBeSentExtraInfo = NetworkRequestWillBeSentExtraInfo
   {
     -- | Request identifier. Used to match this information to an existing requestWillBeSent event.
     networkRequestWillBeSentExtraInfoRequestId :: NetworkRequestId,
     -- | A list of cookies potentially associated to the requested URL. This includes both cookies sent with
-    --   the request and the ones not sent; the latter are distinguished by having blockedReason field set.
-    networkRequestWillBeSentExtraInfoAssociatedCookies :: [NetworkBlockedCookieWithReason],
+    --   the request and the ones not sent; the latter are distinguished by having blockedReasons field set.
+    networkRequestWillBeSentExtraInfoAssociatedCookies :: [NetworkAssociatedCookie],
     -- | Raw request headers as they will be sent over the wire.
     networkRequestWillBeSentExtraInfoHeaders :: NetworkHeaders,
     -- | Connection timing information for the request.
     networkRequestWillBeSentExtraInfoConnectTiming :: NetworkConnectTiming,
+    -- | How the request site's device bound sessions were used during this request.
+    networkRequestWillBeSentExtraInfoDeviceBoundSessionUsages :: Maybe [NetworkDeviceBoundSessionWithUsage],
     -- | The client security state set for the request.
-    networkRequestWillBeSentExtraInfoClientSecurityState :: Maybe NetworkClientSecurityState
+    networkRequestWillBeSentExtraInfoClientSecurityState :: Maybe NetworkClientSecurityState,
+    -- | Whether the site has partitioned cookies stored in a partition different than the current one.
+    networkRequestWillBeSentExtraInfoSiteHasCookieInOtherPartition :: Maybe Bool,
+    -- | The network conditions id if this request was affected by network conditions configured via
+    --   emulateNetworkConditionsByRule.
+    networkRequestWillBeSentExtraInfoAppliedNetworkConditionsId :: Maybe T.Text
   }
   deriving (Eq, Show)
 instance FromJSON NetworkRequestWillBeSentExtraInfo where
@@ -5791,7 +8387,10 @@ instance FromJSON NetworkRequestWillBeSentExtraInfo where
     <*> o A..: "associatedCookies"
     <*> o A..: "headers"
     <*> o A..: "connectTiming"
+    <*> o A..:? "deviceBoundSessionUsages"
     <*> o A..:? "clientSecurityState"
+    <*> o A..:? "siteHasCookieInOtherPartition"
+    <*> o A..:? "appliedNetworkConditionsId"
 instance Event NetworkRequestWillBeSentExtraInfo where
   eventName _ = "Network.requestWillBeSentExtraInfo"
 
@@ -5805,6 +8404,9 @@ data NetworkResponseReceivedExtraInfo = NetworkResponseReceivedExtraInfo
     --   are represented by the invalid cookie line string instead of a proper cookie.
     networkResponseReceivedExtraInfoBlockedCookies :: [NetworkBlockedSetCookieWithReason],
     -- | Raw response headers as they were received over the wire.
+    --   Duplicate headers in the response are represented as a single key with their values
+    --   concatentated using `\n` as the separator.
+    --   See also `headersText` that contains verbatim text for HTTP/1.*.
     networkResponseReceivedExtraInfoHeaders :: NetworkHeaders,
     -- | The IP address space of the resource. The address space can only be determined once the transport
     --   established the connection, so we can't send it in `requestWillBeSentExtraInfo`.
@@ -5815,7 +8417,15 @@ data NetworkResponseReceivedExtraInfo = NetworkResponseReceivedExtraInfo
     networkResponseReceivedExtraInfoStatusCode :: Int,
     -- | Raw response header text as it was received over the wire. The raw text may not always be
     --   available, such as in the case of HTTP/2 or QUIC.
-    networkResponseReceivedExtraInfoHeadersText :: Maybe T.Text
+    networkResponseReceivedExtraInfoHeadersText :: Maybe T.Text,
+    -- | The cookie partition key that will be used to store partitioned cookies set in this response.
+    --   Only sent when partitioned cookies are enabled.
+    networkResponseReceivedExtraInfoCookiePartitionKey :: Maybe NetworkCookiePartitionKey,
+    -- | True if partitioned cookies are enabled, but the partition key is not serializable to string.
+    networkResponseReceivedExtraInfoCookiePartitionKeyOpaque :: Maybe Bool,
+    -- | A list of cookies which should have been blocked by 3PCD but are exempted and stored from
+    --   the response with the corresponding reason.
+    networkResponseReceivedExtraInfoExemptedCookies :: Maybe [NetworkExemptedSetCookieWithReason]
   }
   deriving (Eq, Show)
 instance FromJSON NetworkResponseReceivedExtraInfo where
@@ -5826,37 +8436,65 @@ instance FromJSON NetworkResponseReceivedExtraInfo where
     <*> o A..: "resourceIPAddressSpace"
     <*> o A..: "statusCode"
     <*> o A..:? "headersText"
+    <*> o A..:? "cookiePartitionKey"
+    <*> o A..:? "cookiePartitionKeyOpaque"
+    <*> o A..:? "exemptedCookies"
 instance Event NetworkResponseReceivedExtraInfo where
   eventName _ = "Network.responseReceivedExtraInfo"
 
+-- | Type of the 'Network.responseReceivedEarlyHints' event.
+data NetworkResponseReceivedEarlyHints = NetworkResponseReceivedEarlyHints
+  {
+    -- | Request identifier. Used to match this information to another responseReceived event.
+    networkResponseReceivedEarlyHintsRequestId :: NetworkRequestId,
+    -- | Raw response headers as they were received over the wire.
+    --   Duplicate headers in the response are represented as a single key with their values
+    --   concatentated using `\n` as the separator.
+    --   See also `headersText` that contains verbatim text for HTTP/1.*.
+    networkResponseReceivedEarlyHintsHeaders :: NetworkHeaders
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkResponseReceivedEarlyHints where
+  parseJSON = A.withObject "NetworkResponseReceivedEarlyHints" $ \o -> NetworkResponseReceivedEarlyHints
+    <$> o A..: "requestId"
+    <*> o A..: "headers"
+instance Event NetworkResponseReceivedEarlyHints where
+  eventName _ = "Network.responseReceivedEarlyHints"
+
 -- | Type of the 'Network.trustTokenOperationDone' event.
-data NetworkTrustTokenOperationDoneStatus = NetworkTrustTokenOperationDoneStatusOk | NetworkTrustTokenOperationDoneStatusInvalidArgument | NetworkTrustTokenOperationDoneStatusFailedPrecondition | NetworkTrustTokenOperationDoneStatusResourceExhausted | NetworkTrustTokenOperationDoneStatusAlreadyExists | NetworkTrustTokenOperationDoneStatusUnavailable | NetworkTrustTokenOperationDoneStatusBadResponse | NetworkTrustTokenOperationDoneStatusInternalError | NetworkTrustTokenOperationDoneStatusUnknownError | NetworkTrustTokenOperationDoneStatusFulfilledLocally
+data NetworkTrustTokenOperationDoneStatus = NetworkTrustTokenOperationDoneStatusOk | NetworkTrustTokenOperationDoneStatusInvalidArgument | NetworkTrustTokenOperationDoneStatusMissingIssuerKeys | NetworkTrustTokenOperationDoneStatusFailedPrecondition | NetworkTrustTokenOperationDoneStatusResourceExhausted | NetworkTrustTokenOperationDoneStatusAlreadyExists | NetworkTrustTokenOperationDoneStatusResourceLimited | NetworkTrustTokenOperationDoneStatusUnauthorized | NetworkTrustTokenOperationDoneStatusBadResponse | NetworkTrustTokenOperationDoneStatusInternalError | NetworkTrustTokenOperationDoneStatusUnknownError | NetworkTrustTokenOperationDoneStatusFulfilledLocally | NetworkTrustTokenOperationDoneStatusSiteIssuerLimit
   deriving (Ord, Eq, Show, Read)
 instance FromJSON NetworkTrustTokenOperationDoneStatus where
   parseJSON = A.withText "NetworkTrustTokenOperationDoneStatus" $ \v -> case v of
     "Ok" -> pure NetworkTrustTokenOperationDoneStatusOk
     "InvalidArgument" -> pure NetworkTrustTokenOperationDoneStatusInvalidArgument
+    "MissingIssuerKeys" -> pure NetworkTrustTokenOperationDoneStatusMissingIssuerKeys
     "FailedPrecondition" -> pure NetworkTrustTokenOperationDoneStatusFailedPrecondition
     "ResourceExhausted" -> pure NetworkTrustTokenOperationDoneStatusResourceExhausted
     "AlreadyExists" -> pure NetworkTrustTokenOperationDoneStatusAlreadyExists
-    "Unavailable" -> pure NetworkTrustTokenOperationDoneStatusUnavailable
+    "ResourceLimited" -> pure NetworkTrustTokenOperationDoneStatusResourceLimited
+    "Unauthorized" -> pure NetworkTrustTokenOperationDoneStatusUnauthorized
     "BadResponse" -> pure NetworkTrustTokenOperationDoneStatusBadResponse
     "InternalError" -> pure NetworkTrustTokenOperationDoneStatusInternalError
     "UnknownError" -> pure NetworkTrustTokenOperationDoneStatusUnknownError
     "FulfilledLocally" -> pure NetworkTrustTokenOperationDoneStatusFulfilledLocally
+    "SiteIssuerLimit" -> pure NetworkTrustTokenOperationDoneStatusSiteIssuerLimit
     "_" -> fail "failed to parse NetworkTrustTokenOperationDoneStatus"
 instance ToJSON NetworkTrustTokenOperationDoneStatus where
   toJSON v = A.String $ case v of
     NetworkTrustTokenOperationDoneStatusOk -> "Ok"
     NetworkTrustTokenOperationDoneStatusInvalidArgument -> "InvalidArgument"
+    NetworkTrustTokenOperationDoneStatusMissingIssuerKeys -> "MissingIssuerKeys"
     NetworkTrustTokenOperationDoneStatusFailedPrecondition -> "FailedPrecondition"
     NetworkTrustTokenOperationDoneStatusResourceExhausted -> "ResourceExhausted"
     NetworkTrustTokenOperationDoneStatusAlreadyExists -> "AlreadyExists"
-    NetworkTrustTokenOperationDoneStatusUnavailable -> "Unavailable"
+    NetworkTrustTokenOperationDoneStatusResourceLimited -> "ResourceLimited"
+    NetworkTrustTokenOperationDoneStatusUnauthorized -> "Unauthorized"
     NetworkTrustTokenOperationDoneStatusBadResponse -> "BadResponse"
     NetworkTrustTokenOperationDoneStatusInternalError -> "InternalError"
     NetworkTrustTokenOperationDoneStatusUnknownError -> "UnknownError"
     NetworkTrustTokenOperationDoneStatusFulfilledLocally -> "FulfilledLocally"
+    NetworkTrustTokenOperationDoneStatusSiteIssuerLimit -> "SiteIssuerLimit"
 data NetworkTrustTokenOperationDone = NetworkTrustTokenOperationDone
   {
     -- | Detailed success or error status of the operation.
@@ -5885,82 +8523,13 @@ instance FromJSON NetworkTrustTokenOperationDone where
 instance Event NetworkTrustTokenOperationDone where
   eventName _ = "Network.trustTokenOperationDone"
 
--- | Type of the 'Network.subresourceWebBundleMetadataReceived' event.
-data NetworkSubresourceWebBundleMetadataReceived = NetworkSubresourceWebBundleMetadataReceived
-  {
-    -- | Request identifier. Used to match this information to another event.
-    networkSubresourceWebBundleMetadataReceivedRequestId :: NetworkRequestId,
-    -- | A list of URLs of resources in the subresource Web Bundle.
-    networkSubresourceWebBundleMetadataReceivedUrls :: [T.Text]
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkSubresourceWebBundleMetadataReceived where
-  parseJSON = A.withObject "NetworkSubresourceWebBundleMetadataReceived" $ \o -> NetworkSubresourceWebBundleMetadataReceived
-    <$> o A..: "requestId"
-    <*> o A..: "urls"
-instance Event NetworkSubresourceWebBundleMetadataReceived where
-  eventName _ = "Network.subresourceWebBundleMetadataReceived"
-
--- | Type of the 'Network.subresourceWebBundleMetadataError' event.
-data NetworkSubresourceWebBundleMetadataError = NetworkSubresourceWebBundleMetadataError
-  {
-    -- | Request identifier. Used to match this information to another event.
-    networkSubresourceWebBundleMetadataErrorRequestId :: NetworkRequestId,
-    -- | Error message
-    networkSubresourceWebBundleMetadataErrorErrorMessage :: T.Text
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkSubresourceWebBundleMetadataError where
-  parseJSON = A.withObject "NetworkSubresourceWebBundleMetadataError" $ \o -> NetworkSubresourceWebBundleMetadataError
-    <$> o A..: "requestId"
-    <*> o A..: "errorMessage"
-instance Event NetworkSubresourceWebBundleMetadataError where
-  eventName _ = "Network.subresourceWebBundleMetadataError"
-
--- | Type of the 'Network.subresourceWebBundleInnerResponseParsed' event.
-data NetworkSubresourceWebBundleInnerResponseParsed = NetworkSubresourceWebBundleInnerResponseParsed
-  {
-    -- | Request identifier of the subresource request
-    networkSubresourceWebBundleInnerResponseParsedInnerRequestId :: NetworkRequestId,
-    -- | URL of the subresource resource.
-    networkSubresourceWebBundleInnerResponseParsedInnerRequestURL :: T.Text,
-    -- | Bundle request identifier. Used to match this information to another event.
-    --   This made be absent in case when the instrumentation was enabled only
-    --   after webbundle was parsed.
-    networkSubresourceWebBundleInnerResponseParsedBundleRequestId :: Maybe NetworkRequestId
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkSubresourceWebBundleInnerResponseParsed where
-  parseJSON = A.withObject "NetworkSubresourceWebBundleInnerResponseParsed" $ \o -> NetworkSubresourceWebBundleInnerResponseParsed
-    <$> o A..: "innerRequestId"
-    <*> o A..: "innerRequestURL"
-    <*> o A..:? "bundleRequestId"
-instance Event NetworkSubresourceWebBundleInnerResponseParsed where
-  eventName _ = "Network.subresourceWebBundleInnerResponseParsed"
-
--- | Type of the 'Network.subresourceWebBundleInnerResponseError' event.
-data NetworkSubresourceWebBundleInnerResponseError = NetworkSubresourceWebBundleInnerResponseError
-  {
-    -- | Request identifier of the subresource request
-    networkSubresourceWebBundleInnerResponseErrorInnerRequestId :: NetworkRequestId,
-    -- | URL of the subresource resource.
-    networkSubresourceWebBundleInnerResponseErrorInnerRequestURL :: T.Text,
-    -- | Error message
-    networkSubresourceWebBundleInnerResponseErrorErrorMessage :: T.Text,
-    -- | Bundle request identifier. Used to match this information to another event.
-    --   This made be absent in case when the instrumentation was enabled only
-    --   after webbundle was parsed.
-    networkSubresourceWebBundleInnerResponseErrorBundleRequestId :: Maybe NetworkRequestId
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkSubresourceWebBundleInnerResponseError where
-  parseJSON = A.withObject "NetworkSubresourceWebBundleInnerResponseError" $ \o -> NetworkSubresourceWebBundleInnerResponseError
-    <$> o A..: "innerRequestId"
-    <*> o A..: "innerRequestURL"
-    <*> o A..: "errorMessage"
-    <*> o A..:? "bundleRequestId"
-instance Event NetworkSubresourceWebBundleInnerResponseError where
-  eventName _ = "Network.subresourceWebBundleInnerResponseError"
+-- | Type of the 'Network.policyUpdated' event.
+data NetworkPolicyUpdated = NetworkPolicyUpdated
+  deriving (Eq, Show, Read)
+instance FromJSON NetworkPolicyUpdated where
+  parseJSON _ = pure NetworkPolicyUpdated
+instance Event NetworkPolicyUpdated where
+  eventName _ = "Network.policyUpdated"
 
 -- | Type of the 'Network.reportingApiReportAdded' event.
 data NetworkReportingApiReportAdded = NetworkReportingApiReportAdded
@@ -6000,6 +8569,51 @@ instance FromJSON NetworkReportingApiEndpointsChangedForOrigin where
     <*> o A..: "endpoints"
 instance Event NetworkReportingApiEndpointsChangedForOrigin where
   eventName _ = "Network.reportingApiEndpointsChangedForOrigin"
+
+-- | Type of the 'Network.deviceBoundSessionsAdded' event.
+data NetworkDeviceBoundSessionsAdded = NetworkDeviceBoundSessionsAdded
+  {
+    -- | The device bound sessions.
+    networkDeviceBoundSessionsAddedSessions :: [NetworkDeviceBoundSession]
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionsAdded where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionsAdded" $ \o -> NetworkDeviceBoundSessionsAdded
+    <$> o A..: "sessions"
+instance Event NetworkDeviceBoundSessionsAdded where
+  eventName _ = "Network.deviceBoundSessionsAdded"
+
+-- | Type of the 'Network.deviceBoundSessionEventOccurred' event.
+data NetworkDeviceBoundSessionEventOccurred = NetworkDeviceBoundSessionEventOccurred
+  {
+    -- | A unique identifier for this session event.
+    networkDeviceBoundSessionEventOccurredEventId :: NetworkDeviceBoundSessionEventId,
+    -- | The site this session event is associated with.
+    networkDeviceBoundSessionEventOccurredSite :: T.Text,
+    -- | Whether this event was considered successful.
+    networkDeviceBoundSessionEventOccurredSucceeded :: Bool,
+    -- | The session ID this event is associated with. May not be populated for
+    --   failed events.
+    networkDeviceBoundSessionEventOccurredSessionId :: Maybe T.Text,
+    -- | The below are the different session event type details. Exactly one is populated.
+    networkDeviceBoundSessionEventOccurredCreationEventDetails :: Maybe NetworkCreationEventDetails,
+    networkDeviceBoundSessionEventOccurredRefreshEventDetails :: Maybe NetworkRefreshEventDetails,
+    networkDeviceBoundSessionEventOccurredTerminationEventDetails :: Maybe NetworkTerminationEventDetails,
+    networkDeviceBoundSessionEventOccurredChallengeEventDetails :: Maybe NetworkChallengeEventDetails
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkDeviceBoundSessionEventOccurred where
+  parseJSON = A.withObject "NetworkDeviceBoundSessionEventOccurred" $ \o -> NetworkDeviceBoundSessionEventOccurred
+    <$> o A..: "eventId"
+    <*> o A..: "site"
+    <*> o A..: "succeeded"
+    <*> o A..:? "sessionId"
+    <*> o A..:? "creationEventDetails"
+    <*> o A..:? "refreshEventDetails"
+    <*> o A..:? "terminationEventDetails"
+    <*> o A..:? "challengeEventDetails"
+instance Event NetworkDeviceBoundSessionEventOccurred where
+  eventName _ = "Network.deviceBoundSessionEventOccurred"
 
 -- | Sets a list of content encodings that will be accepted. Empty list means no encoding is accepted.
 
@@ -6077,7 +8691,7 @@ instance Command PNetworkClearBrowserCookies where
   commandName _ = "Network.clearBrowserCookies"
   fromJSON = const . A.Success . const ()
 
--- | Deletes browser cookies with matching name and url or domain/path pair.
+-- | Deletes browser cookies with matching name and url or domain/path/partitionKey pair.
 
 -- | Parameters of the 'Network.deleteCookies' command.
 data PNetworkDeleteCookies = PNetworkDeleteCookies
@@ -6090,7 +8704,10 @@ data PNetworkDeleteCookies = PNetworkDeleteCookies
     -- | If specified, deletes only cookies with the exact domain.
     pNetworkDeleteCookiesDomain :: Maybe T.Text,
     -- | If specified, deletes only cookies with the exact path.
-    pNetworkDeleteCookiesPath :: Maybe T.Text
+    pNetworkDeleteCookiesPath :: Maybe T.Text,
+    -- | If specified, deletes only cookies with the the given name and partitionKey where
+    --   all partition key attributes match the cookie partition key attribute.
+    pNetworkDeleteCookiesPartitionKey :: Maybe NetworkCookiePartitionKey
   }
   deriving (Eq, Show)
 pNetworkDeleteCookies
@@ -6106,12 +8723,14 @@ pNetworkDeleteCookies
     Nothing
     Nothing
     Nothing
+    Nothing
 instance ToJSON PNetworkDeleteCookies where
   toJSON p = A.object $ catMaybes [
     ("name" A..=) <$> Just (pNetworkDeleteCookiesName p),
     ("url" A..=) <$> (pNetworkDeleteCookiesUrl p),
     ("domain" A..=) <$> (pNetworkDeleteCookiesDomain p),
-    ("path" A..=) <$> (pNetworkDeleteCookiesPath p)
+    ("path" A..=) <$> (pNetworkDeleteCookiesPath p),
+    ("partitionKey" A..=) <$> (pNetworkDeleteCookiesPartitionKey p)
     ]
 instance Command PNetworkDeleteCookies where
   type CommandResponse PNetworkDeleteCookies = ()
@@ -6134,24 +8753,71 @@ instance Command PNetworkDisable where
   commandName _ = "Network.disable"
   fromJSON = const . A.Success . const ()
 
--- | Activates emulation of network conditions.
+-- | Activates emulation of network conditions for individual requests using URL match patterns. Unlike the deprecated
+--   Network.emulateNetworkConditions this method does not affect `navigator` state. Use Network.overrideNetworkState to
+--   explicitly modify `navigator` behavior.
 
--- | Parameters of the 'Network.emulateNetworkConditions' command.
-data PNetworkEmulateNetworkConditions = PNetworkEmulateNetworkConditions
+-- | Parameters of the 'Network.emulateNetworkConditionsByRule' command.
+data PNetworkEmulateNetworkConditionsByRule = PNetworkEmulateNetworkConditionsByRule
   {
-    -- | True to emulate internet disconnection.
-    pNetworkEmulateNetworkConditionsOffline :: Bool,
-    -- | Minimum latency from request sent to response headers received (ms).
-    pNetworkEmulateNetworkConditionsLatency :: Double,
-    -- | Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
-    pNetworkEmulateNetworkConditionsDownloadThroughput :: Double,
-    -- | Maximal aggregated upload throughput (bytes/sec).  -1 disables upload throttling.
-    pNetworkEmulateNetworkConditionsUploadThroughput :: Double,
-    -- | Connection type if known.
-    pNetworkEmulateNetworkConditionsConnectionType :: Maybe NetworkConnectionType
+    -- | True to emulate offline service worker.
+    pNetworkEmulateNetworkConditionsByRuleEmulateOfflineServiceWorker :: Maybe Bool,
+    -- | Configure conditions for matching requests. If multiple entries match a request, the first entry wins.  Global
+    --   conditions can be configured by leaving the urlPattern for the conditions empty. These global conditions are
+    --   also applied for throttling of p2p connections.
+    pNetworkEmulateNetworkConditionsByRuleMatchedNetworkConditions :: [NetworkNetworkConditions]
   }
   deriving (Eq, Show)
-pNetworkEmulateNetworkConditions
+pNetworkEmulateNetworkConditionsByRule
+  {-
+  -- | Configure conditions for matching requests. If multiple entries match a request, the first entry wins.  Global
+  --   conditions can be configured by leaving the urlPattern for the conditions empty. These global conditions are
+  --   also applied for throttling of p2p connections.
+  -}
+  :: [NetworkNetworkConditions]
+  -> PNetworkEmulateNetworkConditionsByRule
+pNetworkEmulateNetworkConditionsByRule
+  arg_pNetworkEmulateNetworkConditionsByRuleMatchedNetworkConditions
+  = PNetworkEmulateNetworkConditionsByRule
+    Nothing
+    arg_pNetworkEmulateNetworkConditionsByRuleMatchedNetworkConditions
+instance ToJSON PNetworkEmulateNetworkConditionsByRule where
+  toJSON p = A.object $ catMaybes [
+    ("emulateOfflineServiceWorker" A..=) <$> (pNetworkEmulateNetworkConditionsByRuleEmulateOfflineServiceWorker p),
+    ("matchedNetworkConditions" A..=) <$> Just (pNetworkEmulateNetworkConditionsByRuleMatchedNetworkConditions p)
+    ]
+data NetworkEmulateNetworkConditionsByRule = NetworkEmulateNetworkConditionsByRule
+  {
+    -- | An id for each entry in matchedNetworkConditions. The id will be included in the requestWillBeSentExtraInfo for
+    --   requests affected by a rule.
+    networkEmulateNetworkConditionsByRuleRuleIds :: [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkEmulateNetworkConditionsByRule where
+  parseJSON = A.withObject "NetworkEmulateNetworkConditionsByRule" $ \o -> NetworkEmulateNetworkConditionsByRule
+    <$> o A..: "ruleIds"
+instance Command PNetworkEmulateNetworkConditionsByRule where
+  type CommandResponse PNetworkEmulateNetworkConditionsByRule = NetworkEmulateNetworkConditionsByRule
+  commandName _ = "Network.emulateNetworkConditionsByRule"
+
+-- | Override the state of navigator.onLine and navigator.connection.
+
+-- | Parameters of the 'Network.overrideNetworkState' command.
+data PNetworkOverrideNetworkState = PNetworkOverrideNetworkState
+  {
+    -- | True to emulate internet disconnection.
+    pNetworkOverrideNetworkStateOffline :: Bool,
+    -- | Minimum latency from request sent to response headers received (ms).
+    pNetworkOverrideNetworkStateLatency :: Double,
+    -- | Maximal aggregated download throughput (bytes/sec). -1 disables download throttling.
+    pNetworkOverrideNetworkStateDownloadThroughput :: Double,
+    -- | Maximal aggregated upload throughput (bytes/sec).  -1 disables upload throttling.
+    pNetworkOverrideNetworkStateUploadThroughput :: Double,
+    -- | Connection type if known.
+    pNetworkOverrideNetworkStateConnectionType :: Maybe NetworkConnectionType
+  }
+  deriving (Eq, Show)
+pNetworkOverrideNetworkState
   {-
   -- | True to emulate internet disconnection.
   -}
@@ -6168,29 +8834,29 @@ pNetworkEmulateNetworkConditions
   -- | Maximal aggregated upload throughput (bytes/sec).  -1 disables upload throttling.
   -}
   -> Double
-  -> PNetworkEmulateNetworkConditions
-pNetworkEmulateNetworkConditions
-  arg_pNetworkEmulateNetworkConditionsOffline
-  arg_pNetworkEmulateNetworkConditionsLatency
-  arg_pNetworkEmulateNetworkConditionsDownloadThroughput
-  arg_pNetworkEmulateNetworkConditionsUploadThroughput
-  = PNetworkEmulateNetworkConditions
-    arg_pNetworkEmulateNetworkConditionsOffline
-    arg_pNetworkEmulateNetworkConditionsLatency
-    arg_pNetworkEmulateNetworkConditionsDownloadThroughput
-    arg_pNetworkEmulateNetworkConditionsUploadThroughput
+  -> PNetworkOverrideNetworkState
+pNetworkOverrideNetworkState
+  arg_pNetworkOverrideNetworkStateOffline
+  arg_pNetworkOverrideNetworkStateLatency
+  arg_pNetworkOverrideNetworkStateDownloadThroughput
+  arg_pNetworkOverrideNetworkStateUploadThroughput
+  = PNetworkOverrideNetworkState
+    arg_pNetworkOverrideNetworkStateOffline
+    arg_pNetworkOverrideNetworkStateLatency
+    arg_pNetworkOverrideNetworkStateDownloadThroughput
+    arg_pNetworkOverrideNetworkStateUploadThroughput
     Nothing
-instance ToJSON PNetworkEmulateNetworkConditions where
+instance ToJSON PNetworkOverrideNetworkState where
   toJSON p = A.object $ catMaybes [
-    ("offline" A..=) <$> Just (pNetworkEmulateNetworkConditionsOffline p),
-    ("latency" A..=) <$> Just (pNetworkEmulateNetworkConditionsLatency p),
-    ("downloadThroughput" A..=) <$> Just (pNetworkEmulateNetworkConditionsDownloadThroughput p),
-    ("uploadThroughput" A..=) <$> Just (pNetworkEmulateNetworkConditionsUploadThroughput p),
-    ("connectionType" A..=) <$> (pNetworkEmulateNetworkConditionsConnectionType p)
+    ("offline" A..=) <$> Just (pNetworkOverrideNetworkStateOffline p),
+    ("latency" A..=) <$> Just (pNetworkOverrideNetworkStateLatency p),
+    ("downloadThroughput" A..=) <$> Just (pNetworkOverrideNetworkStateDownloadThroughput p),
+    ("uploadThroughput" A..=) <$> Just (pNetworkOverrideNetworkStateUploadThroughput p),
+    ("connectionType" A..=) <$> (pNetworkOverrideNetworkStateConnectionType p)
     ]
-instance Command PNetworkEmulateNetworkConditions where
-  type CommandResponse PNetworkEmulateNetworkConditions = ()
-  commandName _ = "Network.emulateNetworkConditions"
+instance Command PNetworkOverrideNetworkState where
+  type CommandResponse PNetworkOverrideNetworkState = ()
+  commandName _ = "Network.overrideNetworkState"
   fromJSON = const . A.Success . const ()
 
 -- | Enables network tracking, network events will now be delivered to the client.
@@ -6199,11 +8865,21 @@ instance Command PNetworkEmulateNetworkConditions where
 data PNetworkEnable = PNetworkEnable
   {
     -- | Buffer size in bytes to use when preserving network payloads (XHRs, etc).
+    --   This is the maximum number of bytes that will be collected by this
+    --   DevTools session.
     pNetworkEnableMaxTotalBufferSize :: Maybe Int,
     -- | Per-resource buffer size in bytes to use when preserving network payloads (XHRs, etc).
     pNetworkEnableMaxResourceBufferSize :: Maybe Int,
     -- | Longest post body size (in bytes) that would be included in requestWillBeSent notification
-    pNetworkEnableMaxPostDataSize :: Maybe Int
+    pNetworkEnableMaxPostDataSize :: Maybe Int,
+    -- | Whether DirectSocket chunk send/receive events should be reported.
+    pNetworkEnableReportDirectSocketTraffic :: Maybe Bool,
+    -- | Enable storing response bodies outside of renderer, so that these survive
+    --   a cross-process navigation. Requires maxTotalBufferSize to be set.
+    --   Currently defaults to false. This field is being deprecated in favor of the dedicated
+    --   configureDurableMessages command, due to the possibility of deadlocks when awaiting
+    --   Network.enable before issuing Runtime.runIfWaitingForDebugger.
+    pNetworkEnableEnableDurableMessages :: Maybe Bool
   }
   deriving (Eq, Show)
 pNetworkEnable
@@ -6213,41 +8889,49 @@ pNetworkEnable
     Nothing
     Nothing
     Nothing
+    Nothing
+    Nothing
 instance ToJSON PNetworkEnable where
   toJSON p = A.object $ catMaybes [
     ("maxTotalBufferSize" A..=) <$> (pNetworkEnableMaxTotalBufferSize p),
     ("maxResourceBufferSize" A..=) <$> (pNetworkEnableMaxResourceBufferSize p),
-    ("maxPostDataSize" A..=) <$> (pNetworkEnableMaxPostDataSize p)
+    ("maxPostDataSize" A..=) <$> (pNetworkEnableMaxPostDataSize p),
+    ("reportDirectSocketTraffic" A..=) <$> (pNetworkEnableReportDirectSocketTraffic p),
+    ("enableDurableMessages" A..=) <$> (pNetworkEnableEnableDurableMessages p)
     ]
 instance Command PNetworkEnable where
   type CommandResponse PNetworkEnable = ()
   commandName _ = "Network.enable"
   fromJSON = const . A.Success . const ()
 
--- | Returns all browser cookies. Depending on the backend support, will return detailed cookie
---   information in the `cookies` field.
+-- | Configures storing response bodies outside of renderer, so that these survive
+--   a cross-process navigation.
+--   If maxTotalBufferSize is not set, durable messages are disabled.
 
--- | Parameters of the 'Network.getAllCookies' command.
-data PNetworkGetAllCookies = PNetworkGetAllCookies
-  deriving (Eq, Show)
-pNetworkGetAllCookies
-  :: PNetworkGetAllCookies
-pNetworkGetAllCookies
-  = PNetworkGetAllCookies
-instance ToJSON PNetworkGetAllCookies where
-  toJSON _ = A.Null
-data NetworkGetAllCookies = NetworkGetAllCookies
+-- | Parameters of the 'Network.configureDurableMessages' command.
+data PNetworkConfigureDurableMessages = PNetworkConfigureDurableMessages
   {
-    -- | Array of cookie objects.
-    networkGetAllCookiesCookies :: [NetworkCookie]
+    -- | Buffer size in bytes to use when preserving network payloads (XHRs, etc).
+    pNetworkConfigureDurableMessagesMaxTotalBufferSize :: Maybe Int,
+    -- | Per-resource buffer size in bytes to use when preserving network payloads (XHRs, etc).
+    pNetworkConfigureDurableMessagesMaxResourceBufferSize :: Maybe Int
   }
   deriving (Eq, Show)
-instance FromJSON NetworkGetAllCookies where
-  parseJSON = A.withObject "NetworkGetAllCookies" $ \o -> NetworkGetAllCookies
-    <$> o A..: "cookies"
-instance Command PNetworkGetAllCookies where
-  type CommandResponse PNetworkGetAllCookies = NetworkGetAllCookies
-  commandName _ = "Network.getAllCookies"
+pNetworkConfigureDurableMessages
+  :: PNetworkConfigureDurableMessages
+pNetworkConfigureDurableMessages
+  = PNetworkConfigureDurableMessages
+    Nothing
+    Nothing
+instance ToJSON PNetworkConfigureDurableMessages where
+  toJSON p = A.object $ catMaybes [
+    ("maxTotalBufferSize" A..=) <$> (pNetworkConfigureDurableMessagesMaxTotalBufferSize p),
+    ("maxResourceBufferSize" A..=) <$> (pNetworkConfigureDurableMessagesMaxResourceBufferSize p)
+    ]
+instance Command PNetworkConfigureDurableMessages where
+  type CommandResponse PNetworkConfigureDurableMessages = ()
+  commandName _ = "Network.configureDurableMessages"
+  fromJSON = const . A.Success . const ()
 
 -- | Returns the DER-encoded certificate.
 
@@ -6383,88 +9067,18 @@ instance ToJSON PNetworkGetRequestPostData where
 data NetworkGetRequestPostData = NetworkGetRequestPostData
   {
     -- | Request body string, omitting files from multipart requests
-    networkGetRequestPostDataPostData :: T.Text
+    networkGetRequestPostDataPostData :: T.Text,
+    -- | True, if content was sent as base64.
+    networkGetRequestPostDataBase64Encoded :: Bool
   }
   deriving (Eq, Show)
 instance FromJSON NetworkGetRequestPostData where
   parseJSON = A.withObject "NetworkGetRequestPostData" $ \o -> NetworkGetRequestPostData
     <$> o A..: "postData"
+    <*> o A..: "base64Encoded"
 instance Command PNetworkGetRequestPostData where
   type CommandResponse PNetworkGetRequestPostData = NetworkGetRequestPostData
   commandName _ = "Network.getRequestPostData"
-
--- | Returns content served for the given currently intercepted request.
-
--- | Parameters of the 'Network.getResponseBodyForInterception' command.
-data PNetworkGetResponseBodyForInterception = PNetworkGetResponseBodyForInterception
-  {
-    -- | Identifier for the intercepted request to get body for.
-    pNetworkGetResponseBodyForInterceptionInterceptionId :: NetworkInterceptionId
-  }
-  deriving (Eq, Show)
-pNetworkGetResponseBodyForInterception
-  {-
-  -- | Identifier for the intercepted request to get body for.
-  -}
-  :: NetworkInterceptionId
-  -> PNetworkGetResponseBodyForInterception
-pNetworkGetResponseBodyForInterception
-  arg_pNetworkGetResponseBodyForInterceptionInterceptionId
-  = PNetworkGetResponseBodyForInterception
-    arg_pNetworkGetResponseBodyForInterceptionInterceptionId
-instance ToJSON PNetworkGetResponseBodyForInterception where
-  toJSON p = A.object $ catMaybes [
-    ("interceptionId" A..=) <$> Just (pNetworkGetResponseBodyForInterceptionInterceptionId p)
-    ]
-data NetworkGetResponseBodyForInterception = NetworkGetResponseBodyForInterception
-  {
-    -- | Response body.
-    networkGetResponseBodyForInterceptionBody :: T.Text,
-    -- | True, if content was sent as base64.
-    networkGetResponseBodyForInterceptionBase64Encoded :: Bool
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkGetResponseBodyForInterception where
-  parseJSON = A.withObject "NetworkGetResponseBodyForInterception" $ \o -> NetworkGetResponseBodyForInterception
-    <$> o A..: "body"
-    <*> o A..: "base64Encoded"
-instance Command PNetworkGetResponseBodyForInterception where
-  type CommandResponse PNetworkGetResponseBodyForInterception = NetworkGetResponseBodyForInterception
-  commandName _ = "Network.getResponseBodyForInterception"
-
--- | Returns a handle to the stream representing the response body. Note that after this command,
---   the intercepted request can't be continued as is -- you either need to cancel it or to provide
---   the response body. The stream only supports sequential read, IO.read will fail if the position
---   is specified.
-
--- | Parameters of the 'Network.takeResponseBodyForInterceptionAsStream' command.
-data PNetworkTakeResponseBodyForInterceptionAsStream = PNetworkTakeResponseBodyForInterceptionAsStream
-  {
-    pNetworkTakeResponseBodyForInterceptionAsStreamInterceptionId :: NetworkInterceptionId
-  }
-  deriving (Eq, Show)
-pNetworkTakeResponseBodyForInterceptionAsStream
-  :: NetworkInterceptionId
-  -> PNetworkTakeResponseBodyForInterceptionAsStream
-pNetworkTakeResponseBodyForInterceptionAsStream
-  arg_pNetworkTakeResponseBodyForInterceptionAsStreamInterceptionId
-  = PNetworkTakeResponseBodyForInterceptionAsStream
-    arg_pNetworkTakeResponseBodyForInterceptionAsStreamInterceptionId
-instance ToJSON PNetworkTakeResponseBodyForInterceptionAsStream where
-  toJSON p = A.object $ catMaybes [
-    ("interceptionId" A..=) <$> Just (pNetworkTakeResponseBodyForInterceptionAsStreamInterceptionId p)
-    ]
-data NetworkTakeResponseBodyForInterceptionAsStream = NetworkTakeResponseBodyForInterceptionAsStream
-  {
-    networkTakeResponseBodyForInterceptionAsStreamStream :: IO.IOStreamHandle
-  }
-  deriving (Eq, Show)
-instance FromJSON NetworkTakeResponseBodyForInterceptionAsStream where
-  parseJSON = A.withObject "NetworkTakeResponseBodyForInterceptionAsStream" $ \o -> NetworkTakeResponseBodyForInterceptionAsStream
-    <$> o A..: "stream"
-instance Command PNetworkTakeResponseBodyForInterceptionAsStream where
-  type CommandResponse PNetworkTakeResponseBodyForInterceptionAsStream = NetworkTakeResponseBodyForInterceptionAsStream
-  commandName _ = "Network.takeResponseBodyForInterceptionAsStream"
 
 -- | This method sends a new XMLHttpRequest which is identical to the original one. The following
 --   parameters should be identical: method, url, async, request body, extra headers, withCredentials
@@ -6554,23 +9168,19 @@ instance Command PNetworkSearchInResponseBody where
 -- | Parameters of the 'Network.setBlockedURLs' command.
 data PNetworkSetBlockedURLs = PNetworkSetBlockedURLs
   {
-    -- | URL patterns to block. Wildcards ('*') are allowed.
-    pNetworkSetBlockedURLsUrls :: [T.Text]
+    -- | Patterns to match in the order in which they are given. These patterns
+    --   also take precedence over any wildcard patterns defined in `urls`.
+    pNetworkSetBlockedURLsUrlPatterns :: Maybe [NetworkBlockPattern]
   }
   deriving (Eq, Show)
 pNetworkSetBlockedURLs
-  {-
-  -- | URL patterns to block. Wildcards ('*') are allowed.
-  -}
-  :: [T.Text]
-  -> PNetworkSetBlockedURLs
+  :: PNetworkSetBlockedURLs
 pNetworkSetBlockedURLs
-  arg_pNetworkSetBlockedURLsUrls
   = PNetworkSetBlockedURLs
-    arg_pNetworkSetBlockedURLsUrls
+    Nothing
 instance ToJSON PNetworkSetBlockedURLs where
   toJSON p = A.object $ catMaybes [
-    ("urls" A..=) <$> Just (pNetworkSetBlockedURLsUrls p)
+    ("urlPatterns" A..=) <$> (pNetworkSetBlockedURLsUrlPatterns p)
     ]
 instance Command PNetworkSetBlockedURLs where
   type CommandResponse PNetworkSetBlockedURLs = ()
@@ -6659,18 +9269,14 @@ data PNetworkSetCookie = PNetworkSetCookie
     pNetworkSetCookieExpires :: Maybe NetworkTimeSinceEpoch,
     -- | Cookie Priority type.
     pNetworkSetCookiePriority :: Maybe NetworkCookiePriority,
-    -- | True if cookie is SameParty.
-    pNetworkSetCookieSameParty :: Maybe Bool,
     -- | Cookie source scheme type.
     pNetworkSetCookieSourceScheme :: Maybe NetworkCookieSourceScheme,
     -- | Cookie source port. Valid values are {-1, [1, 65535]}, -1 indicates an unspecified port.
     --   An unspecified port value allows protocol clients to emulate legacy cookie scope for the port.
     --   This is a temporary ability and it will be removed in the future.
     pNetworkSetCookieSourcePort :: Maybe Int,
-    -- | Cookie partition key. The site of the top-level URL the browser was visiting at the start
-    --   of the request to the endpoint that set the cookie.
-    --   If not set, the cookie will be set as not partitioned.
-    pNetworkSetCookiePartitionKey :: Maybe T.Text
+    -- | Cookie partition key. If not set, the cookie will be set as not partitioned.
+    pNetworkSetCookiePartitionKey :: Maybe NetworkCookiePartitionKey
   }
   deriving (Eq, Show)
 pNetworkSetCookie
@@ -6700,7 +9306,6 @@ pNetworkSetCookie
     Nothing
     Nothing
     Nothing
-    Nothing
 instance ToJSON PNetworkSetCookie where
   toJSON p = A.object $ catMaybes [
     ("name" A..=) <$> Just (pNetworkSetCookieName p),
@@ -6713,7 +9318,6 @@ instance ToJSON PNetworkSetCookie where
     ("sameSite" A..=) <$> (pNetworkSetCookieSameSite p),
     ("expires" A..=) <$> (pNetworkSetCookieExpires p),
     ("priority" A..=) <$> (pNetworkSetCookiePriority p),
-    ("sameParty" A..=) <$> (pNetworkSetCookieSameParty p),
     ("sourceScheme" A..=) <$> (pNetworkSetCookieSourceScheme p),
     ("sourcePort" A..=) <$> (pNetworkSetCookieSourcePort p),
     ("partitionKey" A..=) <$> (pNetworkSetCookiePartitionKey p)
@@ -6814,7 +9418,7 @@ data PNetworkSetUserAgentOverride = PNetworkSetUserAgentOverride
   {
     -- | User agent to use.
     pNetworkSetUserAgentOverrideUserAgent :: T.Text,
-    -- | Browser langugage to emulate.
+    -- | Browser language to emulate.
     pNetworkSetUserAgentOverrideAcceptLanguage :: Maybe T.Text,
     -- | The platform navigator.platform should return.
     pNetworkSetUserAgentOverridePlatform :: Maybe T.Text,
@@ -6846,6 +9450,43 @@ instance Command PNetworkSetUserAgentOverride where
   type CommandResponse PNetworkSetUserAgentOverride = ()
   commandName _ = "Network.setUserAgentOverride"
   fromJSON = const . A.Success . const ()
+
+-- | Enables streaming of the response for the given requestId.
+--   If enabled, the dataReceived event contains the data that was received during streaming.
+
+-- | Parameters of the 'Network.streamResourceContent' command.
+data PNetworkStreamResourceContent = PNetworkStreamResourceContent
+  {
+    -- | Identifier of the request to stream.
+    pNetworkStreamResourceContentRequestId :: NetworkRequestId
+  }
+  deriving (Eq, Show)
+pNetworkStreamResourceContent
+  {-
+  -- | Identifier of the request to stream.
+  -}
+  :: NetworkRequestId
+  -> PNetworkStreamResourceContent
+pNetworkStreamResourceContent
+  arg_pNetworkStreamResourceContentRequestId
+  = PNetworkStreamResourceContent
+    arg_pNetworkStreamResourceContentRequestId
+instance ToJSON PNetworkStreamResourceContent where
+  toJSON p = A.object $ catMaybes [
+    ("requestId" A..=) <$> Just (pNetworkStreamResourceContentRequestId p)
+    ]
+data NetworkStreamResourceContent = NetworkStreamResourceContent
+  {
+    -- | Data that has been buffered until streaming is enabled. (Encoded as a base64 string when passed over JSON)
+    networkStreamResourceContentBufferedData :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkStreamResourceContent where
+  parseJSON = A.withObject "NetworkStreamResourceContent" $ \o -> NetworkStreamResourceContent
+    <$> o A..: "bufferedData"
+instance Command PNetworkStreamResourceContent where
+  type CommandResponse PNetworkStreamResourceContent = NetworkStreamResourceContent
+  commandName _ = "Network.streamResourceContent"
 
 -- | Returns information about the COEP/COOP isolation status.
 
@@ -6906,6 +9547,94 @@ instance Command PNetworkEnableReportingApi where
   commandName _ = "Network.enableReportingApi"
   fromJSON = const . A.Success . const ()
 
+-- | Sets up tracking device bound sessions and fetching of initial set of sessions.
+
+-- | Parameters of the 'Network.enableDeviceBoundSessions' command.
+data PNetworkEnableDeviceBoundSessions = PNetworkEnableDeviceBoundSessions
+  {
+    -- | Whether to enable or disable events.
+    pNetworkEnableDeviceBoundSessionsEnable :: Bool
+  }
+  deriving (Eq, Show)
+pNetworkEnableDeviceBoundSessions
+  {-
+  -- | Whether to enable or disable events.
+  -}
+  :: Bool
+  -> PNetworkEnableDeviceBoundSessions
+pNetworkEnableDeviceBoundSessions
+  arg_pNetworkEnableDeviceBoundSessionsEnable
+  = PNetworkEnableDeviceBoundSessions
+    arg_pNetworkEnableDeviceBoundSessionsEnable
+instance ToJSON PNetworkEnableDeviceBoundSessions where
+  toJSON p = A.object $ catMaybes [
+    ("enable" A..=) <$> Just (pNetworkEnableDeviceBoundSessionsEnable p)
+    ]
+instance Command PNetworkEnableDeviceBoundSessions where
+  type CommandResponse PNetworkEnableDeviceBoundSessions = ()
+  commandName _ = "Network.enableDeviceBoundSessions"
+  fromJSON = const . A.Success . const ()
+
+-- | Deletes a device bound session.
+
+-- | Parameters of the 'Network.deleteDeviceBoundSession' command.
+data PNetworkDeleteDeviceBoundSession = PNetworkDeleteDeviceBoundSession
+  {
+    pNetworkDeleteDeviceBoundSessionKey :: NetworkDeviceBoundSessionKey
+  }
+  deriving (Eq, Show)
+pNetworkDeleteDeviceBoundSession
+  :: NetworkDeviceBoundSessionKey
+  -> PNetworkDeleteDeviceBoundSession
+pNetworkDeleteDeviceBoundSession
+  arg_pNetworkDeleteDeviceBoundSessionKey
+  = PNetworkDeleteDeviceBoundSession
+    arg_pNetworkDeleteDeviceBoundSessionKey
+instance ToJSON PNetworkDeleteDeviceBoundSession where
+  toJSON p = A.object $ catMaybes [
+    ("key" A..=) <$> Just (pNetworkDeleteDeviceBoundSessionKey p)
+    ]
+instance Command PNetworkDeleteDeviceBoundSession where
+  type CommandResponse PNetworkDeleteDeviceBoundSession = ()
+  commandName _ = "Network.deleteDeviceBoundSession"
+  fromJSON = const . A.Success . const ()
+
+-- | Fetches the schemeful site for a specific origin.
+
+-- | Parameters of the 'Network.fetchSchemefulSite' command.
+data PNetworkFetchSchemefulSite = PNetworkFetchSchemefulSite
+  {
+    -- | The URL origin.
+    pNetworkFetchSchemefulSiteOrigin :: T.Text
+  }
+  deriving (Eq, Show)
+pNetworkFetchSchemefulSite
+  {-
+  -- | The URL origin.
+  -}
+  :: T.Text
+  -> PNetworkFetchSchemefulSite
+pNetworkFetchSchemefulSite
+  arg_pNetworkFetchSchemefulSiteOrigin
+  = PNetworkFetchSchemefulSite
+    arg_pNetworkFetchSchemefulSiteOrigin
+instance ToJSON PNetworkFetchSchemefulSite where
+  toJSON p = A.object $ catMaybes [
+    ("origin" A..=) <$> Just (pNetworkFetchSchemefulSiteOrigin p)
+    ]
+data NetworkFetchSchemefulSite = NetworkFetchSchemefulSite
+  {
+    -- | The corresponding schemeful site.
+    networkFetchSchemefulSiteSchemefulSite :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON NetworkFetchSchemefulSite where
+  parseJSON = A.withObject "NetworkFetchSchemefulSite" $ \o -> NetworkFetchSchemefulSite
+    <$> o A..: "schemefulSite"
+instance Command PNetworkFetchSchemefulSite where
+  type CommandResponse PNetworkFetchSchemefulSite = NetworkFetchSchemefulSite
+  commandName _ = "Network.fetchSchemefulSite"
+
 -- | Fetches the resource and returns the content.
 
 -- | Parameters of the 'Network.loadNetworkResource' command.
@@ -6954,6 +9683,35 @@ instance FromJSON NetworkLoadNetworkResource where
 instance Command PNetworkLoadNetworkResource where
   type CommandResponse PNetworkLoadNetworkResource = NetworkLoadNetworkResource
   commandName _ = "Network.loadNetworkResource"
+
+-- | Sets Controls for third-party cookie access
+--   Page reload is required before the new cookie behavior will be observed
+
+-- | Parameters of the 'Network.setCookieControls' command.
+data PNetworkSetCookieControls = PNetworkSetCookieControls
+  {
+    -- | Whether 3pc restriction is enabled.
+    pNetworkSetCookieControlsEnableThirdPartyCookieRestriction :: Bool
+  }
+  deriving (Eq, Show)
+pNetworkSetCookieControls
+  {-
+  -- | Whether 3pc restriction is enabled.
+  -}
+  :: Bool
+  -> PNetworkSetCookieControls
+pNetworkSetCookieControls
+  arg_pNetworkSetCookieControlsEnableThirdPartyCookieRestriction
+  = PNetworkSetCookieControls
+    arg_pNetworkSetCookieControlsEnableThirdPartyCookieRestriction
+instance ToJSON PNetworkSetCookieControls where
+  toJSON p = A.object $ catMaybes [
+    ("enableThirdPartyCookieRestriction" A..=) <$> Just (pNetworkSetCookieControlsEnableThirdPartyCookieRestriction p)
+    ]
+instance Command PNetworkSetCookieControls where
+  type CommandResponse PNetworkSetCookieControls = ()
+  commandName _ = "Network.setCookieControls"
+  fromJSON = const . A.Success . const ()
 
 -- | Type 'Page.FrameId'.
 --   Unique frame identifier.
@@ -7006,28 +9764,6 @@ instance ToJSON PageAdFrameStatus where
   toJSON p = A.object $ catMaybes [
     ("adFrameType" A..=) <$> Just (pageAdFrameStatusAdFrameType p),
     ("explanations" A..=) <$> (pageAdFrameStatusExplanations p)
-    ]
-
--- | Type 'Page.AdScriptId'.
---   Identifies the bottom-most script which caused the frame to be labelled
---   as an ad.
-data PageAdScriptId = PageAdScriptId
-  {
-    -- | Script Id of the bottom-most script which caused the frame to be labelled
-    --   as an ad.
-    pageAdScriptIdScriptId :: Runtime.RuntimeScriptId,
-    -- | Id of adScriptId's debugger.
-    pageAdScriptIdDebuggerId :: Runtime.RuntimeUniqueDebuggerId
-  }
-  deriving (Eq, Show)
-instance FromJSON PageAdScriptId where
-  parseJSON = A.withObject "PageAdScriptId" $ \o -> PageAdScriptId
-    <$> o A..: "scriptId"
-    <*> o A..: "debuggerId"
-instance ToJSON PageAdScriptId where
-  toJSON p = A.object $ catMaybes [
-    ("scriptId" A..=) <$> Just (pageAdScriptIdScriptId p),
-    ("debuggerId" A..=) <$> Just (pageAdScriptIdDebuggerId p)
     ]
 
 -- | Type 'Page.SecureContextType'.
@@ -7083,45 +9819,58 @@ instance ToJSON PageGatedAPIFeatures where
 
 -- | Type 'Page.PermissionsPolicyFeature'.
 --   All Permissions Policy features. This enum should match the one defined
---   in third_party/blink/renderer/core/permissions_policy/permissions_policy_features.json5.
-data PagePermissionsPolicyFeature = PagePermissionsPolicyFeatureAccelerometer | PagePermissionsPolicyFeatureAmbientLightSensor | PagePermissionsPolicyFeatureAttributionReporting | PagePermissionsPolicyFeatureAutoplay | PagePermissionsPolicyFeatureBluetooth | PagePermissionsPolicyFeatureBrowsingTopics | PagePermissionsPolicyFeatureCamera | PagePermissionsPolicyFeatureChDpr | PagePermissionsPolicyFeatureChDeviceMemory | PagePermissionsPolicyFeatureChDownlink | PagePermissionsPolicyFeatureChEct | PagePermissionsPolicyFeatureChPrefersColorScheme | PagePermissionsPolicyFeatureChPrefersReducedMotion | PagePermissionsPolicyFeatureChRtt | PagePermissionsPolicyFeatureChSaveData | PagePermissionsPolicyFeatureChUa | PagePermissionsPolicyFeatureChUaArch | PagePermissionsPolicyFeatureChUaBitness | PagePermissionsPolicyFeatureChUaPlatform | PagePermissionsPolicyFeatureChUaModel | PagePermissionsPolicyFeatureChUaMobile | PagePermissionsPolicyFeatureChUaFull | PagePermissionsPolicyFeatureChUaFullVersion | PagePermissionsPolicyFeatureChUaFullVersionList | PagePermissionsPolicyFeatureChUaPlatformVersion | PagePermissionsPolicyFeatureChUaReduced | PagePermissionsPolicyFeatureChUaWow64 | PagePermissionsPolicyFeatureChViewportHeight | PagePermissionsPolicyFeatureChViewportWidth | PagePermissionsPolicyFeatureChWidth | PagePermissionsPolicyFeatureClipboardRead | PagePermissionsPolicyFeatureClipboardWrite | PagePermissionsPolicyFeatureCrossOriginIsolated | PagePermissionsPolicyFeatureDirectSockets | PagePermissionsPolicyFeatureDisplayCapture | PagePermissionsPolicyFeatureDocumentDomain | PagePermissionsPolicyFeatureEncryptedMedia | PagePermissionsPolicyFeatureExecutionWhileOutOfViewport | PagePermissionsPolicyFeatureExecutionWhileNotRendered | PagePermissionsPolicyFeatureFocusWithoutUserActivation | PagePermissionsPolicyFeatureFullscreen | PagePermissionsPolicyFeatureFrobulate | PagePermissionsPolicyFeatureGamepad | PagePermissionsPolicyFeatureGeolocation | PagePermissionsPolicyFeatureGyroscope | PagePermissionsPolicyFeatureHid | PagePermissionsPolicyFeatureIdentityCredentialsGet | PagePermissionsPolicyFeatureIdleDetection | PagePermissionsPolicyFeatureInterestCohort | PagePermissionsPolicyFeatureJoinAdInterestGroup | PagePermissionsPolicyFeatureKeyboardMap | PagePermissionsPolicyFeatureLocalFonts | PagePermissionsPolicyFeatureMagnetometer | PagePermissionsPolicyFeatureMicrophone | PagePermissionsPolicyFeatureMidi | PagePermissionsPolicyFeatureOtpCredentials | PagePermissionsPolicyFeaturePayment | PagePermissionsPolicyFeaturePictureInPicture | PagePermissionsPolicyFeaturePublickeyCredentialsGet | PagePermissionsPolicyFeatureRunAdAuction | PagePermissionsPolicyFeatureScreenWakeLock | PagePermissionsPolicyFeatureSerial | PagePermissionsPolicyFeatureSharedAutofill | PagePermissionsPolicyFeatureSharedStorage | PagePermissionsPolicyFeatureStorageAccess | PagePermissionsPolicyFeatureSyncXhr | PagePermissionsPolicyFeatureTrustTokenRedemption | PagePermissionsPolicyFeatureUnload | PagePermissionsPolicyFeatureUsb | PagePermissionsPolicyFeatureVerticalScroll | PagePermissionsPolicyFeatureWebShare | PagePermissionsPolicyFeatureWindowPlacement | PagePermissionsPolicyFeatureXrSpatialTracking
+--   in services/network/public/cpp/permissions_policy/permissions_policy_features.json5.
+--   LINT.IfChange(PermissionsPolicyFeature)
+data PagePermissionsPolicyFeature = PagePermissionsPolicyFeatureAccelerometer | PagePermissionsPolicyFeatureAllScreensCapture | PagePermissionsPolicyFeatureAmbientLightSensor | PagePermissionsPolicyFeatureAriaNotify | PagePermissionsPolicyFeatureAutofill | PagePermissionsPolicyFeatureAutoplay | PagePermissionsPolicyFeatureBluetooth | PagePermissionsPolicyFeatureBrowsingTopics | PagePermissionsPolicyFeatureCamera | PagePermissionsPolicyFeatureCapturedSurfaceControl | PagePermissionsPolicyFeatureChDpr | PagePermissionsPolicyFeatureChDeviceMemory | PagePermissionsPolicyFeatureChDownlink | PagePermissionsPolicyFeatureChEct | PagePermissionsPolicyFeatureChPrefersColorScheme | PagePermissionsPolicyFeatureChPrefersReducedMotion | PagePermissionsPolicyFeatureChPrefersReducedTransparency | PagePermissionsPolicyFeatureChRtt | PagePermissionsPolicyFeatureChSaveData | PagePermissionsPolicyFeatureChUa | PagePermissionsPolicyFeatureChUaArch | PagePermissionsPolicyFeatureChUaBitness | PagePermissionsPolicyFeatureChUaHighEntropyValues | PagePermissionsPolicyFeatureChUaPlatform | PagePermissionsPolicyFeatureChUaModel | PagePermissionsPolicyFeatureChUaMobile | PagePermissionsPolicyFeatureChUaFormFactors | PagePermissionsPolicyFeatureChUaFullVersion | PagePermissionsPolicyFeatureChUaFullVersionList | PagePermissionsPolicyFeatureChUaPlatformVersion | PagePermissionsPolicyFeatureChUaWow64 | PagePermissionsPolicyFeatureChViewportHeight | PagePermissionsPolicyFeatureChViewportWidth | PagePermissionsPolicyFeatureChWidth | PagePermissionsPolicyFeatureClipboardRead | PagePermissionsPolicyFeatureClipboardWrite | PagePermissionsPolicyFeatureComputePressure | PagePermissionsPolicyFeatureControlledFrame | PagePermissionsPolicyFeatureCrossOriginIsolated | PagePermissionsPolicyFeatureDeferredFetch | PagePermissionsPolicyFeatureDeferredFetchMinimal | PagePermissionsPolicyFeatureDeviceAttributes | PagePermissionsPolicyFeatureDigitalCredentialsCreate | PagePermissionsPolicyFeatureDigitalCredentialsGet | PagePermissionsPolicyFeatureDirectSockets | PagePermissionsPolicyFeatureDirectSocketsMulticast | PagePermissionsPolicyFeatureDisplayCapture | PagePermissionsPolicyFeatureDocumentDomain | PagePermissionsPolicyFeatureEncryptedMedia | PagePermissionsPolicyFeatureExecutionWhileOutOfViewport | PagePermissionsPolicyFeatureExecutionWhileNotRendered | PagePermissionsPolicyFeatureFocusWithoutUserActivation | PagePermissionsPolicyFeatureFullscreen | PagePermissionsPolicyFeatureFrobulate | PagePermissionsPolicyFeatureGamepad | PagePermissionsPolicyFeatureGeolocation | PagePermissionsPolicyFeatureGyroscope | PagePermissionsPolicyFeatureHid | PagePermissionsPolicyFeatureIdentityCredentialsGet | PagePermissionsPolicyFeatureIdleDetection | PagePermissionsPolicyFeatureInterestCohort | PagePermissionsPolicyFeatureJoinAdInterestGroup | PagePermissionsPolicyFeatureKeyboardMap | PagePermissionsPolicyFeatureLanguageDetector | PagePermissionsPolicyFeatureLanguageModel | PagePermissionsPolicyFeatureLocalFonts | PagePermissionsPolicyFeatureLocalNetwork | PagePermissionsPolicyFeatureLocalNetworkAccess | PagePermissionsPolicyFeatureLoopbackNetwork | PagePermissionsPolicyFeatureMagnetometer | PagePermissionsPolicyFeatureManualText | PagePermissionsPolicyFeatureMediaPlaybackWhileNotVisible | PagePermissionsPolicyFeatureMicrophone | PagePermissionsPolicyFeatureMidi | PagePermissionsPolicyFeatureOnDeviceSpeechRecognition | PagePermissionsPolicyFeatureOtpCredentials | PagePermissionsPolicyFeaturePayment | PagePermissionsPolicyFeaturePictureInPicture | PagePermissionsPolicyFeaturePrivateAggregation | PagePermissionsPolicyFeaturePrivateStateTokenIssuance | PagePermissionsPolicyFeaturePrivateStateTokenRedemption | PagePermissionsPolicyFeaturePublickeyCredentialsCreate | PagePermissionsPolicyFeaturePublickeyCredentialsGet | PagePermissionsPolicyFeatureRecordAdAuctionEvents | PagePermissionsPolicyFeatureRewriter | PagePermissionsPolicyFeatureRunAdAuction | PagePermissionsPolicyFeatureScreenWakeLock | PagePermissionsPolicyFeatureSerial | PagePermissionsPolicyFeatureSharedStorage | PagePermissionsPolicyFeatureSharedStorageSelectUrl | PagePermissionsPolicyFeatureSmartCard | PagePermissionsPolicyFeatureSpeakerSelection | PagePermissionsPolicyFeatureStorageAccess | PagePermissionsPolicyFeatureSubApps | PagePermissionsPolicyFeatureSummarizer | PagePermissionsPolicyFeatureSyncXhr | PagePermissionsPolicyFeatureTools | PagePermissionsPolicyFeatureTranslator | PagePermissionsPolicyFeatureUnload | PagePermissionsPolicyFeatureUsb | PagePermissionsPolicyFeatureUsbUnrestricted | PagePermissionsPolicyFeatureVerticalScroll | PagePermissionsPolicyFeatureWebAppInstallation | PagePermissionsPolicyFeatureWebnn | PagePermissionsPolicyFeatureWebPrinting | PagePermissionsPolicyFeatureWebShare | PagePermissionsPolicyFeatureWindowManagement | PagePermissionsPolicyFeatureWriter | PagePermissionsPolicyFeatureXrSpatialTracking
   deriving (Ord, Eq, Show, Read)
 instance FromJSON PagePermissionsPolicyFeature where
   parseJSON = A.withText "PagePermissionsPolicyFeature" $ \v -> case v of
     "accelerometer" -> pure PagePermissionsPolicyFeatureAccelerometer
+    "all-screens-capture" -> pure PagePermissionsPolicyFeatureAllScreensCapture
     "ambient-light-sensor" -> pure PagePermissionsPolicyFeatureAmbientLightSensor
-    "attribution-reporting" -> pure PagePermissionsPolicyFeatureAttributionReporting
+    "aria-notify" -> pure PagePermissionsPolicyFeatureAriaNotify
+    "autofill" -> pure PagePermissionsPolicyFeatureAutofill
     "autoplay" -> pure PagePermissionsPolicyFeatureAutoplay
     "bluetooth" -> pure PagePermissionsPolicyFeatureBluetooth
     "browsing-topics" -> pure PagePermissionsPolicyFeatureBrowsingTopics
     "camera" -> pure PagePermissionsPolicyFeatureCamera
+    "captured-surface-control" -> pure PagePermissionsPolicyFeatureCapturedSurfaceControl
     "ch-dpr" -> pure PagePermissionsPolicyFeatureChDpr
     "ch-device-memory" -> pure PagePermissionsPolicyFeatureChDeviceMemory
     "ch-downlink" -> pure PagePermissionsPolicyFeatureChDownlink
     "ch-ect" -> pure PagePermissionsPolicyFeatureChEct
     "ch-prefers-color-scheme" -> pure PagePermissionsPolicyFeatureChPrefersColorScheme
     "ch-prefers-reduced-motion" -> pure PagePermissionsPolicyFeatureChPrefersReducedMotion
+    "ch-prefers-reduced-transparency" -> pure PagePermissionsPolicyFeatureChPrefersReducedTransparency
     "ch-rtt" -> pure PagePermissionsPolicyFeatureChRtt
     "ch-save-data" -> pure PagePermissionsPolicyFeatureChSaveData
     "ch-ua" -> pure PagePermissionsPolicyFeatureChUa
     "ch-ua-arch" -> pure PagePermissionsPolicyFeatureChUaArch
     "ch-ua-bitness" -> pure PagePermissionsPolicyFeatureChUaBitness
+    "ch-ua-high-entropy-values" -> pure PagePermissionsPolicyFeatureChUaHighEntropyValues
     "ch-ua-platform" -> pure PagePermissionsPolicyFeatureChUaPlatform
     "ch-ua-model" -> pure PagePermissionsPolicyFeatureChUaModel
     "ch-ua-mobile" -> pure PagePermissionsPolicyFeatureChUaMobile
-    "ch-ua-full" -> pure PagePermissionsPolicyFeatureChUaFull
+    "ch-ua-form-factors" -> pure PagePermissionsPolicyFeatureChUaFormFactors
     "ch-ua-full-version" -> pure PagePermissionsPolicyFeatureChUaFullVersion
     "ch-ua-full-version-list" -> pure PagePermissionsPolicyFeatureChUaFullVersionList
     "ch-ua-platform-version" -> pure PagePermissionsPolicyFeatureChUaPlatformVersion
-    "ch-ua-reduced" -> pure PagePermissionsPolicyFeatureChUaReduced
     "ch-ua-wow64" -> pure PagePermissionsPolicyFeatureChUaWow64
     "ch-viewport-height" -> pure PagePermissionsPolicyFeatureChViewportHeight
     "ch-viewport-width" -> pure PagePermissionsPolicyFeatureChViewportWidth
     "ch-width" -> pure PagePermissionsPolicyFeatureChWidth
     "clipboard-read" -> pure PagePermissionsPolicyFeatureClipboardRead
     "clipboard-write" -> pure PagePermissionsPolicyFeatureClipboardWrite
+    "compute-pressure" -> pure PagePermissionsPolicyFeatureComputePressure
+    "controlled-frame" -> pure PagePermissionsPolicyFeatureControlledFrame
     "cross-origin-isolated" -> pure PagePermissionsPolicyFeatureCrossOriginIsolated
+    "deferred-fetch" -> pure PagePermissionsPolicyFeatureDeferredFetch
+    "deferred-fetch-minimal" -> pure PagePermissionsPolicyFeatureDeferredFetchMinimal
+    "device-attributes" -> pure PagePermissionsPolicyFeatureDeviceAttributes
+    "digital-credentials-create" -> pure PagePermissionsPolicyFeatureDigitalCredentialsCreate
+    "digital-credentials-get" -> pure PagePermissionsPolicyFeatureDigitalCredentialsGet
     "direct-sockets" -> pure PagePermissionsPolicyFeatureDirectSockets
+    "direct-sockets-multicast" -> pure PagePermissionsPolicyFeatureDirectSocketsMulticast
     "display-capture" -> pure PagePermissionsPolicyFeatureDisplayCapture
     "document-domain" -> pure PagePermissionsPolicyFeatureDocumentDomain
     "encrypted-media" -> pure PagePermissionsPolicyFeatureEncryptedMedia
@@ -7139,65 +9888,101 @@ instance FromJSON PagePermissionsPolicyFeature where
     "interest-cohort" -> pure PagePermissionsPolicyFeatureInterestCohort
     "join-ad-interest-group" -> pure PagePermissionsPolicyFeatureJoinAdInterestGroup
     "keyboard-map" -> pure PagePermissionsPolicyFeatureKeyboardMap
+    "language-detector" -> pure PagePermissionsPolicyFeatureLanguageDetector
+    "language-model" -> pure PagePermissionsPolicyFeatureLanguageModel
     "local-fonts" -> pure PagePermissionsPolicyFeatureLocalFonts
+    "local-network" -> pure PagePermissionsPolicyFeatureLocalNetwork
+    "local-network-access" -> pure PagePermissionsPolicyFeatureLocalNetworkAccess
+    "loopback-network" -> pure PagePermissionsPolicyFeatureLoopbackNetwork
     "magnetometer" -> pure PagePermissionsPolicyFeatureMagnetometer
+    "manual-text" -> pure PagePermissionsPolicyFeatureManualText
+    "media-playback-while-not-visible" -> pure PagePermissionsPolicyFeatureMediaPlaybackWhileNotVisible
     "microphone" -> pure PagePermissionsPolicyFeatureMicrophone
     "midi" -> pure PagePermissionsPolicyFeatureMidi
+    "on-device-speech-recognition" -> pure PagePermissionsPolicyFeatureOnDeviceSpeechRecognition
     "otp-credentials" -> pure PagePermissionsPolicyFeatureOtpCredentials
     "payment" -> pure PagePermissionsPolicyFeaturePayment
     "picture-in-picture" -> pure PagePermissionsPolicyFeaturePictureInPicture
+    "private-aggregation" -> pure PagePermissionsPolicyFeaturePrivateAggregation
+    "private-state-token-issuance" -> pure PagePermissionsPolicyFeaturePrivateStateTokenIssuance
+    "private-state-token-redemption" -> pure PagePermissionsPolicyFeaturePrivateStateTokenRedemption
+    "publickey-credentials-create" -> pure PagePermissionsPolicyFeaturePublickeyCredentialsCreate
     "publickey-credentials-get" -> pure PagePermissionsPolicyFeaturePublickeyCredentialsGet
+    "record-ad-auction-events" -> pure PagePermissionsPolicyFeatureRecordAdAuctionEvents
+    "rewriter" -> pure PagePermissionsPolicyFeatureRewriter
     "run-ad-auction" -> pure PagePermissionsPolicyFeatureRunAdAuction
     "screen-wake-lock" -> pure PagePermissionsPolicyFeatureScreenWakeLock
     "serial" -> pure PagePermissionsPolicyFeatureSerial
-    "shared-autofill" -> pure PagePermissionsPolicyFeatureSharedAutofill
     "shared-storage" -> pure PagePermissionsPolicyFeatureSharedStorage
+    "shared-storage-select-url" -> pure PagePermissionsPolicyFeatureSharedStorageSelectUrl
+    "smart-card" -> pure PagePermissionsPolicyFeatureSmartCard
+    "speaker-selection" -> pure PagePermissionsPolicyFeatureSpeakerSelection
     "storage-access" -> pure PagePermissionsPolicyFeatureStorageAccess
+    "sub-apps" -> pure PagePermissionsPolicyFeatureSubApps
+    "summarizer" -> pure PagePermissionsPolicyFeatureSummarizer
     "sync-xhr" -> pure PagePermissionsPolicyFeatureSyncXhr
-    "trust-token-redemption" -> pure PagePermissionsPolicyFeatureTrustTokenRedemption
+    "tools" -> pure PagePermissionsPolicyFeatureTools
+    "translator" -> pure PagePermissionsPolicyFeatureTranslator
     "unload" -> pure PagePermissionsPolicyFeatureUnload
     "usb" -> pure PagePermissionsPolicyFeatureUsb
+    "usb-unrestricted" -> pure PagePermissionsPolicyFeatureUsbUnrestricted
     "vertical-scroll" -> pure PagePermissionsPolicyFeatureVerticalScroll
+    "web-app-installation" -> pure PagePermissionsPolicyFeatureWebAppInstallation
+    "webnn" -> pure PagePermissionsPolicyFeatureWebnn
+    "web-printing" -> pure PagePermissionsPolicyFeatureWebPrinting
     "web-share" -> pure PagePermissionsPolicyFeatureWebShare
-    "window-placement" -> pure PagePermissionsPolicyFeatureWindowPlacement
+    "window-management" -> pure PagePermissionsPolicyFeatureWindowManagement
+    "writer" -> pure PagePermissionsPolicyFeatureWriter
     "xr-spatial-tracking" -> pure PagePermissionsPolicyFeatureXrSpatialTracking
     "_" -> fail "failed to parse PagePermissionsPolicyFeature"
 instance ToJSON PagePermissionsPolicyFeature where
   toJSON v = A.String $ case v of
     PagePermissionsPolicyFeatureAccelerometer -> "accelerometer"
+    PagePermissionsPolicyFeatureAllScreensCapture -> "all-screens-capture"
     PagePermissionsPolicyFeatureAmbientLightSensor -> "ambient-light-sensor"
-    PagePermissionsPolicyFeatureAttributionReporting -> "attribution-reporting"
+    PagePermissionsPolicyFeatureAriaNotify -> "aria-notify"
+    PagePermissionsPolicyFeatureAutofill -> "autofill"
     PagePermissionsPolicyFeatureAutoplay -> "autoplay"
     PagePermissionsPolicyFeatureBluetooth -> "bluetooth"
     PagePermissionsPolicyFeatureBrowsingTopics -> "browsing-topics"
     PagePermissionsPolicyFeatureCamera -> "camera"
+    PagePermissionsPolicyFeatureCapturedSurfaceControl -> "captured-surface-control"
     PagePermissionsPolicyFeatureChDpr -> "ch-dpr"
     PagePermissionsPolicyFeatureChDeviceMemory -> "ch-device-memory"
     PagePermissionsPolicyFeatureChDownlink -> "ch-downlink"
     PagePermissionsPolicyFeatureChEct -> "ch-ect"
     PagePermissionsPolicyFeatureChPrefersColorScheme -> "ch-prefers-color-scheme"
     PagePermissionsPolicyFeatureChPrefersReducedMotion -> "ch-prefers-reduced-motion"
+    PagePermissionsPolicyFeatureChPrefersReducedTransparency -> "ch-prefers-reduced-transparency"
     PagePermissionsPolicyFeatureChRtt -> "ch-rtt"
     PagePermissionsPolicyFeatureChSaveData -> "ch-save-data"
     PagePermissionsPolicyFeatureChUa -> "ch-ua"
     PagePermissionsPolicyFeatureChUaArch -> "ch-ua-arch"
     PagePermissionsPolicyFeatureChUaBitness -> "ch-ua-bitness"
+    PagePermissionsPolicyFeatureChUaHighEntropyValues -> "ch-ua-high-entropy-values"
     PagePermissionsPolicyFeatureChUaPlatform -> "ch-ua-platform"
     PagePermissionsPolicyFeatureChUaModel -> "ch-ua-model"
     PagePermissionsPolicyFeatureChUaMobile -> "ch-ua-mobile"
-    PagePermissionsPolicyFeatureChUaFull -> "ch-ua-full"
+    PagePermissionsPolicyFeatureChUaFormFactors -> "ch-ua-form-factors"
     PagePermissionsPolicyFeatureChUaFullVersion -> "ch-ua-full-version"
     PagePermissionsPolicyFeatureChUaFullVersionList -> "ch-ua-full-version-list"
     PagePermissionsPolicyFeatureChUaPlatformVersion -> "ch-ua-platform-version"
-    PagePermissionsPolicyFeatureChUaReduced -> "ch-ua-reduced"
     PagePermissionsPolicyFeatureChUaWow64 -> "ch-ua-wow64"
     PagePermissionsPolicyFeatureChViewportHeight -> "ch-viewport-height"
     PagePermissionsPolicyFeatureChViewportWidth -> "ch-viewport-width"
     PagePermissionsPolicyFeatureChWidth -> "ch-width"
     PagePermissionsPolicyFeatureClipboardRead -> "clipboard-read"
     PagePermissionsPolicyFeatureClipboardWrite -> "clipboard-write"
+    PagePermissionsPolicyFeatureComputePressure -> "compute-pressure"
+    PagePermissionsPolicyFeatureControlledFrame -> "controlled-frame"
     PagePermissionsPolicyFeatureCrossOriginIsolated -> "cross-origin-isolated"
+    PagePermissionsPolicyFeatureDeferredFetch -> "deferred-fetch"
+    PagePermissionsPolicyFeatureDeferredFetchMinimal -> "deferred-fetch-minimal"
+    PagePermissionsPolicyFeatureDeviceAttributes -> "device-attributes"
+    PagePermissionsPolicyFeatureDigitalCredentialsCreate -> "digital-credentials-create"
+    PagePermissionsPolicyFeatureDigitalCredentialsGet -> "digital-credentials-get"
     PagePermissionsPolicyFeatureDirectSockets -> "direct-sockets"
+    PagePermissionsPolicyFeatureDirectSocketsMulticast -> "direct-sockets-multicast"
     PagePermissionsPolicyFeatureDisplayCapture -> "display-capture"
     PagePermissionsPolicyFeatureDocumentDomain -> "document-domain"
     PagePermissionsPolicyFeatureEncryptedMedia -> "encrypted-media"
@@ -7215,27 +10000,51 @@ instance ToJSON PagePermissionsPolicyFeature where
     PagePermissionsPolicyFeatureInterestCohort -> "interest-cohort"
     PagePermissionsPolicyFeatureJoinAdInterestGroup -> "join-ad-interest-group"
     PagePermissionsPolicyFeatureKeyboardMap -> "keyboard-map"
+    PagePermissionsPolicyFeatureLanguageDetector -> "language-detector"
+    PagePermissionsPolicyFeatureLanguageModel -> "language-model"
     PagePermissionsPolicyFeatureLocalFonts -> "local-fonts"
+    PagePermissionsPolicyFeatureLocalNetwork -> "local-network"
+    PagePermissionsPolicyFeatureLocalNetworkAccess -> "local-network-access"
+    PagePermissionsPolicyFeatureLoopbackNetwork -> "loopback-network"
     PagePermissionsPolicyFeatureMagnetometer -> "magnetometer"
+    PagePermissionsPolicyFeatureManualText -> "manual-text"
+    PagePermissionsPolicyFeatureMediaPlaybackWhileNotVisible -> "media-playback-while-not-visible"
     PagePermissionsPolicyFeatureMicrophone -> "microphone"
     PagePermissionsPolicyFeatureMidi -> "midi"
+    PagePermissionsPolicyFeatureOnDeviceSpeechRecognition -> "on-device-speech-recognition"
     PagePermissionsPolicyFeatureOtpCredentials -> "otp-credentials"
     PagePermissionsPolicyFeaturePayment -> "payment"
     PagePermissionsPolicyFeaturePictureInPicture -> "picture-in-picture"
+    PagePermissionsPolicyFeaturePrivateAggregation -> "private-aggregation"
+    PagePermissionsPolicyFeaturePrivateStateTokenIssuance -> "private-state-token-issuance"
+    PagePermissionsPolicyFeaturePrivateStateTokenRedemption -> "private-state-token-redemption"
+    PagePermissionsPolicyFeaturePublickeyCredentialsCreate -> "publickey-credentials-create"
     PagePermissionsPolicyFeaturePublickeyCredentialsGet -> "publickey-credentials-get"
+    PagePermissionsPolicyFeatureRecordAdAuctionEvents -> "record-ad-auction-events"
+    PagePermissionsPolicyFeatureRewriter -> "rewriter"
     PagePermissionsPolicyFeatureRunAdAuction -> "run-ad-auction"
     PagePermissionsPolicyFeatureScreenWakeLock -> "screen-wake-lock"
     PagePermissionsPolicyFeatureSerial -> "serial"
-    PagePermissionsPolicyFeatureSharedAutofill -> "shared-autofill"
     PagePermissionsPolicyFeatureSharedStorage -> "shared-storage"
+    PagePermissionsPolicyFeatureSharedStorageSelectUrl -> "shared-storage-select-url"
+    PagePermissionsPolicyFeatureSmartCard -> "smart-card"
+    PagePermissionsPolicyFeatureSpeakerSelection -> "speaker-selection"
     PagePermissionsPolicyFeatureStorageAccess -> "storage-access"
+    PagePermissionsPolicyFeatureSubApps -> "sub-apps"
+    PagePermissionsPolicyFeatureSummarizer -> "summarizer"
     PagePermissionsPolicyFeatureSyncXhr -> "sync-xhr"
-    PagePermissionsPolicyFeatureTrustTokenRedemption -> "trust-token-redemption"
+    PagePermissionsPolicyFeatureTools -> "tools"
+    PagePermissionsPolicyFeatureTranslator -> "translator"
     PagePermissionsPolicyFeatureUnload -> "unload"
     PagePermissionsPolicyFeatureUsb -> "usb"
+    PagePermissionsPolicyFeatureUsbUnrestricted -> "usb-unrestricted"
     PagePermissionsPolicyFeatureVerticalScroll -> "vertical-scroll"
+    PagePermissionsPolicyFeatureWebAppInstallation -> "web-app-installation"
+    PagePermissionsPolicyFeatureWebnn -> "webnn"
+    PagePermissionsPolicyFeatureWebPrinting -> "web-printing"
     PagePermissionsPolicyFeatureWebShare -> "web-share"
-    PagePermissionsPolicyFeatureWindowPlacement -> "window-placement"
+    PagePermissionsPolicyFeatureWindowManagement -> "window-management"
+    PagePermissionsPolicyFeatureWriter -> "writer"
     PagePermissionsPolicyFeatureXrSpatialTracking -> "xr-spatial-tracking"
 
 -- | Type 'Page.PermissionsPolicyBlockReason'.
@@ -7430,6 +10239,24 @@ instance ToJSON PageOriginTrial where
     ("tokensWithStatus" A..=) <$> Just (pageOriginTrialTokensWithStatus p)
     ]
 
+-- | Type 'Page.SecurityOriginDetails'.
+--   Additional information about the frame document's security origin.
+data PageSecurityOriginDetails = PageSecurityOriginDetails
+  {
+    -- | Indicates whether the frame document's security origin is one
+    --   of the local hostnames (e.g. "localhost") or IP addresses (IPv4
+    --   127.0.0.0/8 or IPv6 ::1).
+    pageSecurityOriginDetailsIsLocalhost :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON PageSecurityOriginDetails where
+  parseJSON = A.withObject "PageSecurityOriginDetails" $ \o -> PageSecurityOriginDetails
+    <$> o A..: "isLocalhost"
+instance ToJSON PageSecurityOriginDetails where
+  toJSON p = A.object $ catMaybes [
+    ("isLocalhost" A..=) <$> Just (pageSecurityOriginDetailsIsLocalhost p)
+    ]
+
 -- | Type 'Page.Frame'.
 --   Information about the Frame on the page.
 data PageFrame = PageFrame
@@ -7453,6 +10280,8 @@ data PageFrame = PageFrame
     pageFrameDomainAndRegistry :: T.Text,
     -- | Frame document's security origin.
     pageFrameSecurityOrigin :: T.Text,
+    -- | Additional details about the frame document's security origin.
+    pageFrameSecurityOriginDetails :: Maybe PageSecurityOriginDetails,
     -- | Frame document's mimeType as determined by the browser.
     pageFrameMimeType :: T.Text,
     -- | If the frame failed to load, this contains the URL that could not be loaded. Note that unlike url above, this URL may contain a fragment.
@@ -7477,6 +10306,7 @@ instance FromJSON PageFrame where
     <*> o A..:? "urlFragment"
     <*> o A..: "domainAndRegistry"
     <*> o A..: "securityOrigin"
+    <*> o A..:? "securityOriginDetails"
     <*> o A..: "mimeType"
     <*> o A..:? "unreachableUrl"
     <*> o A..:? "adFrameStatus"
@@ -7493,6 +10323,7 @@ instance ToJSON PageFrame where
     ("urlFragment" A..=) <$> (pageFrameUrlFragment p),
     ("domainAndRegistry" A..=) <$> Just (pageFrameDomainAndRegistry p),
     ("securityOrigin" A..=) <$> Just (pageFrameSecurityOrigin p),
+    ("securityOriginDetails" A..=) <$> (pageFrameSecurityOriginDetails p),
     ("mimeType" A..=) <$> Just (pageFrameMimeType p),
     ("unreachableUrl" A..=) <$> (pageFrameUnreachableUrl p),
     ("adFrameStatus" A..=) <$> (pageFrameAdFrameStatus p),
@@ -7721,7 +10552,7 @@ data PageAppManifestError = PageAppManifestError
   {
     -- | Error message.
     pageAppManifestErrorMessage :: T.Text,
-    -- | If criticial, this is a non-recoverable parse error.
+    -- | If critical, this is a non-recoverable parse error.
     pageAppManifestErrorCritical :: Int,
     -- | Error line.
     pageAppManifestErrorLine :: Int,
@@ -7944,29 +10775,33 @@ instance ToJSON PageFontSizes where
     ]
 
 -- | Type 'Page.ClientNavigationReason'.
-data PageClientNavigationReason = PageClientNavigationReasonFormSubmissionGet | PageClientNavigationReasonFormSubmissionPost | PageClientNavigationReasonHttpHeaderRefresh | PageClientNavigationReasonScriptInitiated | PageClientNavigationReasonMetaTagRefresh | PageClientNavigationReasonPageBlockInterstitial | PageClientNavigationReasonReload | PageClientNavigationReasonAnchorClick
+data PageClientNavigationReason = PageClientNavigationReasonAnchorClick | PageClientNavigationReasonFormSubmissionGet | PageClientNavigationReasonFormSubmissionPost | PageClientNavigationReasonHttpHeaderRefresh | PageClientNavigationReasonInitialFrameNavigation | PageClientNavigationReasonMetaTagRefresh | PageClientNavigationReasonOther | PageClientNavigationReasonPageBlockInterstitial | PageClientNavigationReasonReload | PageClientNavigationReasonScriptInitiated
   deriving (Ord, Eq, Show, Read)
 instance FromJSON PageClientNavigationReason where
   parseJSON = A.withText "PageClientNavigationReason" $ \v -> case v of
+    "anchorClick" -> pure PageClientNavigationReasonAnchorClick
     "formSubmissionGet" -> pure PageClientNavigationReasonFormSubmissionGet
     "formSubmissionPost" -> pure PageClientNavigationReasonFormSubmissionPost
     "httpHeaderRefresh" -> pure PageClientNavigationReasonHttpHeaderRefresh
-    "scriptInitiated" -> pure PageClientNavigationReasonScriptInitiated
+    "initialFrameNavigation" -> pure PageClientNavigationReasonInitialFrameNavigation
     "metaTagRefresh" -> pure PageClientNavigationReasonMetaTagRefresh
+    "other" -> pure PageClientNavigationReasonOther
     "pageBlockInterstitial" -> pure PageClientNavigationReasonPageBlockInterstitial
     "reload" -> pure PageClientNavigationReasonReload
-    "anchorClick" -> pure PageClientNavigationReasonAnchorClick
+    "scriptInitiated" -> pure PageClientNavigationReasonScriptInitiated
     "_" -> fail "failed to parse PageClientNavigationReason"
 instance ToJSON PageClientNavigationReason where
   toJSON v = A.String $ case v of
+    PageClientNavigationReasonAnchorClick -> "anchorClick"
     PageClientNavigationReasonFormSubmissionGet -> "formSubmissionGet"
     PageClientNavigationReasonFormSubmissionPost -> "formSubmissionPost"
     PageClientNavigationReasonHttpHeaderRefresh -> "httpHeaderRefresh"
-    PageClientNavigationReasonScriptInitiated -> "scriptInitiated"
+    PageClientNavigationReasonInitialFrameNavigation -> "initialFrameNavigation"
     PageClientNavigationReasonMetaTagRefresh -> "metaTagRefresh"
+    PageClientNavigationReasonOther -> "other"
     PageClientNavigationReasonPageBlockInterstitial -> "pageBlockInterstitial"
     PageClientNavigationReasonReload -> "reload"
-    PageClientNavigationReasonAnchorClick -> "anchorClick"
+    PageClientNavigationReasonScriptInitiated -> "scriptInitiated"
 
 -- | Type 'Page.ClientNavigationDisposition'.
 data PageClientNavigationDisposition = PageClientNavigationDispositionCurrentTab | PageClientNavigationDispositionNewTab | PageClientNavigationDispositionNewWindow | PageClientNavigationDispositionDownload
@@ -8071,6 +10906,302 @@ instance ToJSON PageCompilationCacheParams where
     ("eager" A..=) <$> (pageCompilationCacheParamsEager p)
     ]
 
+-- | Type 'Page.FileFilter'.
+data PageFileFilter = PageFileFilter
+  {
+    pageFileFilterName :: Maybe T.Text,
+    pageFileFilterAccepts :: Maybe [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON PageFileFilter where
+  parseJSON = A.withObject "PageFileFilter" $ \o -> PageFileFilter
+    <$> o A..:? "name"
+    <*> o A..:? "accepts"
+instance ToJSON PageFileFilter where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> (pageFileFilterName p),
+    ("accepts" A..=) <$> (pageFileFilterAccepts p)
+    ]
+
+-- | Type 'Page.FileHandler'.
+data PageFileHandler = PageFileHandler
+  {
+    pageFileHandlerAction :: T.Text,
+    pageFileHandlerName :: T.Text,
+    pageFileHandlerIcons :: Maybe [PageImageResource],
+    -- | Mimic a map, name is the key, accepts is the value.
+    pageFileHandlerAccepts :: Maybe [PageFileFilter],
+    -- | Won't repeat the enums, using string for easy comparison. Same as the
+    --   other enums below.
+    pageFileHandlerLaunchType :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageFileHandler where
+  parseJSON = A.withObject "PageFileHandler" $ \o -> PageFileHandler
+    <$> o A..: "action"
+    <*> o A..: "name"
+    <*> o A..:? "icons"
+    <*> o A..:? "accepts"
+    <*> o A..: "launchType"
+instance ToJSON PageFileHandler where
+  toJSON p = A.object $ catMaybes [
+    ("action" A..=) <$> Just (pageFileHandlerAction p),
+    ("name" A..=) <$> Just (pageFileHandlerName p),
+    ("icons" A..=) <$> (pageFileHandlerIcons p),
+    ("accepts" A..=) <$> (pageFileHandlerAccepts p),
+    ("launchType" A..=) <$> Just (pageFileHandlerLaunchType p)
+    ]
+
+-- | Type 'Page.ImageResource'.
+--   The image definition used in both icon and screenshot.
+data PageImageResource = PageImageResource
+  {
+    -- | The src field in the definition, but changing to url in favor of
+    --   consistency.
+    pageImageResourceUrl :: T.Text,
+    pageImageResourceSizes :: Maybe T.Text,
+    pageImageResourceType :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageImageResource where
+  parseJSON = A.withObject "PageImageResource" $ \o -> PageImageResource
+    <$> o A..: "url"
+    <*> o A..:? "sizes"
+    <*> o A..:? "type"
+instance ToJSON PageImageResource where
+  toJSON p = A.object $ catMaybes [
+    ("url" A..=) <$> Just (pageImageResourceUrl p),
+    ("sizes" A..=) <$> (pageImageResourceSizes p),
+    ("type" A..=) <$> (pageImageResourceType p)
+    ]
+
+-- | Type 'Page.LaunchHandler'.
+data PageLaunchHandler = PageLaunchHandler
+  {
+    pageLaunchHandlerClientMode :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageLaunchHandler where
+  parseJSON = A.withObject "PageLaunchHandler" $ \o -> PageLaunchHandler
+    <$> o A..: "clientMode"
+instance ToJSON PageLaunchHandler where
+  toJSON p = A.object $ catMaybes [
+    ("clientMode" A..=) <$> Just (pageLaunchHandlerClientMode p)
+    ]
+
+-- | Type 'Page.ProtocolHandler'.
+data PageProtocolHandler = PageProtocolHandler
+  {
+    pageProtocolHandlerProtocol :: T.Text,
+    pageProtocolHandlerUrl :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageProtocolHandler where
+  parseJSON = A.withObject "PageProtocolHandler" $ \o -> PageProtocolHandler
+    <$> o A..: "protocol"
+    <*> o A..: "url"
+instance ToJSON PageProtocolHandler where
+  toJSON p = A.object $ catMaybes [
+    ("protocol" A..=) <$> Just (pageProtocolHandlerProtocol p),
+    ("url" A..=) <$> Just (pageProtocolHandlerUrl p)
+    ]
+
+-- | Type 'Page.RelatedApplication'.
+data PageRelatedApplication = PageRelatedApplication
+  {
+    pageRelatedApplicationId :: Maybe T.Text,
+    pageRelatedApplicationUrl :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageRelatedApplication where
+  parseJSON = A.withObject "PageRelatedApplication" $ \o -> PageRelatedApplication
+    <$> o A..:? "id"
+    <*> o A..: "url"
+instance ToJSON PageRelatedApplication where
+  toJSON p = A.object $ catMaybes [
+    ("id" A..=) <$> (pageRelatedApplicationId p),
+    ("url" A..=) <$> Just (pageRelatedApplicationUrl p)
+    ]
+
+-- | Type 'Page.ScopeExtension'.
+data PageScopeExtension = PageScopeExtension
+  {
+    -- | Instead of using tuple, this field always returns the serialized string
+    --   for easy understanding and comparison.
+    pageScopeExtensionOrigin :: T.Text,
+    pageScopeExtensionHasOriginWildcard :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON PageScopeExtension where
+  parseJSON = A.withObject "PageScopeExtension" $ \o -> PageScopeExtension
+    <$> o A..: "origin"
+    <*> o A..: "hasOriginWildcard"
+instance ToJSON PageScopeExtension where
+  toJSON p = A.object $ catMaybes [
+    ("origin" A..=) <$> Just (pageScopeExtensionOrigin p),
+    ("hasOriginWildcard" A..=) <$> Just (pageScopeExtensionHasOriginWildcard p)
+    ]
+
+-- | Type 'Page.Screenshot'.
+data PageScreenshot = PageScreenshot
+  {
+    pageScreenshotImage :: PageImageResource,
+    pageScreenshotFormFactor :: T.Text,
+    pageScreenshotLabel :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageScreenshot where
+  parseJSON = A.withObject "PageScreenshot" $ \o -> PageScreenshot
+    <$> o A..: "image"
+    <*> o A..: "formFactor"
+    <*> o A..:? "label"
+instance ToJSON PageScreenshot where
+  toJSON p = A.object $ catMaybes [
+    ("image" A..=) <$> Just (pageScreenshotImage p),
+    ("formFactor" A..=) <$> Just (pageScreenshotFormFactor p),
+    ("label" A..=) <$> (pageScreenshotLabel p)
+    ]
+
+-- | Type 'Page.ShareTarget'.
+data PageShareTarget = PageShareTarget
+  {
+    pageShareTargetAction :: T.Text,
+    pageShareTargetMethod :: T.Text,
+    pageShareTargetEnctype :: T.Text,
+    -- | Embed the ShareTargetParams
+    pageShareTargetTitle :: Maybe T.Text,
+    pageShareTargetText :: Maybe T.Text,
+    pageShareTargetUrl :: Maybe T.Text,
+    pageShareTargetFiles :: Maybe [PageFileFilter]
+  }
+  deriving (Eq, Show)
+instance FromJSON PageShareTarget where
+  parseJSON = A.withObject "PageShareTarget" $ \o -> PageShareTarget
+    <$> o A..: "action"
+    <*> o A..: "method"
+    <*> o A..: "enctype"
+    <*> o A..:? "title"
+    <*> o A..:? "text"
+    <*> o A..:? "url"
+    <*> o A..:? "files"
+instance ToJSON PageShareTarget where
+  toJSON p = A.object $ catMaybes [
+    ("action" A..=) <$> Just (pageShareTargetAction p),
+    ("method" A..=) <$> Just (pageShareTargetMethod p),
+    ("enctype" A..=) <$> Just (pageShareTargetEnctype p),
+    ("title" A..=) <$> (pageShareTargetTitle p),
+    ("text" A..=) <$> (pageShareTargetText p),
+    ("url" A..=) <$> (pageShareTargetUrl p),
+    ("files" A..=) <$> (pageShareTargetFiles p)
+    ]
+
+-- | Type 'Page.Shortcut'.
+data PageShortcut = PageShortcut
+  {
+    pageShortcutName :: T.Text,
+    pageShortcutUrl :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageShortcut where
+  parseJSON = A.withObject "PageShortcut" $ \o -> PageShortcut
+    <$> o A..: "name"
+    <*> o A..: "url"
+instance ToJSON PageShortcut where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> Just (pageShortcutName p),
+    ("url" A..=) <$> Just (pageShortcutUrl p)
+    ]
+
+-- | Type 'Page.WebAppManifest'.
+data PageWebAppManifest = PageWebAppManifest
+  {
+    pageWebAppManifestBackgroundColor :: Maybe T.Text,
+    -- | The extra description provided by the manifest.
+    pageWebAppManifestDescription :: Maybe T.Text,
+    pageWebAppManifestDir :: Maybe T.Text,
+    pageWebAppManifestDisplay :: Maybe T.Text,
+    -- | The overrided display mode controlled by the user.
+    pageWebAppManifestDisplayOverrides :: Maybe [T.Text],
+    -- | The handlers to open files.
+    pageWebAppManifestFileHandlers :: Maybe [PageFileHandler],
+    pageWebAppManifestIcons :: Maybe [PageImageResource],
+    pageWebAppManifestId :: Maybe T.Text,
+    pageWebAppManifestLang :: Maybe T.Text,
+    -- | TODO(crbug.com/1231886): This field is non-standard and part of a Chrome
+    --   experiment. See:
+    --   https://github.com/WICG/web-app-launch/blob/main/launch_handler.md
+    pageWebAppManifestLaunchHandler :: Maybe PageLaunchHandler,
+    pageWebAppManifestName :: Maybe T.Text,
+    pageWebAppManifestOrientation :: Maybe T.Text,
+    pageWebAppManifestPreferRelatedApplications :: Maybe Bool,
+    -- | The handlers to open protocols.
+    pageWebAppManifestProtocolHandlers :: Maybe [PageProtocolHandler],
+    pageWebAppManifestRelatedApplications :: Maybe [PageRelatedApplication],
+    pageWebAppManifestScope :: Maybe T.Text,
+    -- | Non-standard, see
+    --   https://github.com/WICG/manifest-incubations/blob/gh-pages/scope_extensions-explainer.md
+    pageWebAppManifestScopeExtensions :: Maybe [PageScopeExtension],
+    -- | The screenshots used by chromium.
+    pageWebAppManifestScreenshots :: Maybe [PageScreenshot],
+    pageWebAppManifestShareTarget :: Maybe PageShareTarget,
+    pageWebAppManifestShortName :: Maybe T.Text,
+    pageWebAppManifestShortcuts :: Maybe [PageShortcut],
+    pageWebAppManifestStartUrl :: Maybe T.Text,
+    pageWebAppManifestThemeColor :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageWebAppManifest where
+  parseJSON = A.withObject "PageWebAppManifest" $ \o -> PageWebAppManifest
+    <$> o A..:? "backgroundColor"
+    <*> o A..:? "description"
+    <*> o A..:? "dir"
+    <*> o A..:? "display"
+    <*> o A..:? "displayOverrides"
+    <*> o A..:? "fileHandlers"
+    <*> o A..:? "icons"
+    <*> o A..:? "id"
+    <*> o A..:? "lang"
+    <*> o A..:? "launchHandler"
+    <*> o A..:? "name"
+    <*> o A..:? "orientation"
+    <*> o A..:? "preferRelatedApplications"
+    <*> o A..:? "protocolHandlers"
+    <*> o A..:? "relatedApplications"
+    <*> o A..:? "scope"
+    <*> o A..:? "scopeExtensions"
+    <*> o A..:? "screenshots"
+    <*> o A..:? "shareTarget"
+    <*> o A..:? "shortName"
+    <*> o A..:? "shortcuts"
+    <*> o A..:? "startUrl"
+    <*> o A..:? "themeColor"
+instance ToJSON PageWebAppManifest where
+  toJSON p = A.object $ catMaybes [
+    ("backgroundColor" A..=) <$> (pageWebAppManifestBackgroundColor p),
+    ("description" A..=) <$> (pageWebAppManifestDescription p),
+    ("dir" A..=) <$> (pageWebAppManifestDir p),
+    ("display" A..=) <$> (pageWebAppManifestDisplay p),
+    ("displayOverrides" A..=) <$> (pageWebAppManifestDisplayOverrides p),
+    ("fileHandlers" A..=) <$> (pageWebAppManifestFileHandlers p),
+    ("icons" A..=) <$> (pageWebAppManifestIcons p),
+    ("id" A..=) <$> (pageWebAppManifestId p),
+    ("lang" A..=) <$> (pageWebAppManifestLang p),
+    ("launchHandler" A..=) <$> (pageWebAppManifestLaunchHandler p),
+    ("name" A..=) <$> (pageWebAppManifestName p),
+    ("orientation" A..=) <$> (pageWebAppManifestOrientation p),
+    ("preferRelatedApplications" A..=) <$> (pageWebAppManifestPreferRelatedApplications p),
+    ("protocolHandlers" A..=) <$> (pageWebAppManifestProtocolHandlers p),
+    ("relatedApplications" A..=) <$> (pageWebAppManifestRelatedApplications p),
+    ("scope" A..=) <$> (pageWebAppManifestScope p),
+    ("scopeExtensions" A..=) <$> (pageWebAppManifestScopeExtensions p),
+    ("screenshots" A..=) <$> (pageWebAppManifestScreenshots p),
+    ("shareTarget" A..=) <$> (pageWebAppManifestShareTarget p),
+    ("shortName" A..=) <$> (pageWebAppManifestShortName p),
+    ("shortcuts" A..=) <$> (pageWebAppManifestShortcuts p),
+    ("startUrl" A..=) <$> (pageWebAppManifestStartUrl p),
+    ("themeColor" A..=) <$> (pageWebAppManifestThemeColor p)
+    ]
+
 -- | Type 'Page.NavigationType'.
 --   The type of a frameNavigated event.
 data PageNavigationType = PageNavigationTypeNavigation | PageNavigationTypeBackForwardCacheRestore
@@ -8087,7 +11218,7 @@ instance ToJSON PageNavigationType where
 
 -- | Type 'Page.BackForwardCacheNotRestoredReason'.
 --   List of not restored reasons for back-forward cache.
-data PageBackForwardCacheNotRestoredReason = PageBackForwardCacheNotRestoredReasonNotPrimaryMainFrame | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabled | PageBackForwardCacheNotRestoredReasonRelatedActiveContentsExist | PageBackForwardCacheNotRestoredReasonHTTPStatusNotOK | PageBackForwardCacheNotRestoredReasonSchemeNotHTTPOrHTTPS | PageBackForwardCacheNotRestoredReasonLoading | PageBackForwardCacheNotRestoredReasonWasGrantedMediaAccess | PageBackForwardCacheNotRestoredReasonDisableForRenderFrameHostCalled | PageBackForwardCacheNotRestoredReasonDomainNotAllowed | PageBackForwardCacheNotRestoredReasonHTTPMethodNotGET | PageBackForwardCacheNotRestoredReasonSubframeIsNavigating | PageBackForwardCacheNotRestoredReasonTimeout | PageBackForwardCacheNotRestoredReasonCacheLimit | PageBackForwardCacheNotRestoredReasonJavaScriptExecution | PageBackForwardCacheNotRestoredReasonRendererProcessKilled | PageBackForwardCacheNotRestoredReasonRendererProcessCrashed | PageBackForwardCacheNotRestoredReasonSchedulerTrackedFeatureUsed | PageBackForwardCacheNotRestoredReasonConflictingBrowsingInstance | PageBackForwardCacheNotRestoredReasonCacheFlushed | PageBackForwardCacheNotRestoredReasonServiceWorkerVersionActivation | PageBackForwardCacheNotRestoredReasonSessionRestored | PageBackForwardCacheNotRestoredReasonServiceWorkerPostMessage | PageBackForwardCacheNotRestoredReasonEnteredBackForwardCacheBeforeServiceWorkerHostAdded | PageBackForwardCacheNotRestoredReasonRenderFrameHostReused_SameSite | PageBackForwardCacheNotRestoredReasonRenderFrameHostReused_CrossSite | PageBackForwardCacheNotRestoredReasonServiceWorkerClaim | PageBackForwardCacheNotRestoredReasonIgnoreEventAndEvict | PageBackForwardCacheNotRestoredReasonHaveInnerContents | PageBackForwardCacheNotRestoredReasonTimeoutPuttingInCache | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledByLowMemory | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledByCommandLine | PageBackForwardCacheNotRestoredReasonNetworkRequestDatapipeDrainedAsBytesConsumer | PageBackForwardCacheNotRestoredReasonNetworkRequestRedirected | PageBackForwardCacheNotRestoredReasonNetworkRequestTimeout | PageBackForwardCacheNotRestoredReasonNetworkExceedsBufferLimit | PageBackForwardCacheNotRestoredReasonNavigationCancelledWhileRestoring | PageBackForwardCacheNotRestoredReasonNotMostRecentNavigationEntry | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForPrerender | PageBackForwardCacheNotRestoredReasonUserAgentOverrideDiffers | PageBackForwardCacheNotRestoredReasonForegroundCacheLimit | PageBackForwardCacheNotRestoredReasonBrowsingInstanceNotSwapped | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForDelegate | PageBackForwardCacheNotRestoredReasonUnloadHandlerExistsInMainFrame | PageBackForwardCacheNotRestoredReasonUnloadHandlerExistsInSubFrame | PageBackForwardCacheNotRestoredReasonServiceWorkerUnregistration | PageBackForwardCacheNotRestoredReasonCacheControlNoStore | PageBackForwardCacheNotRestoredReasonCacheControlNoStoreCookieModified | PageBackForwardCacheNotRestoredReasonCacheControlNoStoreHTTPOnlyCookieModified | PageBackForwardCacheNotRestoredReasonNoResponseHead | PageBackForwardCacheNotRestoredReasonUnknown | PageBackForwardCacheNotRestoredReasonActivationNavigationsDisallowedForBug1234857 | PageBackForwardCacheNotRestoredReasonErrorDocument | PageBackForwardCacheNotRestoredReasonFencedFramesEmbedder | PageBackForwardCacheNotRestoredReasonWebSocket | PageBackForwardCacheNotRestoredReasonWebTransport | PageBackForwardCacheNotRestoredReasonWebRTC | PageBackForwardCacheNotRestoredReasonMainResourceHasCacheControlNoStore | PageBackForwardCacheNotRestoredReasonMainResourceHasCacheControlNoCache | PageBackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoStore | PageBackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoCache | PageBackForwardCacheNotRestoredReasonContainsPlugins | PageBackForwardCacheNotRestoredReasonDocumentLoaded | PageBackForwardCacheNotRestoredReasonDedicatedWorkerOrWorklet | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestOthers | PageBackForwardCacheNotRestoredReasonOutstandingIndexedDBTransaction | PageBackForwardCacheNotRestoredReasonRequestedNotificationsPermission | PageBackForwardCacheNotRestoredReasonRequestedMIDIPermission | PageBackForwardCacheNotRestoredReasonRequestedAudioCapturePermission | PageBackForwardCacheNotRestoredReasonRequestedVideoCapturePermission | PageBackForwardCacheNotRestoredReasonRequestedBackForwardCacheBlockedSensors | PageBackForwardCacheNotRestoredReasonRequestedBackgroundWorkPermission | PageBackForwardCacheNotRestoredReasonBroadcastChannel | PageBackForwardCacheNotRestoredReasonIndexedDBConnection | PageBackForwardCacheNotRestoredReasonWebXR | PageBackForwardCacheNotRestoredReasonSharedWorker | PageBackForwardCacheNotRestoredReasonWebLocks | PageBackForwardCacheNotRestoredReasonWebHID | PageBackForwardCacheNotRestoredReasonWebShare | PageBackForwardCacheNotRestoredReasonRequestedStorageAccessGrant | PageBackForwardCacheNotRestoredReasonWebNfc | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestFetch | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestXHR | PageBackForwardCacheNotRestoredReasonAppBanner | PageBackForwardCacheNotRestoredReasonPrinting | PageBackForwardCacheNotRestoredReasonWebDatabase | PageBackForwardCacheNotRestoredReasonPictureInPicture | PageBackForwardCacheNotRestoredReasonPortal | PageBackForwardCacheNotRestoredReasonSpeechRecognizer | PageBackForwardCacheNotRestoredReasonIdleManager | PageBackForwardCacheNotRestoredReasonPaymentManager | PageBackForwardCacheNotRestoredReasonSpeechSynthesis | PageBackForwardCacheNotRestoredReasonKeyboardLock | PageBackForwardCacheNotRestoredReasonWebOTPService | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestDirectSocket | PageBackForwardCacheNotRestoredReasonInjectedJavascript | PageBackForwardCacheNotRestoredReasonInjectedStyleSheet | PageBackForwardCacheNotRestoredReasonDummy | PageBackForwardCacheNotRestoredReasonContentSecurityHandler | PageBackForwardCacheNotRestoredReasonContentWebAuthenticationAPI | PageBackForwardCacheNotRestoredReasonContentFileChooser | PageBackForwardCacheNotRestoredReasonContentSerial | PageBackForwardCacheNotRestoredReasonContentFileSystemAccess | PageBackForwardCacheNotRestoredReasonContentMediaDevicesDispatcherHost | PageBackForwardCacheNotRestoredReasonContentWebBluetooth | PageBackForwardCacheNotRestoredReasonContentWebUSB | PageBackForwardCacheNotRestoredReasonContentMediaSessionService | PageBackForwardCacheNotRestoredReasonContentScreenReader | PageBackForwardCacheNotRestoredReasonEmbedderPopupBlockerTabHelper | PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingTriggeredPopupBlocker | PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingThreatDetails | PageBackForwardCacheNotRestoredReasonEmbedderAppBannerManager | PageBackForwardCacheNotRestoredReasonEmbedderDomDistillerViewerSource | PageBackForwardCacheNotRestoredReasonEmbedderDomDistillerSelfDeletingRequestDelegate | PageBackForwardCacheNotRestoredReasonEmbedderOomInterventionTabHelper | PageBackForwardCacheNotRestoredReasonEmbedderOfflinePage | PageBackForwardCacheNotRestoredReasonEmbedderChromePasswordManagerClientBindCredentialManager | PageBackForwardCacheNotRestoredReasonEmbedderPermissionRequestManager | PageBackForwardCacheNotRestoredReasonEmbedderModalDialog | PageBackForwardCacheNotRestoredReasonEmbedderExtensions | PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessaging | PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessagingForOpenPort | PageBackForwardCacheNotRestoredReasonEmbedderExtensionSentMessageToCachedFrame
+data PageBackForwardCacheNotRestoredReason = PageBackForwardCacheNotRestoredReasonNotPrimaryMainFrame | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabled | PageBackForwardCacheNotRestoredReasonRelatedActiveContentsExist | PageBackForwardCacheNotRestoredReasonHTTPStatusNotOK | PageBackForwardCacheNotRestoredReasonSchemeNotHTTPOrHTTPS | PageBackForwardCacheNotRestoredReasonLoading | PageBackForwardCacheNotRestoredReasonWasGrantedMediaAccess | PageBackForwardCacheNotRestoredReasonDisableForRenderFrameHostCalled | PageBackForwardCacheNotRestoredReasonDomainNotAllowed | PageBackForwardCacheNotRestoredReasonHTTPMethodNotGET | PageBackForwardCacheNotRestoredReasonSubframeIsNavigating | PageBackForwardCacheNotRestoredReasonTimeout | PageBackForwardCacheNotRestoredReasonCacheLimit | PageBackForwardCacheNotRestoredReasonJavaScriptExecution | PageBackForwardCacheNotRestoredReasonRendererProcessKilled | PageBackForwardCacheNotRestoredReasonRendererProcessCrashed | PageBackForwardCacheNotRestoredReasonSchedulerTrackedFeatureUsed | PageBackForwardCacheNotRestoredReasonConflictingBrowsingInstance | PageBackForwardCacheNotRestoredReasonCacheFlushed | PageBackForwardCacheNotRestoredReasonServiceWorkerVersionActivation | PageBackForwardCacheNotRestoredReasonSessionRestored | PageBackForwardCacheNotRestoredReasonServiceWorkerPostMessage | PageBackForwardCacheNotRestoredReasonEnteredBackForwardCacheBeforeServiceWorkerHostAdded | PageBackForwardCacheNotRestoredReasonRenderFrameHostReused_SameSite | PageBackForwardCacheNotRestoredReasonRenderFrameHostReused_CrossSite | PageBackForwardCacheNotRestoredReasonServiceWorkerClaim | PageBackForwardCacheNotRestoredReasonIgnoreEventAndEvict | PageBackForwardCacheNotRestoredReasonHaveInnerContents | PageBackForwardCacheNotRestoredReasonTimeoutPuttingInCache | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledByLowMemory | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledByCommandLine | PageBackForwardCacheNotRestoredReasonNetworkRequestDatapipeDrainedAsBytesConsumer | PageBackForwardCacheNotRestoredReasonNetworkRequestRedirected | PageBackForwardCacheNotRestoredReasonNetworkRequestTimeout | PageBackForwardCacheNotRestoredReasonNetworkExceedsBufferLimit | PageBackForwardCacheNotRestoredReasonNavigationCancelledWhileRestoring | PageBackForwardCacheNotRestoredReasonNotMostRecentNavigationEntry | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForPrerender | PageBackForwardCacheNotRestoredReasonUserAgentOverrideDiffers | PageBackForwardCacheNotRestoredReasonForegroundCacheLimit | PageBackForwardCacheNotRestoredReasonForwardCacheDisabled | PageBackForwardCacheNotRestoredReasonBrowsingInstanceNotSwapped | PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForDelegate | PageBackForwardCacheNotRestoredReasonUnloadHandlerExistsInMainFrame | PageBackForwardCacheNotRestoredReasonUnloadHandlerExistsInSubFrame | PageBackForwardCacheNotRestoredReasonServiceWorkerUnregistration | PageBackForwardCacheNotRestoredReasonCacheControlNoStore | PageBackForwardCacheNotRestoredReasonCacheControlNoStoreCookieModified | PageBackForwardCacheNotRestoredReasonCacheControlNoStoreHTTPOnlyCookieModified | PageBackForwardCacheNotRestoredReasonNoResponseHead | PageBackForwardCacheNotRestoredReasonUnknown | PageBackForwardCacheNotRestoredReasonActivationNavigationsDisallowedForBug1234857 | PageBackForwardCacheNotRestoredReasonErrorDocument | PageBackForwardCacheNotRestoredReasonFencedFramesEmbedder | PageBackForwardCacheNotRestoredReasonCookieDisabled | PageBackForwardCacheNotRestoredReasonHTTPAuthRequired | PageBackForwardCacheNotRestoredReasonCookieFlushed | PageBackForwardCacheNotRestoredReasonBroadcastChannelOnMessage | PageBackForwardCacheNotRestoredReasonWebViewSettingsChanged | PageBackForwardCacheNotRestoredReasonWebViewJavaScriptObjectChanged | PageBackForwardCacheNotRestoredReasonWebViewMessageListenerInjected | PageBackForwardCacheNotRestoredReasonWebViewSafeBrowsingAllowlistChanged | PageBackForwardCacheNotRestoredReasonWebViewDocumentStartJavascriptChanged | PageBackForwardCacheNotRestoredReasonWebSocket | PageBackForwardCacheNotRestoredReasonWebTransport | PageBackForwardCacheNotRestoredReasonWebRTC | PageBackForwardCacheNotRestoredReasonMainResourceHasCacheControlNoStore | PageBackForwardCacheNotRestoredReasonMainResourceHasCacheControlNoCache | PageBackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoStore | PageBackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoCache | PageBackForwardCacheNotRestoredReasonContainsPlugins | PageBackForwardCacheNotRestoredReasonDocumentLoaded | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestOthers | PageBackForwardCacheNotRestoredReasonRequestedMIDIPermission | PageBackForwardCacheNotRestoredReasonRequestedAudioCapturePermission | PageBackForwardCacheNotRestoredReasonRequestedVideoCapturePermission | PageBackForwardCacheNotRestoredReasonRequestedBackForwardCacheBlockedSensors | PageBackForwardCacheNotRestoredReasonRequestedBackgroundWorkPermission | PageBackForwardCacheNotRestoredReasonBroadcastChannel | PageBackForwardCacheNotRestoredReasonWebXR | PageBackForwardCacheNotRestoredReasonSharedWorker | PageBackForwardCacheNotRestoredReasonSharedWorkerMessage | PageBackForwardCacheNotRestoredReasonSharedWorkerWithNoActiveClient | PageBackForwardCacheNotRestoredReasonWebLocks | PageBackForwardCacheNotRestoredReasonWebLocksContention | PageBackForwardCacheNotRestoredReasonWebHID | PageBackForwardCacheNotRestoredReasonWebBluetooth | PageBackForwardCacheNotRestoredReasonWebShare | PageBackForwardCacheNotRestoredReasonRequestedStorageAccessGrant | PageBackForwardCacheNotRestoredReasonWebNfc | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestFetch | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestXHR | PageBackForwardCacheNotRestoredReasonAppBanner | PageBackForwardCacheNotRestoredReasonPrinting | PageBackForwardCacheNotRestoredReasonWebDatabase | PageBackForwardCacheNotRestoredReasonPictureInPicture | PageBackForwardCacheNotRestoredReasonSpeechRecognizer | PageBackForwardCacheNotRestoredReasonIdleManager | PageBackForwardCacheNotRestoredReasonPaymentManager | PageBackForwardCacheNotRestoredReasonSpeechSynthesis | PageBackForwardCacheNotRestoredReasonKeyboardLock | PageBackForwardCacheNotRestoredReasonWebOTPService | PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestDirectSocket | PageBackForwardCacheNotRestoredReasonInjectedJavascript | PageBackForwardCacheNotRestoredReasonInjectedStyleSheet | PageBackForwardCacheNotRestoredReasonKeepaliveRequest | PageBackForwardCacheNotRestoredReasonIndexedDBEvent | PageBackForwardCacheNotRestoredReasonDummy | PageBackForwardCacheNotRestoredReasonJsNetworkRequestReceivedCacheControlNoStoreResource | PageBackForwardCacheNotRestoredReasonWebRTCUsedWithCCNS | PageBackForwardCacheNotRestoredReasonWebTransportUsedWithCCNS | PageBackForwardCacheNotRestoredReasonWebSocketUsedWithCCNS | PageBackForwardCacheNotRestoredReasonSmartCard | PageBackForwardCacheNotRestoredReasonLiveMediaStreamTrack | PageBackForwardCacheNotRestoredReasonUnloadHandler | PageBackForwardCacheNotRestoredReasonParserAborted | PageBackForwardCacheNotRestoredReasonContentSecurityHandler | PageBackForwardCacheNotRestoredReasonContentWebAuthenticationAPI | PageBackForwardCacheNotRestoredReasonContentFileChooser | PageBackForwardCacheNotRestoredReasonContentSerial | PageBackForwardCacheNotRestoredReasonContentFileSystemAccess | PageBackForwardCacheNotRestoredReasonContentMediaDevicesDispatcherHost | PageBackForwardCacheNotRestoredReasonContentWebBluetooth | PageBackForwardCacheNotRestoredReasonContentWebUSB | PageBackForwardCacheNotRestoredReasonContentMediaSessionService | PageBackForwardCacheNotRestoredReasonContentScreenReader | PageBackForwardCacheNotRestoredReasonContentDiscarded | PageBackForwardCacheNotRestoredReasonEmbedderPopupBlockerTabHelper | PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingTriggeredPopupBlocker | PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingThreatDetails | PageBackForwardCacheNotRestoredReasonEmbedderAppBannerManager | PageBackForwardCacheNotRestoredReasonEmbedderDomDistillerViewerSource | PageBackForwardCacheNotRestoredReasonEmbedderDomDistillerSelfDeletingRequestDelegate | PageBackForwardCacheNotRestoredReasonEmbedderOomInterventionTabHelper | PageBackForwardCacheNotRestoredReasonEmbedderOfflinePage | PageBackForwardCacheNotRestoredReasonEmbedderChromePasswordManagerClientBindCredentialManager | PageBackForwardCacheNotRestoredReasonEmbedderPermissionRequestManager | PageBackForwardCacheNotRestoredReasonEmbedderModalDialog | PageBackForwardCacheNotRestoredReasonEmbedderExtensions | PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessaging | PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessagingForOpenPort | PageBackForwardCacheNotRestoredReasonEmbedderExtensionSentMessageToCachedFrame | PageBackForwardCacheNotRestoredReasonEmbedderExtensionFrame | PageBackForwardCacheNotRestoredReasonRequestedByWebViewClient | PageBackForwardCacheNotRestoredReasonPostMessageByWebViewClient | PageBackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated | PageBackForwardCacheNotRestoredReasonCacheLimitPrunedOnModerateMemoryPressure | PageBackForwardCacheNotRestoredReasonCacheLimitPrunedOnCriticalMemoryPressure
   deriving (Ord, Eq, Show, Read)
 instance FromJSON PageBackForwardCacheNotRestoredReason where
   parseJSON = A.withText "PageBackForwardCacheNotRestoredReason" $ \v -> case v of
@@ -8131,6 +11262,7 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "BackForwardCacheDisabledForPrerender" -> pure PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForPrerender
     "UserAgentOverrideDiffers" -> pure PageBackForwardCacheNotRestoredReasonUserAgentOverrideDiffers
     "ForegroundCacheLimit" -> pure PageBackForwardCacheNotRestoredReasonForegroundCacheLimit
+    "ForwardCacheDisabled" -> pure PageBackForwardCacheNotRestoredReasonForwardCacheDisabled
     "BrowsingInstanceNotSwapped" -> pure PageBackForwardCacheNotRestoredReasonBrowsingInstanceNotSwapped
     "BackForwardCacheDisabledForDelegate" -> pure PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForDelegate
     "UnloadHandlerExistsInMainFrame" -> pure PageBackForwardCacheNotRestoredReasonUnloadHandlerExistsInMainFrame
@@ -8144,6 +11276,15 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "ActivationNavigationsDisallowedForBug1234857" -> pure PageBackForwardCacheNotRestoredReasonActivationNavigationsDisallowedForBug1234857
     "ErrorDocument" -> pure PageBackForwardCacheNotRestoredReasonErrorDocument
     "FencedFramesEmbedder" -> pure PageBackForwardCacheNotRestoredReasonFencedFramesEmbedder
+    "CookieDisabled" -> pure PageBackForwardCacheNotRestoredReasonCookieDisabled
+    "HTTPAuthRequired" -> pure PageBackForwardCacheNotRestoredReasonHTTPAuthRequired
+    "CookieFlushed" -> pure PageBackForwardCacheNotRestoredReasonCookieFlushed
+    "BroadcastChannelOnMessage" -> pure PageBackForwardCacheNotRestoredReasonBroadcastChannelOnMessage
+    "WebViewSettingsChanged" -> pure PageBackForwardCacheNotRestoredReasonWebViewSettingsChanged
+    "WebViewJavaScriptObjectChanged" -> pure PageBackForwardCacheNotRestoredReasonWebViewJavaScriptObjectChanged
+    "WebViewMessageListenerInjected" -> pure PageBackForwardCacheNotRestoredReasonWebViewMessageListenerInjected
+    "WebViewSafeBrowsingAllowlistChanged" -> pure PageBackForwardCacheNotRestoredReasonWebViewSafeBrowsingAllowlistChanged
+    "WebViewDocumentStartJavascriptChanged" -> pure PageBackForwardCacheNotRestoredReasonWebViewDocumentStartJavascriptChanged
     "WebSocket" -> pure PageBackForwardCacheNotRestoredReasonWebSocket
     "WebTransport" -> pure PageBackForwardCacheNotRestoredReasonWebTransport
     "WebRTC" -> pure PageBackForwardCacheNotRestoredReasonWebRTC
@@ -8153,21 +11294,21 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "SubresourceHasCacheControlNoCache" -> pure PageBackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoCache
     "ContainsPlugins" -> pure PageBackForwardCacheNotRestoredReasonContainsPlugins
     "DocumentLoaded" -> pure PageBackForwardCacheNotRestoredReasonDocumentLoaded
-    "DedicatedWorkerOrWorklet" -> pure PageBackForwardCacheNotRestoredReasonDedicatedWorkerOrWorklet
     "OutstandingNetworkRequestOthers" -> pure PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestOthers
-    "OutstandingIndexedDBTransaction" -> pure PageBackForwardCacheNotRestoredReasonOutstandingIndexedDBTransaction
-    "RequestedNotificationsPermission" -> pure PageBackForwardCacheNotRestoredReasonRequestedNotificationsPermission
     "RequestedMIDIPermission" -> pure PageBackForwardCacheNotRestoredReasonRequestedMIDIPermission
     "RequestedAudioCapturePermission" -> pure PageBackForwardCacheNotRestoredReasonRequestedAudioCapturePermission
     "RequestedVideoCapturePermission" -> pure PageBackForwardCacheNotRestoredReasonRequestedVideoCapturePermission
     "RequestedBackForwardCacheBlockedSensors" -> pure PageBackForwardCacheNotRestoredReasonRequestedBackForwardCacheBlockedSensors
     "RequestedBackgroundWorkPermission" -> pure PageBackForwardCacheNotRestoredReasonRequestedBackgroundWorkPermission
     "BroadcastChannel" -> pure PageBackForwardCacheNotRestoredReasonBroadcastChannel
-    "IndexedDBConnection" -> pure PageBackForwardCacheNotRestoredReasonIndexedDBConnection
     "WebXR" -> pure PageBackForwardCacheNotRestoredReasonWebXR
     "SharedWorker" -> pure PageBackForwardCacheNotRestoredReasonSharedWorker
+    "SharedWorkerMessage" -> pure PageBackForwardCacheNotRestoredReasonSharedWorkerMessage
+    "SharedWorkerWithNoActiveClient" -> pure PageBackForwardCacheNotRestoredReasonSharedWorkerWithNoActiveClient
     "WebLocks" -> pure PageBackForwardCacheNotRestoredReasonWebLocks
+    "WebLocksContention" -> pure PageBackForwardCacheNotRestoredReasonWebLocksContention
     "WebHID" -> pure PageBackForwardCacheNotRestoredReasonWebHID
+    "WebBluetooth" -> pure PageBackForwardCacheNotRestoredReasonWebBluetooth
     "WebShare" -> pure PageBackForwardCacheNotRestoredReasonWebShare
     "RequestedStorageAccessGrant" -> pure PageBackForwardCacheNotRestoredReasonRequestedStorageAccessGrant
     "WebNfc" -> pure PageBackForwardCacheNotRestoredReasonWebNfc
@@ -8177,7 +11318,6 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "Printing" -> pure PageBackForwardCacheNotRestoredReasonPrinting
     "WebDatabase" -> pure PageBackForwardCacheNotRestoredReasonWebDatabase
     "PictureInPicture" -> pure PageBackForwardCacheNotRestoredReasonPictureInPicture
-    "Portal" -> pure PageBackForwardCacheNotRestoredReasonPortal
     "SpeechRecognizer" -> pure PageBackForwardCacheNotRestoredReasonSpeechRecognizer
     "IdleManager" -> pure PageBackForwardCacheNotRestoredReasonIdleManager
     "PaymentManager" -> pure PageBackForwardCacheNotRestoredReasonPaymentManager
@@ -8187,7 +11327,17 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "OutstandingNetworkRequestDirectSocket" -> pure PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestDirectSocket
     "InjectedJavascript" -> pure PageBackForwardCacheNotRestoredReasonInjectedJavascript
     "InjectedStyleSheet" -> pure PageBackForwardCacheNotRestoredReasonInjectedStyleSheet
+    "KeepaliveRequest" -> pure PageBackForwardCacheNotRestoredReasonKeepaliveRequest
+    "IndexedDBEvent" -> pure PageBackForwardCacheNotRestoredReasonIndexedDBEvent
     "Dummy" -> pure PageBackForwardCacheNotRestoredReasonDummy
+    "JsNetworkRequestReceivedCacheControlNoStoreResource" -> pure PageBackForwardCacheNotRestoredReasonJsNetworkRequestReceivedCacheControlNoStoreResource
+    "WebRTCUsedWithCCNS" -> pure PageBackForwardCacheNotRestoredReasonWebRTCUsedWithCCNS
+    "WebTransportUsedWithCCNS" -> pure PageBackForwardCacheNotRestoredReasonWebTransportUsedWithCCNS
+    "WebSocketUsedWithCCNS" -> pure PageBackForwardCacheNotRestoredReasonWebSocketUsedWithCCNS
+    "SmartCard" -> pure PageBackForwardCacheNotRestoredReasonSmartCard
+    "LiveMediaStreamTrack" -> pure PageBackForwardCacheNotRestoredReasonLiveMediaStreamTrack
+    "UnloadHandler" -> pure PageBackForwardCacheNotRestoredReasonUnloadHandler
+    "ParserAborted" -> pure PageBackForwardCacheNotRestoredReasonParserAborted
     "ContentSecurityHandler" -> pure PageBackForwardCacheNotRestoredReasonContentSecurityHandler
     "ContentWebAuthenticationAPI" -> pure PageBackForwardCacheNotRestoredReasonContentWebAuthenticationAPI
     "ContentFileChooser" -> pure PageBackForwardCacheNotRestoredReasonContentFileChooser
@@ -8198,6 +11348,7 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "ContentWebUSB" -> pure PageBackForwardCacheNotRestoredReasonContentWebUSB
     "ContentMediaSessionService" -> pure PageBackForwardCacheNotRestoredReasonContentMediaSessionService
     "ContentScreenReader" -> pure PageBackForwardCacheNotRestoredReasonContentScreenReader
+    "ContentDiscarded" -> pure PageBackForwardCacheNotRestoredReasonContentDiscarded
     "EmbedderPopupBlockerTabHelper" -> pure PageBackForwardCacheNotRestoredReasonEmbedderPopupBlockerTabHelper
     "EmbedderSafeBrowsingTriggeredPopupBlocker" -> pure PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingTriggeredPopupBlocker
     "EmbedderSafeBrowsingThreatDetails" -> pure PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingThreatDetails
@@ -8213,6 +11364,12 @@ instance FromJSON PageBackForwardCacheNotRestoredReason where
     "EmbedderExtensionMessaging" -> pure PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessaging
     "EmbedderExtensionMessagingForOpenPort" -> pure PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessagingForOpenPort
     "EmbedderExtensionSentMessageToCachedFrame" -> pure PageBackForwardCacheNotRestoredReasonEmbedderExtensionSentMessageToCachedFrame
+    "EmbedderExtensionFrame" -> pure PageBackForwardCacheNotRestoredReasonEmbedderExtensionFrame
+    "RequestedByWebViewClient" -> pure PageBackForwardCacheNotRestoredReasonRequestedByWebViewClient
+    "PostMessageByWebViewClient" -> pure PageBackForwardCacheNotRestoredReasonPostMessageByWebViewClient
+    "CacheControlNoStoreDeviceBoundSessionTerminated" -> pure PageBackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated
+    "CacheLimitPrunedOnModerateMemoryPressure" -> pure PageBackForwardCacheNotRestoredReasonCacheLimitPrunedOnModerateMemoryPressure
+    "CacheLimitPrunedOnCriticalMemoryPressure" -> pure PageBackForwardCacheNotRestoredReasonCacheLimitPrunedOnCriticalMemoryPressure
     "_" -> fail "failed to parse PageBackForwardCacheNotRestoredReason"
 instance ToJSON PageBackForwardCacheNotRestoredReason where
   toJSON v = A.String $ case v of
@@ -8256,6 +11413,7 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForPrerender -> "BackForwardCacheDisabledForPrerender"
     PageBackForwardCacheNotRestoredReasonUserAgentOverrideDiffers -> "UserAgentOverrideDiffers"
     PageBackForwardCacheNotRestoredReasonForegroundCacheLimit -> "ForegroundCacheLimit"
+    PageBackForwardCacheNotRestoredReasonForwardCacheDisabled -> "ForwardCacheDisabled"
     PageBackForwardCacheNotRestoredReasonBrowsingInstanceNotSwapped -> "BrowsingInstanceNotSwapped"
     PageBackForwardCacheNotRestoredReasonBackForwardCacheDisabledForDelegate -> "BackForwardCacheDisabledForDelegate"
     PageBackForwardCacheNotRestoredReasonUnloadHandlerExistsInMainFrame -> "UnloadHandlerExistsInMainFrame"
@@ -8269,6 +11427,15 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonActivationNavigationsDisallowedForBug1234857 -> "ActivationNavigationsDisallowedForBug1234857"
     PageBackForwardCacheNotRestoredReasonErrorDocument -> "ErrorDocument"
     PageBackForwardCacheNotRestoredReasonFencedFramesEmbedder -> "FencedFramesEmbedder"
+    PageBackForwardCacheNotRestoredReasonCookieDisabled -> "CookieDisabled"
+    PageBackForwardCacheNotRestoredReasonHTTPAuthRequired -> "HTTPAuthRequired"
+    PageBackForwardCacheNotRestoredReasonCookieFlushed -> "CookieFlushed"
+    PageBackForwardCacheNotRestoredReasonBroadcastChannelOnMessage -> "BroadcastChannelOnMessage"
+    PageBackForwardCacheNotRestoredReasonWebViewSettingsChanged -> "WebViewSettingsChanged"
+    PageBackForwardCacheNotRestoredReasonWebViewJavaScriptObjectChanged -> "WebViewJavaScriptObjectChanged"
+    PageBackForwardCacheNotRestoredReasonWebViewMessageListenerInjected -> "WebViewMessageListenerInjected"
+    PageBackForwardCacheNotRestoredReasonWebViewSafeBrowsingAllowlistChanged -> "WebViewSafeBrowsingAllowlistChanged"
+    PageBackForwardCacheNotRestoredReasonWebViewDocumentStartJavascriptChanged -> "WebViewDocumentStartJavascriptChanged"
     PageBackForwardCacheNotRestoredReasonWebSocket -> "WebSocket"
     PageBackForwardCacheNotRestoredReasonWebTransport -> "WebTransport"
     PageBackForwardCacheNotRestoredReasonWebRTC -> "WebRTC"
@@ -8278,21 +11445,21 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoCache -> "SubresourceHasCacheControlNoCache"
     PageBackForwardCacheNotRestoredReasonContainsPlugins -> "ContainsPlugins"
     PageBackForwardCacheNotRestoredReasonDocumentLoaded -> "DocumentLoaded"
-    PageBackForwardCacheNotRestoredReasonDedicatedWorkerOrWorklet -> "DedicatedWorkerOrWorklet"
     PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestOthers -> "OutstandingNetworkRequestOthers"
-    PageBackForwardCacheNotRestoredReasonOutstandingIndexedDBTransaction -> "OutstandingIndexedDBTransaction"
-    PageBackForwardCacheNotRestoredReasonRequestedNotificationsPermission -> "RequestedNotificationsPermission"
     PageBackForwardCacheNotRestoredReasonRequestedMIDIPermission -> "RequestedMIDIPermission"
     PageBackForwardCacheNotRestoredReasonRequestedAudioCapturePermission -> "RequestedAudioCapturePermission"
     PageBackForwardCacheNotRestoredReasonRequestedVideoCapturePermission -> "RequestedVideoCapturePermission"
     PageBackForwardCacheNotRestoredReasonRequestedBackForwardCacheBlockedSensors -> "RequestedBackForwardCacheBlockedSensors"
     PageBackForwardCacheNotRestoredReasonRequestedBackgroundWorkPermission -> "RequestedBackgroundWorkPermission"
     PageBackForwardCacheNotRestoredReasonBroadcastChannel -> "BroadcastChannel"
-    PageBackForwardCacheNotRestoredReasonIndexedDBConnection -> "IndexedDBConnection"
     PageBackForwardCacheNotRestoredReasonWebXR -> "WebXR"
     PageBackForwardCacheNotRestoredReasonSharedWorker -> "SharedWorker"
+    PageBackForwardCacheNotRestoredReasonSharedWorkerMessage -> "SharedWorkerMessage"
+    PageBackForwardCacheNotRestoredReasonSharedWorkerWithNoActiveClient -> "SharedWorkerWithNoActiveClient"
     PageBackForwardCacheNotRestoredReasonWebLocks -> "WebLocks"
+    PageBackForwardCacheNotRestoredReasonWebLocksContention -> "WebLocksContention"
     PageBackForwardCacheNotRestoredReasonWebHID -> "WebHID"
+    PageBackForwardCacheNotRestoredReasonWebBluetooth -> "WebBluetooth"
     PageBackForwardCacheNotRestoredReasonWebShare -> "WebShare"
     PageBackForwardCacheNotRestoredReasonRequestedStorageAccessGrant -> "RequestedStorageAccessGrant"
     PageBackForwardCacheNotRestoredReasonWebNfc -> "WebNfc"
@@ -8302,7 +11469,6 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonPrinting -> "Printing"
     PageBackForwardCacheNotRestoredReasonWebDatabase -> "WebDatabase"
     PageBackForwardCacheNotRestoredReasonPictureInPicture -> "PictureInPicture"
-    PageBackForwardCacheNotRestoredReasonPortal -> "Portal"
     PageBackForwardCacheNotRestoredReasonSpeechRecognizer -> "SpeechRecognizer"
     PageBackForwardCacheNotRestoredReasonIdleManager -> "IdleManager"
     PageBackForwardCacheNotRestoredReasonPaymentManager -> "PaymentManager"
@@ -8312,7 +11478,17 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonOutstandingNetworkRequestDirectSocket -> "OutstandingNetworkRequestDirectSocket"
     PageBackForwardCacheNotRestoredReasonInjectedJavascript -> "InjectedJavascript"
     PageBackForwardCacheNotRestoredReasonInjectedStyleSheet -> "InjectedStyleSheet"
+    PageBackForwardCacheNotRestoredReasonKeepaliveRequest -> "KeepaliveRequest"
+    PageBackForwardCacheNotRestoredReasonIndexedDBEvent -> "IndexedDBEvent"
     PageBackForwardCacheNotRestoredReasonDummy -> "Dummy"
+    PageBackForwardCacheNotRestoredReasonJsNetworkRequestReceivedCacheControlNoStoreResource -> "JsNetworkRequestReceivedCacheControlNoStoreResource"
+    PageBackForwardCacheNotRestoredReasonWebRTCUsedWithCCNS -> "WebRTCUsedWithCCNS"
+    PageBackForwardCacheNotRestoredReasonWebTransportUsedWithCCNS -> "WebTransportUsedWithCCNS"
+    PageBackForwardCacheNotRestoredReasonWebSocketUsedWithCCNS -> "WebSocketUsedWithCCNS"
+    PageBackForwardCacheNotRestoredReasonSmartCard -> "SmartCard"
+    PageBackForwardCacheNotRestoredReasonLiveMediaStreamTrack -> "LiveMediaStreamTrack"
+    PageBackForwardCacheNotRestoredReasonUnloadHandler -> "UnloadHandler"
+    PageBackForwardCacheNotRestoredReasonParserAborted -> "ParserAborted"
     PageBackForwardCacheNotRestoredReasonContentSecurityHandler -> "ContentSecurityHandler"
     PageBackForwardCacheNotRestoredReasonContentWebAuthenticationAPI -> "ContentWebAuthenticationAPI"
     PageBackForwardCacheNotRestoredReasonContentFileChooser -> "ContentFileChooser"
@@ -8323,6 +11499,7 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonContentWebUSB -> "ContentWebUSB"
     PageBackForwardCacheNotRestoredReasonContentMediaSessionService -> "ContentMediaSessionService"
     PageBackForwardCacheNotRestoredReasonContentScreenReader -> "ContentScreenReader"
+    PageBackForwardCacheNotRestoredReasonContentDiscarded -> "ContentDiscarded"
     PageBackForwardCacheNotRestoredReasonEmbedderPopupBlockerTabHelper -> "EmbedderPopupBlockerTabHelper"
     PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingTriggeredPopupBlocker -> "EmbedderSafeBrowsingTriggeredPopupBlocker"
     PageBackForwardCacheNotRestoredReasonEmbedderSafeBrowsingThreatDetails -> "EmbedderSafeBrowsingThreatDetails"
@@ -8338,6 +11515,12 @@ instance ToJSON PageBackForwardCacheNotRestoredReason where
     PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessaging -> "EmbedderExtensionMessaging"
     PageBackForwardCacheNotRestoredReasonEmbedderExtensionMessagingForOpenPort -> "EmbedderExtensionMessagingForOpenPort"
     PageBackForwardCacheNotRestoredReasonEmbedderExtensionSentMessageToCachedFrame -> "EmbedderExtensionSentMessageToCachedFrame"
+    PageBackForwardCacheNotRestoredReasonEmbedderExtensionFrame -> "EmbedderExtensionFrame"
+    PageBackForwardCacheNotRestoredReasonRequestedByWebViewClient -> "RequestedByWebViewClient"
+    PageBackForwardCacheNotRestoredReasonPostMessageByWebViewClient -> "PostMessageByWebViewClient"
+    PageBackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated -> "CacheControlNoStoreDeviceBoundSessionTerminated"
+    PageBackForwardCacheNotRestoredReasonCacheLimitPrunedOnModerateMemoryPressure -> "CacheLimitPrunedOnModerateMemoryPressure"
+    PageBackForwardCacheNotRestoredReasonCacheLimitPrunedOnCriticalMemoryPressure -> "CacheLimitPrunedOnCriticalMemoryPressure"
 
 -- | Type 'Page.BackForwardCacheNotRestoredReasonType'.
 --   Types of not restored reasons for back-forward cache.
@@ -8355,6 +11538,33 @@ instance ToJSON PageBackForwardCacheNotRestoredReasonType where
     PageBackForwardCacheNotRestoredReasonTypePageSupportNeeded -> "PageSupportNeeded"
     PageBackForwardCacheNotRestoredReasonTypeCircumstantial -> "Circumstantial"
 
+-- | Type 'Page.BackForwardCacheBlockingDetails'.
+data PageBackForwardCacheBlockingDetails = PageBackForwardCacheBlockingDetails
+  {
+    -- | Url of the file where blockage happened. Optional because of tests.
+    pageBackForwardCacheBlockingDetailsUrl :: Maybe T.Text,
+    -- | Function name where blockage happened. Optional because of anonymous functions and tests.
+    pageBackForwardCacheBlockingDetailsFunction :: Maybe T.Text,
+    -- | Line number in the script (0-based).
+    pageBackForwardCacheBlockingDetailsLineNumber :: Int,
+    -- | Column number in the script (0-based).
+    pageBackForwardCacheBlockingDetailsColumnNumber :: Int
+  }
+  deriving (Eq, Show)
+instance FromJSON PageBackForwardCacheBlockingDetails where
+  parseJSON = A.withObject "PageBackForwardCacheBlockingDetails" $ \o -> PageBackForwardCacheBlockingDetails
+    <$> o A..:? "url"
+    <*> o A..:? "function"
+    <*> o A..: "lineNumber"
+    <*> o A..: "columnNumber"
+instance ToJSON PageBackForwardCacheBlockingDetails where
+  toJSON p = A.object $ catMaybes [
+    ("url" A..=) <$> (pageBackForwardCacheBlockingDetailsUrl p),
+    ("function" A..=) <$> (pageBackForwardCacheBlockingDetailsFunction p),
+    ("lineNumber" A..=) <$> Just (pageBackForwardCacheBlockingDetailsLineNumber p),
+    ("columnNumber" A..=) <$> Just (pageBackForwardCacheBlockingDetailsColumnNumber p)
+    ]
+
 -- | Type 'Page.BackForwardCacheNotRestoredExplanation'.
 data PageBackForwardCacheNotRestoredExplanation = PageBackForwardCacheNotRestoredExplanation
   {
@@ -8365,7 +11575,8 @@ data PageBackForwardCacheNotRestoredExplanation = PageBackForwardCacheNotRestore
     -- | Context associated with the reason. The meaning of this context is
     --   dependent on the reason:
     --   - EmbedderExtensionSentMessageToCachedFrame: the extension ID.
-    pageBackForwardCacheNotRestoredExplanationContext :: Maybe T.Text
+    pageBackForwardCacheNotRestoredExplanationContext :: Maybe T.Text,
+    pageBackForwardCacheNotRestoredExplanationDetails :: Maybe [PageBackForwardCacheBlockingDetails]
   }
   deriving (Eq, Show)
 instance FromJSON PageBackForwardCacheNotRestoredExplanation where
@@ -8373,11 +11584,13 @@ instance FromJSON PageBackForwardCacheNotRestoredExplanation where
     <$> o A..: "type"
     <*> o A..: "reason"
     <*> o A..:? "context"
+    <*> o A..:? "details"
 instance ToJSON PageBackForwardCacheNotRestoredExplanation where
   toJSON p = A.object $ catMaybes [
     ("type" A..=) <$> Just (pageBackForwardCacheNotRestoredExplanationType p),
     ("reason" A..=) <$> Just (pageBackForwardCacheNotRestoredExplanationReason p),
-    ("context" A..=) <$> (pageBackForwardCacheNotRestoredExplanationContext p)
+    ("context" A..=) <$> (pageBackForwardCacheNotRestoredExplanationContext p),
+    ("details" A..=) <$> (pageBackForwardCacheNotRestoredExplanationDetails p)
     ]
 
 -- | Type 'Page.BackForwardCacheNotRestoredExplanationTree'.
@@ -8402,94 +11615,6 @@ instance ToJSON PageBackForwardCacheNotRestoredExplanationTree where
     ("explanations" A..=) <$> Just (pageBackForwardCacheNotRestoredExplanationTreeExplanations p),
     ("children" A..=) <$> Just (pageBackForwardCacheNotRestoredExplanationTreeChildren p)
     ]
-
--- | Type 'Page.PrerenderFinalStatus'.
---   List of FinalStatus reasons for Prerender2.
-data PagePrerenderFinalStatus = PagePrerenderFinalStatusActivated | PagePrerenderFinalStatusDestroyed | PagePrerenderFinalStatusLowEndDevice | PagePrerenderFinalStatusCrossOriginRedirect | PagePrerenderFinalStatusCrossOriginNavigation | PagePrerenderFinalStatusInvalidSchemeRedirect | PagePrerenderFinalStatusInvalidSchemeNavigation | PagePrerenderFinalStatusInProgressNavigation | PagePrerenderFinalStatusNavigationRequestBlockedByCsp | PagePrerenderFinalStatusMainFrameNavigation | PagePrerenderFinalStatusMojoBinderPolicy | PagePrerenderFinalStatusRendererProcessCrashed | PagePrerenderFinalStatusRendererProcessKilled | PagePrerenderFinalStatusDownload | PagePrerenderFinalStatusTriggerDestroyed | PagePrerenderFinalStatusNavigationNotCommitted | PagePrerenderFinalStatusNavigationBadHttpStatus | PagePrerenderFinalStatusClientCertRequested | PagePrerenderFinalStatusNavigationRequestNetworkError | PagePrerenderFinalStatusMaxNumOfRunningPrerendersExceeded | PagePrerenderFinalStatusCancelAllHostsForTesting | PagePrerenderFinalStatusDidFailLoad | PagePrerenderFinalStatusStop | PagePrerenderFinalStatusSslCertificateError | PagePrerenderFinalStatusLoginAuthRequested | PagePrerenderFinalStatusUaChangeRequiresReload | PagePrerenderFinalStatusBlockedByClient | PagePrerenderFinalStatusAudioOutputDeviceRequested | PagePrerenderFinalStatusMixedContent | PagePrerenderFinalStatusTriggerBackgrounded | PagePrerenderFinalStatusEmbedderTriggeredAndCrossOriginRedirected | PagePrerenderFinalStatusMemoryLimitExceeded | PagePrerenderFinalStatusFailToGetMemoryUsage | PagePrerenderFinalStatusDataSaverEnabled | PagePrerenderFinalStatusHasEffectiveUrl | PagePrerenderFinalStatusActivatedBeforeStarted | PagePrerenderFinalStatusInactivePageRestriction | PagePrerenderFinalStatusStartFailed | PagePrerenderFinalStatusTimeoutBackgrounded
-  deriving (Ord, Eq, Show, Read)
-instance FromJSON PagePrerenderFinalStatus where
-  parseJSON = A.withText "PagePrerenderFinalStatus" $ \v -> case v of
-    "Activated" -> pure PagePrerenderFinalStatusActivated
-    "Destroyed" -> pure PagePrerenderFinalStatusDestroyed
-    "LowEndDevice" -> pure PagePrerenderFinalStatusLowEndDevice
-    "CrossOriginRedirect" -> pure PagePrerenderFinalStatusCrossOriginRedirect
-    "CrossOriginNavigation" -> pure PagePrerenderFinalStatusCrossOriginNavigation
-    "InvalidSchemeRedirect" -> pure PagePrerenderFinalStatusInvalidSchemeRedirect
-    "InvalidSchemeNavigation" -> pure PagePrerenderFinalStatusInvalidSchemeNavigation
-    "InProgressNavigation" -> pure PagePrerenderFinalStatusInProgressNavigation
-    "NavigationRequestBlockedByCsp" -> pure PagePrerenderFinalStatusNavigationRequestBlockedByCsp
-    "MainFrameNavigation" -> pure PagePrerenderFinalStatusMainFrameNavigation
-    "MojoBinderPolicy" -> pure PagePrerenderFinalStatusMojoBinderPolicy
-    "RendererProcessCrashed" -> pure PagePrerenderFinalStatusRendererProcessCrashed
-    "RendererProcessKilled" -> pure PagePrerenderFinalStatusRendererProcessKilled
-    "Download" -> pure PagePrerenderFinalStatusDownload
-    "TriggerDestroyed" -> pure PagePrerenderFinalStatusTriggerDestroyed
-    "NavigationNotCommitted" -> pure PagePrerenderFinalStatusNavigationNotCommitted
-    "NavigationBadHttpStatus" -> pure PagePrerenderFinalStatusNavigationBadHttpStatus
-    "ClientCertRequested" -> pure PagePrerenderFinalStatusClientCertRequested
-    "NavigationRequestNetworkError" -> pure PagePrerenderFinalStatusNavigationRequestNetworkError
-    "MaxNumOfRunningPrerendersExceeded" -> pure PagePrerenderFinalStatusMaxNumOfRunningPrerendersExceeded
-    "CancelAllHostsForTesting" -> pure PagePrerenderFinalStatusCancelAllHostsForTesting
-    "DidFailLoad" -> pure PagePrerenderFinalStatusDidFailLoad
-    "Stop" -> pure PagePrerenderFinalStatusStop
-    "SslCertificateError" -> pure PagePrerenderFinalStatusSslCertificateError
-    "LoginAuthRequested" -> pure PagePrerenderFinalStatusLoginAuthRequested
-    "UaChangeRequiresReload" -> pure PagePrerenderFinalStatusUaChangeRequiresReload
-    "BlockedByClient" -> pure PagePrerenderFinalStatusBlockedByClient
-    "AudioOutputDeviceRequested" -> pure PagePrerenderFinalStatusAudioOutputDeviceRequested
-    "MixedContent" -> pure PagePrerenderFinalStatusMixedContent
-    "TriggerBackgrounded" -> pure PagePrerenderFinalStatusTriggerBackgrounded
-    "EmbedderTriggeredAndCrossOriginRedirected" -> pure PagePrerenderFinalStatusEmbedderTriggeredAndCrossOriginRedirected
-    "MemoryLimitExceeded" -> pure PagePrerenderFinalStatusMemoryLimitExceeded
-    "FailToGetMemoryUsage" -> pure PagePrerenderFinalStatusFailToGetMemoryUsage
-    "DataSaverEnabled" -> pure PagePrerenderFinalStatusDataSaverEnabled
-    "HasEffectiveUrl" -> pure PagePrerenderFinalStatusHasEffectiveUrl
-    "ActivatedBeforeStarted" -> pure PagePrerenderFinalStatusActivatedBeforeStarted
-    "InactivePageRestriction" -> pure PagePrerenderFinalStatusInactivePageRestriction
-    "StartFailed" -> pure PagePrerenderFinalStatusStartFailed
-    "TimeoutBackgrounded" -> pure PagePrerenderFinalStatusTimeoutBackgrounded
-    "_" -> fail "failed to parse PagePrerenderFinalStatus"
-instance ToJSON PagePrerenderFinalStatus where
-  toJSON v = A.String $ case v of
-    PagePrerenderFinalStatusActivated -> "Activated"
-    PagePrerenderFinalStatusDestroyed -> "Destroyed"
-    PagePrerenderFinalStatusLowEndDevice -> "LowEndDevice"
-    PagePrerenderFinalStatusCrossOriginRedirect -> "CrossOriginRedirect"
-    PagePrerenderFinalStatusCrossOriginNavigation -> "CrossOriginNavigation"
-    PagePrerenderFinalStatusInvalidSchemeRedirect -> "InvalidSchemeRedirect"
-    PagePrerenderFinalStatusInvalidSchemeNavigation -> "InvalidSchemeNavigation"
-    PagePrerenderFinalStatusInProgressNavigation -> "InProgressNavigation"
-    PagePrerenderFinalStatusNavigationRequestBlockedByCsp -> "NavigationRequestBlockedByCsp"
-    PagePrerenderFinalStatusMainFrameNavigation -> "MainFrameNavigation"
-    PagePrerenderFinalStatusMojoBinderPolicy -> "MojoBinderPolicy"
-    PagePrerenderFinalStatusRendererProcessCrashed -> "RendererProcessCrashed"
-    PagePrerenderFinalStatusRendererProcessKilled -> "RendererProcessKilled"
-    PagePrerenderFinalStatusDownload -> "Download"
-    PagePrerenderFinalStatusTriggerDestroyed -> "TriggerDestroyed"
-    PagePrerenderFinalStatusNavigationNotCommitted -> "NavigationNotCommitted"
-    PagePrerenderFinalStatusNavigationBadHttpStatus -> "NavigationBadHttpStatus"
-    PagePrerenderFinalStatusClientCertRequested -> "ClientCertRequested"
-    PagePrerenderFinalStatusNavigationRequestNetworkError -> "NavigationRequestNetworkError"
-    PagePrerenderFinalStatusMaxNumOfRunningPrerendersExceeded -> "MaxNumOfRunningPrerendersExceeded"
-    PagePrerenderFinalStatusCancelAllHostsForTesting -> "CancelAllHostsForTesting"
-    PagePrerenderFinalStatusDidFailLoad -> "DidFailLoad"
-    PagePrerenderFinalStatusStop -> "Stop"
-    PagePrerenderFinalStatusSslCertificateError -> "SslCertificateError"
-    PagePrerenderFinalStatusLoginAuthRequested -> "LoginAuthRequested"
-    PagePrerenderFinalStatusUaChangeRequiresReload -> "UaChangeRequiresReload"
-    PagePrerenderFinalStatusBlockedByClient -> "BlockedByClient"
-    PagePrerenderFinalStatusAudioOutputDeviceRequested -> "AudioOutputDeviceRequested"
-    PagePrerenderFinalStatusMixedContent -> "MixedContent"
-    PagePrerenderFinalStatusTriggerBackgrounded -> "TriggerBackgrounded"
-    PagePrerenderFinalStatusEmbedderTriggeredAndCrossOriginRedirected -> "EmbedderTriggeredAndCrossOriginRedirected"
-    PagePrerenderFinalStatusMemoryLimitExceeded -> "MemoryLimitExceeded"
-    PagePrerenderFinalStatusFailToGetMemoryUsage -> "FailToGetMemoryUsage"
-    PagePrerenderFinalStatusDataSaverEnabled -> "DataSaverEnabled"
-    PagePrerenderFinalStatusHasEffectiveUrl -> "HasEffectiveUrl"
-    PagePrerenderFinalStatusActivatedBeforeStarted -> "ActivatedBeforeStarted"
-    PagePrerenderFinalStatusInactivePageRestriction -> "InactivePageRestriction"
-    PagePrerenderFinalStatusStartFailed -> "StartFailed"
-    PagePrerenderFinalStatusTimeoutBackgrounded -> "TimeoutBackgrounded"
 
 -- | Type of the 'Page.domContentEventFired' event.
 data PageDomContentEventFired = PageDomContentEventFired
@@ -8521,7 +11646,7 @@ data PageFileChooserOpened = PageFileChooserOpened
     pageFileChooserOpenedFrameId :: PageFrameId,
     -- | Input mode.
     pageFileChooserOpenedMode :: PageFileChooserOpenedMode,
-    -- | Input node id. Only present for file choosers opened via an <input type="file"> element.
+    -- | Input node id. Only present for file choosers opened via an `<input type="file">` element.
     pageFileChooserOpenedBackendNodeId :: Maybe DOMBackendNodeId
   }
   deriving (Eq, Show)
@@ -8578,6 +11703,19 @@ instance FromJSON PageFrameDetached where
 instance Event PageFrameDetached where
   eventName _ = "Page.frameDetached"
 
+-- | Type of the 'Page.frameSubtreeWillBeDetached' event.
+data PageFrameSubtreeWillBeDetached = PageFrameSubtreeWillBeDetached
+  {
+    -- | Id of the frame that is the root of the subtree that will be detached.
+    pageFrameSubtreeWillBeDetachedFrameId :: PageFrameId
+  }
+  deriving (Eq, Show)
+instance FromJSON PageFrameSubtreeWillBeDetached where
+  parseJSON = A.withObject "PageFrameSubtreeWillBeDetached" $ \o -> PageFrameSubtreeWillBeDetached
+    <$> o A..: "frameId"
+instance Event PageFrameSubtreeWillBeDetached where
+  eventName _ = "Page.frameSubtreeWillBeDetached"
+
 -- | Type of the 'Page.frameNavigated' event.
 data PageFrameNavigated = PageFrameNavigated
   {
@@ -8613,6 +11751,53 @@ instance FromJSON PageFrameResized where
   parseJSON _ = pure PageFrameResized
 instance Event PageFrameResized where
   eventName _ = "Page.frameResized"
+
+-- | Type of the 'Page.frameStartedNavigating' event.
+data PageFrameStartedNavigatingNavigationType = PageFrameStartedNavigatingNavigationTypeReload | PageFrameStartedNavigatingNavigationTypeReloadBypassingCache | PageFrameStartedNavigatingNavigationTypeRestore | PageFrameStartedNavigatingNavigationTypeRestoreWithPost | PageFrameStartedNavigatingNavigationTypeHistorySameDocument | PageFrameStartedNavigatingNavigationTypeHistoryDifferentDocument | PageFrameStartedNavigatingNavigationTypeSameDocument | PageFrameStartedNavigatingNavigationTypeDifferentDocument
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON PageFrameStartedNavigatingNavigationType where
+  parseJSON = A.withText "PageFrameStartedNavigatingNavigationType" $ \v -> case v of
+    "reload" -> pure PageFrameStartedNavigatingNavigationTypeReload
+    "reloadBypassingCache" -> pure PageFrameStartedNavigatingNavigationTypeReloadBypassingCache
+    "restore" -> pure PageFrameStartedNavigatingNavigationTypeRestore
+    "restoreWithPost" -> pure PageFrameStartedNavigatingNavigationTypeRestoreWithPost
+    "historySameDocument" -> pure PageFrameStartedNavigatingNavigationTypeHistorySameDocument
+    "historyDifferentDocument" -> pure PageFrameStartedNavigatingNavigationTypeHistoryDifferentDocument
+    "sameDocument" -> pure PageFrameStartedNavigatingNavigationTypeSameDocument
+    "differentDocument" -> pure PageFrameStartedNavigatingNavigationTypeDifferentDocument
+    "_" -> fail "failed to parse PageFrameStartedNavigatingNavigationType"
+instance ToJSON PageFrameStartedNavigatingNavigationType where
+  toJSON v = A.String $ case v of
+    PageFrameStartedNavigatingNavigationTypeReload -> "reload"
+    PageFrameStartedNavigatingNavigationTypeReloadBypassingCache -> "reloadBypassingCache"
+    PageFrameStartedNavigatingNavigationTypeRestore -> "restore"
+    PageFrameStartedNavigatingNavigationTypeRestoreWithPost -> "restoreWithPost"
+    PageFrameStartedNavigatingNavigationTypeHistorySameDocument -> "historySameDocument"
+    PageFrameStartedNavigatingNavigationTypeHistoryDifferentDocument -> "historyDifferentDocument"
+    PageFrameStartedNavigatingNavigationTypeSameDocument -> "sameDocument"
+    PageFrameStartedNavigatingNavigationTypeDifferentDocument -> "differentDocument"
+data PageFrameStartedNavigating = PageFrameStartedNavigating
+  {
+    -- | ID of the frame that is being navigated.
+    pageFrameStartedNavigatingFrameId :: PageFrameId,
+    -- | The URL the navigation started with. The final URL can be different.
+    pageFrameStartedNavigatingUrl :: T.Text,
+    -- | Loader identifier. Even though it is present in case of same-document
+    --   navigation, the previously committed loaderId would not change unless
+    --   the navigation changes from a same-document to a cross-document
+    --   navigation.
+    pageFrameStartedNavigatingLoaderId :: NetworkLoaderId,
+    pageFrameStartedNavigatingNavigationType :: PageFrameStartedNavigatingNavigationType
+  }
+  deriving (Eq, Show)
+instance FromJSON PageFrameStartedNavigating where
+  parseJSON = A.withObject "PageFrameStartedNavigating" $ \o -> PageFrameStartedNavigating
+    <$> o A..: "frameId"
+    <*> o A..: "url"
+    <*> o A..: "loaderId"
+    <*> o A..: "navigationType"
+instance Event PageFrameStartedNavigating where
+  eventName _ = "Page.frameStartedNavigating"
 
 -- | Type of the 'Page.frameRequestedNavigation' event.
 data PageFrameRequestedNavigation = PageFrameRequestedNavigation
@@ -8681,6 +11866,8 @@ instance Event PageInterstitialShown where
 -- | Type of the 'Page.javascriptDialogClosed' event.
 data PageJavascriptDialogClosed = PageJavascriptDialogClosed
   {
+    -- | Frame id.
+    pageJavascriptDialogClosedFrameId :: PageFrameId,
     -- | Whether dialog was confirmed.
     pageJavascriptDialogClosedResult :: Bool,
     -- | User input in case of prompt.
@@ -8689,7 +11876,8 @@ data PageJavascriptDialogClosed = PageJavascriptDialogClosed
   deriving (Eq, Show)
 instance FromJSON PageJavascriptDialogClosed where
   parseJSON = A.withObject "PageJavascriptDialogClosed" $ \o -> PageJavascriptDialogClosed
-    <$> o A..: "result"
+    <$> o A..: "frameId"
+    <*> o A..: "result"
     <*> o A..: "userInput"
 instance Event PageJavascriptDialogClosed where
   eventName _ = "Page.javascriptDialogClosed"
@@ -8699,6 +11887,8 @@ data PageJavascriptDialogOpening = PageJavascriptDialogOpening
   {
     -- | Frame url.
     pageJavascriptDialogOpeningUrl :: T.Text,
+    -- | Frame id.
+    pageJavascriptDialogOpeningFrameId :: PageFrameId,
     -- | Message that will be displayed by the dialog.
     pageJavascriptDialogOpeningMessage :: T.Text,
     -- | Dialog type.
@@ -8714,6 +11904,7 @@ data PageJavascriptDialogOpening = PageJavascriptDialogOpening
 instance FromJSON PageJavascriptDialogOpening where
   parseJSON = A.withObject "PageJavascriptDialogOpening" $ \o -> PageJavascriptDialogOpening
     <$> o A..: "url"
+    <*> o A..: "frameId"
     <*> o A..: "message"
     <*> o A..: "type"
     <*> o A..: "hasBrowserHandler"
@@ -8744,7 +11935,7 @@ instance Event PageLifecycleEvent where
 -- | Type of the 'Page.backForwardCacheNotUsed' event.
 data PageBackForwardCacheNotUsed = PageBackForwardCacheNotUsed
   {
-    -- | The loader id for the associated navgation.
+    -- | The loader id for the associated navigation.
     pageBackForwardCacheNotUsedLoaderId :: NetworkLoaderId,
     -- | The frame id of the associated frame.
     pageBackForwardCacheNotUsedFrameId :: PageFrameId,
@@ -8763,27 +11954,6 @@ instance FromJSON PageBackForwardCacheNotUsed where
 instance Event PageBackForwardCacheNotUsed where
   eventName _ = "Page.backForwardCacheNotUsed"
 
--- | Type of the 'Page.prerenderAttemptCompleted' event.
-data PagePrerenderAttemptCompleted = PagePrerenderAttemptCompleted
-  {
-    -- | The frame id of the frame initiating prerendering.
-    pagePrerenderAttemptCompletedInitiatingFrameId :: PageFrameId,
-    pagePrerenderAttemptCompletedPrerenderingUrl :: T.Text,
-    pagePrerenderAttemptCompletedFinalStatus :: PagePrerenderFinalStatus,
-    -- | This is used to give users more information about the name of the API call
-    --   that is incompatible with prerender and has caused the cancellation of the attempt
-    pagePrerenderAttemptCompletedDisallowedApiMethod :: Maybe T.Text
-  }
-  deriving (Eq, Show)
-instance FromJSON PagePrerenderAttemptCompleted where
-  parseJSON = A.withObject "PagePrerenderAttemptCompleted" $ \o -> PagePrerenderAttemptCompleted
-    <$> o A..: "initiatingFrameId"
-    <*> o A..: "prerenderingUrl"
-    <*> o A..: "finalStatus"
-    <*> o A..:? "disallowedApiMethod"
-instance Event PagePrerenderAttemptCompleted where
-  eventName _ = "Page.prerenderAttemptCompleted"
-
 -- | Type of the 'Page.loadEventFired' event.
 data PageLoadEventFired = PageLoadEventFired
   {
@@ -8797,18 +11967,34 @@ instance Event PageLoadEventFired where
   eventName _ = "Page.loadEventFired"
 
 -- | Type of the 'Page.navigatedWithinDocument' event.
+data PageNavigatedWithinDocumentNavigationType = PageNavigatedWithinDocumentNavigationTypeFragment | PageNavigatedWithinDocumentNavigationTypeHistoryApi | PageNavigatedWithinDocumentNavigationTypeOther
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON PageNavigatedWithinDocumentNavigationType where
+  parseJSON = A.withText "PageNavigatedWithinDocumentNavigationType" $ \v -> case v of
+    "fragment" -> pure PageNavigatedWithinDocumentNavigationTypeFragment
+    "historyApi" -> pure PageNavigatedWithinDocumentNavigationTypeHistoryApi
+    "other" -> pure PageNavigatedWithinDocumentNavigationTypeOther
+    "_" -> fail "failed to parse PageNavigatedWithinDocumentNavigationType"
+instance ToJSON PageNavigatedWithinDocumentNavigationType where
+  toJSON v = A.String $ case v of
+    PageNavigatedWithinDocumentNavigationTypeFragment -> "fragment"
+    PageNavigatedWithinDocumentNavigationTypeHistoryApi -> "historyApi"
+    PageNavigatedWithinDocumentNavigationTypeOther -> "other"
 data PageNavigatedWithinDocument = PageNavigatedWithinDocument
   {
     -- | Id of the frame.
     pageNavigatedWithinDocumentFrameId :: PageFrameId,
     -- | Frame's new url.
-    pageNavigatedWithinDocumentUrl :: T.Text
+    pageNavigatedWithinDocumentUrl :: T.Text,
+    -- | Navigation type
+    pageNavigatedWithinDocumentNavigationType :: PageNavigatedWithinDocumentNavigationType
   }
   deriving (Eq, Show)
 instance FromJSON PageNavigatedWithinDocument where
   parseJSON = A.withObject "PageNavigatedWithinDocument" $ \o -> PageNavigatedWithinDocument
     <$> o A..: "frameId"
     <*> o A..: "url"
+    <*> o A..: "navigationType"
 instance Event PageNavigatedWithinDocument where
   eventName _ = "Page.navigatedWithinDocument"
 
@@ -8893,7 +12079,10 @@ data PPageAddScriptToEvaluateOnNewDocument = PPageAddScriptToEvaluateOnNewDocume
     pPageAddScriptToEvaluateOnNewDocumentWorldName :: Maybe T.Text,
     -- | Specifies whether command line API should be available to the script, defaults
     --   to false.
-    pPageAddScriptToEvaluateOnNewDocumentIncludeCommandLineAPI :: Maybe Bool
+    pPageAddScriptToEvaluateOnNewDocumentIncludeCommandLineAPI :: Maybe Bool,
+    -- | If true, runs the script immediately on existing execution contexts or worlds.
+    --   Default: false.
+    pPageAddScriptToEvaluateOnNewDocumentRunImmediately :: Maybe Bool
   }
   deriving (Eq, Show)
 pPageAddScriptToEvaluateOnNewDocument
@@ -8905,11 +12094,13 @@ pPageAddScriptToEvaluateOnNewDocument
     arg_pPageAddScriptToEvaluateOnNewDocumentSource
     Nothing
     Nothing
+    Nothing
 instance ToJSON PPageAddScriptToEvaluateOnNewDocument where
   toJSON p = A.object $ catMaybes [
     ("source" A..=) <$> Just (pPageAddScriptToEvaluateOnNewDocumentSource p),
     ("worldName" A..=) <$> (pPageAddScriptToEvaluateOnNewDocumentWorldName p),
-    ("includeCommandLineAPI" A..=) <$> (pPageAddScriptToEvaluateOnNewDocumentIncludeCommandLineAPI p)
+    ("includeCommandLineAPI" A..=) <$> (pPageAddScriptToEvaluateOnNewDocumentIncludeCommandLineAPI p),
+    ("runImmediately" A..=) <$> (pPageAddScriptToEvaluateOnNewDocumentRunImmediately p)
     ]
 data PageAddScriptToEvaluateOnNewDocument = PageAddScriptToEvaluateOnNewDocument
   {
@@ -8967,7 +12158,9 @@ data PPageCaptureScreenshot = PPageCaptureScreenshot
     -- | Capture the screenshot from the surface, rather than the view. Defaults to true.
     pPageCaptureScreenshotFromSurface :: Maybe Bool,
     -- | Capture the screenshot beyond the viewport. Defaults to false.
-    pPageCaptureScreenshotCaptureBeyondViewport :: Maybe Bool
+    pPageCaptureScreenshotCaptureBeyondViewport :: Maybe Bool,
+    -- | Optimize image encoding for speed, not for resulting size (defaults to false)
+    pPageCaptureScreenshotOptimizeForSpeed :: Maybe Bool
   }
   deriving (Eq, Show)
 pPageCaptureScreenshot
@@ -8979,13 +12172,15 @@ pPageCaptureScreenshot
     Nothing
     Nothing
     Nothing
+    Nothing
 instance ToJSON PPageCaptureScreenshot where
   toJSON p = A.object $ catMaybes [
     ("format" A..=) <$> (pPageCaptureScreenshotFormat p),
     ("quality" A..=) <$> (pPageCaptureScreenshotQuality p),
     ("clip" A..=) <$> (pPageCaptureScreenshotClip p),
     ("fromSurface" A..=) <$> (pPageCaptureScreenshotFromSurface p),
-    ("captureBeyondViewport" A..=) <$> (pPageCaptureScreenshotCaptureBeyondViewport p)
+    ("captureBeyondViewport" A..=) <$> (pPageCaptureScreenshotCaptureBeyondViewport p),
+    ("optimizeForSpeed" A..=) <$> (pPageCaptureScreenshotOptimizeForSpeed p)
     ]
 data PageCaptureScreenshot = PageCaptureScreenshot
   {
@@ -9052,7 +12247,14 @@ data PPageCreateIsolatedWorld = PPageCreateIsolatedWorld
     pPageCreateIsolatedWorldWorldName :: Maybe T.Text,
     -- | Whether or not universal access should be granted to the isolated world. This is a powerful
     --   option, use with caution.
-    pPageCreateIsolatedWorldGrantUniveralAccess :: Maybe Bool
+    pPageCreateIsolatedWorldGrantUniveralAccess :: Maybe Bool,
+    -- | An optional content security policy to set for the isolated world.
+    --   If omitted, any existing CSP for the world will be cleared.
+    --   Note that clearing or updating the CSP does not immediately affect the active
+    --   context in the same document because LocalDOMWindow caches the
+    --   ContentSecurityPolicy object. The change takes effect on subsequent
+    --   navigations when a new window context is created.
+    pPageCreateIsolatedWorldContentSecurityPolicy :: Maybe T.Text
   }
   deriving (Eq, Show)
 pPageCreateIsolatedWorld
@@ -9067,11 +12269,13 @@ pPageCreateIsolatedWorld
     arg_pPageCreateIsolatedWorldFrameId
     Nothing
     Nothing
+    Nothing
 instance ToJSON PPageCreateIsolatedWorld where
   toJSON p = A.object $ catMaybes [
     ("frameId" A..=) <$> Just (pPageCreateIsolatedWorldFrameId p),
     ("worldName" A..=) <$> (pPageCreateIsolatedWorldWorldName p),
-    ("grantUniveralAccess" A..=) <$> (pPageCreateIsolatedWorldGrantUniveralAccess p)
+    ("grantUniveralAccess" A..=) <$> (pPageCreateIsolatedWorldGrantUniveralAccess p),
+    ("contentSecurityPolicy" A..=) <$> (pPageCreateIsolatedWorldContentSecurityPolicy p)
     ]
 data PageCreateIsolatedWorld = PageCreateIsolatedWorld
   {
@@ -9106,28 +12310,47 @@ instance Command PPageDisable where
 
 -- | Parameters of the 'Page.enable' command.
 data PPageEnable = PPageEnable
+  {
+    -- | If true, the `Page.fileChooserOpened` event will be emitted regardless of the state set by
+    --   `Page.setInterceptFileChooserDialog` command (default: false).
+    pPageEnableEnableFileChooserOpenedEvent :: Maybe Bool
+  }
   deriving (Eq, Show)
 pPageEnable
   :: PPageEnable
 pPageEnable
   = PPageEnable
+    Nothing
 instance ToJSON PPageEnable where
-  toJSON _ = A.Null
+  toJSON p = A.object $ catMaybes [
+    ("enableFileChooserOpenedEvent" A..=) <$> (pPageEnableEnableFileChooserOpenedEvent p)
+    ]
 instance Command PPageEnable where
   type CommandResponse PPageEnable = ()
   commandName _ = "Page.enable"
   fromJSON = const . A.Success . const ()
 
+-- | Gets the processed manifest for this current document.
+--     This API always waits for the manifest to be loaded.
+--     If manifestId is provided, and it does not match the manifest of the
+--       current document, this API errors out.
+--     If there is not a loaded page, this API errors out immediately.
 
 -- | Parameters of the 'Page.getAppManifest' command.
 data PPageGetAppManifest = PPageGetAppManifest
+  {
+    pPageGetAppManifestManifestId :: Maybe T.Text
+  }
   deriving (Eq, Show)
 pPageGetAppManifest
   :: PPageGetAppManifest
 pPageGetAppManifest
   = PPageGetAppManifest
+    Nothing
 instance ToJSON PPageGetAppManifest where
-  toJSON _ = A.Null
+  toJSON p = A.object $ catMaybes [
+    ("manifestId" A..=) <$> (pPageGetAppManifestManifestId p)
+    ]
 data PageGetAppManifest = PageGetAppManifest
   {
     -- | Manifest location.
@@ -9135,8 +12358,7 @@ data PageGetAppManifest = PageGetAppManifest
     pageGetAppManifestErrors :: [PageAppManifestError],
     -- | Manifest content.
     pageGetAppManifestData :: Maybe T.Text,
-    -- | Parsed manifest properties
-    pageGetAppManifestParsed :: Maybe PageAppManifestParsedProperties
+    pageGetAppManifestManifest :: PageWebAppManifest
   }
   deriving (Eq, Show)
 instance FromJSON PageGetAppManifest where
@@ -9144,7 +12366,7 @@ instance FromJSON PageGetAppManifest where
     <$> o A..: "url"
     <*> o A..: "errors"
     <*> o A..:? "data"
-    <*> o A..:? "parsed"
+    <*> o A..: "manifest"
 instance Command PPageGetAppManifest where
   type CommandResponse PPageGetAppManifest = PageGetAppManifest
   commandName _ = "Page.getAppManifest"
@@ -9170,28 +12392,6 @@ instance FromJSON PageGetInstallabilityErrors where
 instance Command PPageGetInstallabilityErrors where
   type CommandResponse PPageGetInstallabilityErrors = PageGetInstallabilityErrors
   commandName _ = "Page.getInstallabilityErrors"
-
-
--- | Parameters of the 'Page.getManifestIcons' command.
-data PPageGetManifestIcons = PPageGetManifestIcons
-  deriving (Eq, Show)
-pPageGetManifestIcons
-  :: PPageGetManifestIcons
-pPageGetManifestIcons
-  = PPageGetManifestIcons
-instance ToJSON PPageGetManifestIcons where
-  toJSON _ = A.Null
-data PageGetManifestIcons = PageGetManifestIcons
-  {
-    pageGetManifestIconsPrimaryIcon :: Maybe T.Text
-  }
-  deriving (Eq, Show)
-instance FromJSON PageGetManifestIcons where
-  parseJSON = A.withObject "PageGetManifestIcons" $ \o -> PageGetManifestIcons
-    <$> o A..:? "primaryIcon"
-instance Command PPageGetManifestIcons where
-  type CommandResponse PPageGetManifestIcons = PageGetManifestIcons
-  commandName _ = "Page.getManifestIcons"
 
 -- | Returns the unique (PWA) app id.
 --   Only returns values if the feature flag 'WebAppEnableManifestId' is enabled
@@ -9222,36 +12422,39 @@ instance Command PPageGetAppId where
   commandName _ = "Page.getAppId"
 
 
--- | Parameters of the 'Page.getAdScriptId' command.
-data PPageGetAdScriptId = PPageGetAdScriptId
+-- | Parameters of the 'Page.getAdScriptAncestry' command.
+data PPageGetAdScriptAncestry = PPageGetAdScriptAncestry
   {
-    pPageGetAdScriptIdFrameId :: PageFrameId
+    pPageGetAdScriptAncestryFrameId :: PageFrameId
   }
   deriving (Eq, Show)
-pPageGetAdScriptId
+pPageGetAdScriptAncestry
   :: PageFrameId
-  -> PPageGetAdScriptId
-pPageGetAdScriptId
-  arg_pPageGetAdScriptIdFrameId
-  = PPageGetAdScriptId
-    arg_pPageGetAdScriptIdFrameId
-instance ToJSON PPageGetAdScriptId where
+  -> PPageGetAdScriptAncestry
+pPageGetAdScriptAncestry
+  arg_pPageGetAdScriptAncestryFrameId
+  = PPageGetAdScriptAncestry
+    arg_pPageGetAdScriptAncestryFrameId
+instance ToJSON PPageGetAdScriptAncestry where
   toJSON p = A.object $ catMaybes [
-    ("frameId" A..=) <$> Just (pPageGetAdScriptIdFrameId p)
+    ("frameId" A..=) <$> Just (pPageGetAdScriptAncestryFrameId p)
     ]
-data PageGetAdScriptId = PageGetAdScriptId
+data PageGetAdScriptAncestry = PageGetAdScriptAncestry
   {
-    -- | Identifies the bottom-most script which caused the frame to be labelled
-    --   as an ad. Only sent if frame is labelled as an ad and id is available.
-    pageGetAdScriptIdAdScriptId :: Maybe PageAdScriptId
+    -- | The ancestry chain of ad script identifiers leading to this frame's
+    --   creation, along with the root script's filterlist rule. The ancestry
+    --   chain is ordered from the most immediate script (in the frame creation
+    --   stack) to more distant ancestors (that created the immediately preceding
+    --   script). Only sent if frame is labelled as an ad and ids are available.
+    pageGetAdScriptAncestryAdScriptAncestry :: Maybe NetworkAdAncestry
   }
   deriving (Eq, Show)
-instance FromJSON PageGetAdScriptId where
-  parseJSON = A.withObject "PageGetAdScriptId" $ \o -> PageGetAdScriptId
-    <$> o A..:? "adScriptId"
-instance Command PPageGetAdScriptId where
-  type CommandResponse PPageGetAdScriptId = PageGetAdScriptId
-  commandName _ = "Page.getAdScriptId"
+instance FromJSON PageGetAdScriptAncestry where
+  parseJSON = A.withObject "PageGetAdScriptAncestry" $ \o -> PageGetAdScriptAncestry
+    <$> o A..:? "adScriptAncestry"
+instance Command PPageGetAdScriptAncestry where
+  type CommandResponse PPageGetAdScriptAncestry = PageGetAdScriptAncestry
+  commandName _ = "Page.getAdScriptAncestry"
 
 -- | Returns present frame tree structure.
 
@@ -9502,7 +12705,9 @@ data PageNavigate = PageNavigate
     --   as the previously committed loaderId would not change.
     pageNavigateLoaderId :: Maybe NetworkLoaderId,
     -- | User friendly error message, present if and only if navigation has failed.
-    pageNavigateErrorText :: Maybe T.Text
+    pageNavigateErrorText :: Maybe T.Text,
+    -- | Whether the navigation resulted in a download.
+    pageNavigateIsDownload :: Maybe Bool
   }
   deriving (Eq, Show)
 instance FromJSON PageNavigate where
@@ -9510,6 +12715,7 @@ instance FromJSON PageNavigate where
     <$> o A..: "frameId"
     <*> o A..:? "loaderId"
     <*> o A..:? "errorText"
+    <*> o A..:? "isDownload"
 instance Command PPageNavigate where
   type CommandResponse PPageNavigate = PageNavigate
   commandName _ = "Page.navigate"
@@ -9603,13 +12809,19 @@ data PPagePrintToPDF = PPagePrintToPDF
     --   in which case the content will be scaled to fit the paper size.
     pPagePrintToPDFPreferCSSPageSize :: Maybe Bool,
     -- | return as stream
-    pPagePrintToPDFTransferMode :: Maybe PPagePrintToPDFTransferMode
+    pPagePrintToPDFTransferMode :: Maybe PPagePrintToPDFTransferMode,
+    -- | Whether or not to generate tagged (accessible) PDF. Defaults to embedder choice.
+    pPagePrintToPDFGenerateTaggedPDF :: Maybe Bool,
+    -- | Whether or not to embed the document outline into the PDF.
+    pPagePrintToPDFGenerateDocumentOutline :: Maybe Bool
   }
   deriving (Eq, Show)
 pPagePrintToPDF
   :: PPagePrintToPDF
 pPagePrintToPDF
   = PPagePrintToPDF
+    Nothing
+    Nothing
     Nothing
     Nothing
     Nothing
@@ -9641,7 +12853,9 @@ instance ToJSON PPagePrintToPDF where
     ("headerTemplate" A..=) <$> (pPagePrintToPDFHeaderTemplate p),
     ("footerTemplate" A..=) <$> (pPagePrintToPDFFooterTemplate p),
     ("preferCSSPageSize" A..=) <$> (pPagePrintToPDFPreferCSSPageSize p),
-    ("transferMode" A..=) <$> (pPagePrintToPDFTransferMode p)
+    ("transferMode" A..=) <$> (pPagePrintToPDFTransferMode p),
+    ("generateTaggedPDF" A..=) <$> (pPagePrintToPDFGenerateTaggedPDF p),
+    ("generateDocumentOutline" A..=) <$> (pPagePrintToPDFGenerateDocumentOutline p)
     ]
 data PagePrintToPDF = PagePrintToPDF
   {
@@ -9668,7 +12882,11 @@ data PPageReload = PPageReload
     pPageReloadIgnoreCache :: Maybe Bool,
     -- | If set, the script will be injected into all frames of the inspected page after reload.
     --   Argument will be ignored if reloading dataURL origin.
-    pPageReloadScriptToEvaluateOnLoad :: Maybe T.Text
+    pPageReloadScriptToEvaluateOnLoad :: Maybe T.Text,
+    -- | If set, an error will be thrown if the target page's main frame's
+    --   loader id does not match the provided id. This prevents accidentally
+    --   reloading an unintended target in case there's a racing navigation.
+    pPageReloadLoaderId :: Maybe NetworkLoaderId
   }
   deriving (Eq, Show)
 pPageReload
@@ -9677,10 +12895,12 @@ pPageReload
   = PPageReload
     Nothing
     Nothing
+    Nothing
 instance ToJSON PPageReload where
   toJSON p = A.object $ catMaybes [
     ("ignoreCache" A..=) <$> (pPageReloadIgnoreCache p),
-    ("scriptToEvaluateOnLoad" A..=) <$> (pPageReloadScriptToEvaluateOnLoad p)
+    ("scriptToEvaluateOnLoad" A..=) <$> (pPageReloadScriptToEvaluateOnLoad p),
+    ("loaderId" A..=) <$> (pPageReloadLoaderId p)
     ]
 instance Command PPageReload where
   type CommandResponse PPageReload = ()
@@ -10200,7 +13420,7 @@ instance Command PPageStopScreencast where
   fromJSON = const . A.Success . const ()
 
 -- | Requests backend to produce compilation cache for the specified scripts.
---   `scripts` are appeneded to the list of scripts for which the cache
+--   `scripts` are appended to the list of scripts for which the cache
 --   would be produced. The list may be reset during page navigation.
 --   When script with a matching URL is encountered, the cache is optionally
 --   produced upon backend discretion, based on internal heuristics.
@@ -10282,19 +13502,23 @@ instance Command PPageClearCompilationCache where
 --   https://w3c.github.io/secure-payment-confirmation/#sctn-automation-set-spc-transaction-mode
 
 -- | Parameters of the 'Page.setSPCTransactionMode' command.
-data PPageSetSPCTransactionModeMode = PPageSetSPCTransactionModeModeNone | PPageSetSPCTransactionModeModeAutoaccept | PPageSetSPCTransactionModeModeAutoreject
+data PPageSetSPCTransactionModeMode = PPageSetSPCTransactionModeModeNone | PPageSetSPCTransactionModeModeAutoAccept | PPageSetSPCTransactionModeModeAutoChooseToAuthAnotherWay | PPageSetSPCTransactionModeModeAutoReject | PPageSetSPCTransactionModeModeAutoOptOut
   deriving (Ord, Eq, Show, Read)
 instance FromJSON PPageSetSPCTransactionModeMode where
   parseJSON = A.withText "PPageSetSPCTransactionModeMode" $ \v -> case v of
     "none" -> pure PPageSetSPCTransactionModeModeNone
-    "autoaccept" -> pure PPageSetSPCTransactionModeModeAutoaccept
-    "autoreject" -> pure PPageSetSPCTransactionModeModeAutoreject
+    "autoAccept" -> pure PPageSetSPCTransactionModeModeAutoAccept
+    "autoChooseToAuthAnotherWay" -> pure PPageSetSPCTransactionModeModeAutoChooseToAuthAnotherWay
+    "autoReject" -> pure PPageSetSPCTransactionModeModeAutoReject
+    "autoOptOut" -> pure PPageSetSPCTransactionModeModeAutoOptOut
     "_" -> fail "failed to parse PPageSetSPCTransactionModeMode"
 instance ToJSON PPageSetSPCTransactionModeMode where
   toJSON v = A.String $ case v of
     PPageSetSPCTransactionModeModeNone -> "none"
-    PPageSetSPCTransactionModeModeAutoaccept -> "autoaccept"
-    PPageSetSPCTransactionModeModeAutoreject -> "autoreject"
+    PPageSetSPCTransactionModeModeAutoAccept -> "autoAccept"
+    PPageSetSPCTransactionModeModeAutoChooseToAuthAnotherWay -> "autoChooseToAuthAnotherWay"
+    PPageSetSPCTransactionModeModeAutoReject -> "autoReject"
+    PPageSetSPCTransactionModeModeAutoOptOut -> "autoOptOut"
 data PPageSetSPCTransactionMode = PPageSetSPCTransactionMode
   {
     pPageSetSPCTransactionModeMode :: PPageSetSPCTransactionModeMode
@@ -10314,6 +13538,44 @@ instance ToJSON PPageSetSPCTransactionMode where
 instance Command PPageSetSPCTransactionMode where
   type CommandResponse PPageSetSPCTransactionMode = ()
   commandName _ = "Page.setSPCTransactionMode"
+  fromJSON = const . A.Success . const ()
+
+-- | Extensions for Custom Handlers API:
+--   https://html.spec.whatwg.org/multipage/system-state.html#rph-automation
+
+-- | Parameters of the 'Page.setRPHRegistrationMode' command.
+data PPageSetRPHRegistrationModeMode = PPageSetRPHRegistrationModeModeNone | PPageSetRPHRegistrationModeModeAutoAccept | PPageSetRPHRegistrationModeModeAutoReject
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON PPageSetRPHRegistrationModeMode where
+  parseJSON = A.withText "PPageSetRPHRegistrationModeMode" $ \v -> case v of
+    "none" -> pure PPageSetRPHRegistrationModeModeNone
+    "autoAccept" -> pure PPageSetRPHRegistrationModeModeAutoAccept
+    "autoReject" -> pure PPageSetRPHRegistrationModeModeAutoReject
+    "_" -> fail "failed to parse PPageSetRPHRegistrationModeMode"
+instance ToJSON PPageSetRPHRegistrationModeMode where
+  toJSON v = A.String $ case v of
+    PPageSetRPHRegistrationModeModeNone -> "none"
+    PPageSetRPHRegistrationModeModeAutoAccept -> "autoAccept"
+    PPageSetRPHRegistrationModeModeAutoReject -> "autoReject"
+data PPageSetRPHRegistrationMode = PPageSetRPHRegistrationMode
+  {
+    pPageSetRPHRegistrationModeMode :: PPageSetRPHRegistrationModeMode
+  }
+  deriving (Eq, Show)
+pPageSetRPHRegistrationMode
+  :: PPageSetRPHRegistrationModeMode
+  -> PPageSetRPHRegistrationMode
+pPageSetRPHRegistrationMode
+  arg_pPageSetRPHRegistrationModeMode
+  = PPageSetRPHRegistrationMode
+    arg_pPageSetRPHRegistrationModeMode
+instance ToJSON PPageSetRPHRegistrationMode where
+  toJSON p = A.object $ catMaybes [
+    ("mode" A..=) <$> Just (pPageSetRPHRegistrationModeMode p)
+    ]
+instance Command PPageSetRPHRegistrationMode where
+  type CommandResponse PPageSetRPHRegistrationMode = ()
+  commandName _ = "Page.setRPHRegistrationMode"
   fromJSON = const . A.Success . const ()
 
 -- | Generates a report for testing.
@@ -10371,7 +13633,11 @@ instance Command PPageWaitForDebugger where
 -- | Parameters of the 'Page.setInterceptFileChooserDialog' command.
 data PPageSetInterceptFileChooserDialog = PPageSetInterceptFileChooserDialog
   {
-    pPageSetInterceptFileChooserDialogEnabled :: Bool
+    pPageSetInterceptFileChooserDialogEnabled :: Bool,
+    -- | If true, cancels the dialog by emitting relevant events (if any)
+    --   in addition to not showing it if the interception is enabled
+    --   (default: false).
+    pPageSetInterceptFileChooserDialogCancel :: Maybe Bool
   }
   deriving (Eq, Show)
 pPageSetInterceptFileChooserDialog
@@ -10381,14 +13647,80 @@ pPageSetInterceptFileChooserDialog
   arg_pPageSetInterceptFileChooserDialogEnabled
   = PPageSetInterceptFileChooserDialog
     arg_pPageSetInterceptFileChooserDialogEnabled
+    Nothing
 instance ToJSON PPageSetInterceptFileChooserDialog where
   toJSON p = A.object $ catMaybes [
-    ("enabled" A..=) <$> Just (pPageSetInterceptFileChooserDialogEnabled p)
+    ("enabled" A..=) <$> Just (pPageSetInterceptFileChooserDialogEnabled p),
+    ("cancel" A..=) <$> (pPageSetInterceptFileChooserDialogCancel p)
     ]
 instance Command PPageSetInterceptFileChooserDialog where
   type CommandResponse PPageSetInterceptFileChooserDialog = ()
   commandName _ = "Page.setInterceptFileChooserDialog"
   fromJSON = const . A.Success . const ()
+
+-- | Enable/disable prerendering manually.
+--   
+--   This command is a short-term solution for https://crbug.com/1440085.
+--   See https://docs.google.com/document/d/12HVmFxYj5Jc-eJr5OmWsa2bqTJsbgGLKI6ZIyx0_wpA
+--   for more details.
+--   
+--   TODO(https://crbug.com/1440085): Remove this once Puppeteer supports tab targets.
+
+-- | Parameters of the 'Page.setPrerenderingAllowed' command.
+data PPageSetPrerenderingAllowed = PPageSetPrerenderingAllowed
+  {
+    pPageSetPrerenderingAllowedIsAllowed :: Bool
+  }
+  deriving (Eq, Show)
+pPageSetPrerenderingAllowed
+  :: Bool
+  -> PPageSetPrerenderingAllowed
+pPageSetPrerenderingAllowed
+  arg_pPageSetPrerenderingAllowedIsAllowed
+  = PPageSetPrerenderingAllowed
+    arg_pPageSetPrerenderingAllowedIsAllowed
+instance ToJSON PPageSetPrerenderingAllowed where
+  toJSON p = A.object $ catMaybes [
+    ("isAllowed" A..=) <$> Just (pPageSetPrerenderingAllowedIsAllowed p)
+    ]
+instance Command PPageSetPrerenderingAllowed where
+  type CommandResponse PPageSetPrerenderingAllowed = ()
+  commandName _ = "Page.setPrerenderingAllowed"
+  fromJSON = const . A.Success . const ()
+
+-- | Get the annotated page content for the main frame.
+--   This is an experimental command that is subject to change.
+
+-- | Parameters of the 'Page.getAnnotatedPageContent' command.
+data PPageGetAnnotatedPageContent = PPageGetAnnotatedPageContent
+  {
+    -- | Whether to include actionable information. Defaults to true.
+    pPageGetAnnotatedPageContentIncludeActionableInformation :: Maybe Bool
+  }
+  deriving (Eq, Show)
+pPageGetAnnotatedPageContent
+  :: PPageGetAnnotatedPageContent
+pPageGetAnnotatedPageContent
+  = PPageGetAnnotatedPageContent
+    Nothing
+instance ToJSON PPageGetAnnotatedPageContent where
+  toJSON p = A.object $ catMaybes [
+    ("includeActionableInformation" A..=) <$> (pPageGetAnnotatedPageContentIncludeActionableInformation p)
+    ]
+data PageGetAnnotatedPageContent = PageGetAnnotatedPageContent
+  {
+    -- | The annotated page content as a base64 encoded protobuf.
+    --   The format is defined by the `AnnotatedPageContent` message in
+    --   components/optimization_guide/proto/features/common_quality_data.proto (Encoded as a base64 string when passed over JSON)
+    pageGetAnnotatedPageContentContent :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON PageGetAnnotatedPageContent where
+  parseJSON = A.withObject "PageGetAnnotatedPageContent" $ \o -> PageGetAnnotatedPageContent
+    <$> o A..: "content"
+instance Command PPageGetAnnotatedPageContent where
+  type CommandResponse PPageGetAnnotatedPageContent = PageGetAnnotatedPageContent
+  commandName _ = "Page.getAnnotatedPageContent"
 
 -- | Type 'Security.CertificateId'.
 --   An internal certificate ID value.
@@ -10459,7 +13791,7 @@ data SecurityCertificateSecurityState = SecurityCertificateSecurityState
     securityCertificateSecurityStateValidTo :: NetworkTimeSinceEpoch,
     -- | The highest priority network error code, if the certificate has an error.
     securityCertificateSecurityStateCertificateNetworkError :: Maybe T.Text,
-    -- | True if the certificate uses a weak signature aglorithm.
+    -- | True if the certificate uses a weak signature algorithm.
     securityCertificateSecurityStateCertificateHasWeakSignature :: Bool,
     -- | True if the certificate has a SHA1 signature in the chain.
     securityCertificateSecurityStateCertificateHasSha1Signature :: Bool,

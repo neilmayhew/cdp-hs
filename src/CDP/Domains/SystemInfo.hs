@@ -199,35 +199,6 @@ instance ToJSON SystemInfoImageType where
     SystemInfoImageTypeWebp -> "webp"
     SystemInfoImageTypeUnknown -> "unknown"
 
--- | Type 'SystemInfo.ImageDecodeAcceleratorCapability'.
---   Describes a supported image decoding profile with its associated minimum and
---   maximum resolutions and subsampling.
-data SystemInfoImageDecodeAcceleratorCapability = SystemInfoImageDecodeAcceleratorCapability
-  {
-    -- | Image coded, e.g. Jpeg.
-    systemInfoImageDecodeAcceleratorCapabilityImageType :: SystemInfoImageType,
-    -- | Maximum supported dimensions of the image in pixels.
-    systemInfoImageDecodeAcceleratorCapabilityMaxDimensions :: SystemInfoSize,
-    -- | Minimum supported dimensions of the image in pixels.
-    systemInfoImageDecodeAcceleratorCapabilityMinDimensions :: SystemInfoSize,
-    -- | Optional array of supported subsampling formats, e.g. 4:2:0, if known.
-    systemInfoImageDecodeAcceleratorCapabilitySubsamplings :: [SystemInfoSubsamplingFormat]
-  }
-  deriving (Eq, Show)
-instance FromJSON SystemInfoImageDecodeAcceleratorCapability where
-  parseJSON = A.withObject "SystemInfoImageDecodeAcceleratorCapability" $ \o -> SystemInfoImageDecodeAcceleratorCapability
-    <$> o A..: "imageType"
-    <*> o A..: "maxDimensions"
-    <*> o A..: "minDimensions"
-    <*> o A..: "subsamplings"
-instance ToJSON SystemInfoImageDecodeAcceleratorCapability where
-  toJSON p = A.object $ catMaybes [
-    ("imageType" A..=) <$> Just (systemInfoImageDecodeAcceleratorCapabilityImageType p),
-    ("maxDimensions" A..=) <$> Just (systemInfoImageDecodeAcceleratorCapabilityMaxDimensions p),
-    ("minDimensions" A..=) <$> Just (systemInfoImageDecodeAcceleratorCapabilityMinDimensions p),
-    ("subsamplings" A..=) <$> Just (systemInfoImageDecodeAcceleratorCapabilitySubsamplings p)
-    ]
-
 -- | Type 'SystemInfo.GPUInfo'.
 --   Provides information about the GPU(s) on the system.
 data SystemInfoGPUInfo = SystemInfoGPUInfo
@@ -243,9 +214,7 @@ data SystemInfoGPUInfo = SystemInfoGPUInfo
     -- | Supported accelerated video decoding capabilities.
     systemInfoGPUInfoVideoDecoding :: [SystemInfoVideoDecodeAcceleratorCapability],
     -- | Supported accelerated video encoding capabilities.
-    systemInfoGPUInfoVideoEncoding :: [SystemInfoVideoEncodeAcceleratorCapability],
-    -- | Supported accelerated image decoding capabilities.
-    systemInfoGPUInfoImageDecoding :: [SystemInfoImageDecodeAcceleratorCapability]
+    systemInfoGPUInfoVideoEncoding :: [SystemInfoVideoEncodeAcceleratorCapability]
   }
   deriving (Eq, Show)
 instance FromJSON SystemInfoGPUInfo where
@@ -256,7 +225,6 @@ instance FromJSON SystemInfoGPUInfo where
     <*> o A..: "driverBugWorkarounds"
     <*> o A..: "videoDecoding"
     <*> o A..: "videoEncoding"
-    <*> o A..: "imageDecoding"
 instance ToJSON SystemInfoGPUInfo where
   toJSON p = A.object $ catMaybes [
     ("devices" A..=) <$> Just (systemInfoGPUInfoDevices p),
@@ -264,8 +232,7 @@ instance ToJSON SystemInfoGPUInfo where
     ("featureStatus" A..=) <$> (systemInfoGPUInfoFeatureStatus p),
     ("driverBugWorkarounds" A..=) <$> Just (systemInfoGPUInfoDriverBugWorkarounds p),
     ("videoDecoding" A..=) <$> Just (systemInfoGPUInfoVideoDecoding p),
-    ("videoEncoding" A..=) <$> Just (systemInfoGPUInfoVideoEncoding p),
-    ("imageDecoding" A..=) <$> Just (systemInfoGPUInfoImageDecoding p)
+    ("videoEncoding" A..=) <$> Just (systemInfoGPUInfoVideoEncoding p)
     ]
 
 -- | Type 'SystemInfo.ProcessInfo'.
@@ -328,6 +295,37 @@ instance FromJSON SystemInfoGetInfo where
 instance Command PSystemInfoGetInfo where
   type CommandResponse PSystemInfoGetInfo = SystemInfoGetInfo
   commandName _ = "SystemInfo.getInfo"
+
+-- | Returns information about the feature state.
+
+-- | Parameters of the 'SystemInfo.getFeatureState' command.
+data PSystemInfoGetFeatureState = PSystemInfoGetFeatureState
+  {
+    pSystemInfoGetFeatureStateFeatureState :: T.Text
+  }
+  deriving (Eq, Show)
+pSystemInfoGetFeatureState
+  :: T.Text
+  -> PSystemInfoGetFeatureState
+pSystemInfoGetFeatureState
+  arg_pSystemInfoGetFeatureStateFeatureState
+  = PSystemInfoGetFeatureState
+    arg_pSystemInfoGetFeatureStateFeatureState
+instance ToJSON PSystemInfoGetFeatureState where
+  toJSON p = A.object $ catMaybes [
+    ("featureState" A..=) <$> Just (pSystemInfoGetFeatureStateFeatureState p)
+    ]
+data SystemInfoGetFeatureState = SystemInfoGetFeatureState
+  {
+    systemInfoGetFeatureStateFeatureEnabled :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON SystemInfoGetFeatureState where
+  parseJSON = A.withObject "SystemInfoGetFeatureState" $ \o -> SystemInfoGetFeatureState
+    <$> o A..: "featureEnabled"
+instance Command PSystemInfoGetFeatureState where
+  type CommandResponse PSystemInfoGetFeatureState = SystemInfoGetFeatureState
+  commandName _ = "SystemInfo.getFeatureState"
 
 -- | Returns information about all running processes.
 

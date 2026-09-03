@@ -47,7 +47,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.Runtime as Runtime
 
 
@@ -104,7 +104,7 @@ data DOMDebuggerEventListener = DOMDebuggerEventListener
     -- | Event original handler function value.
     dOMDebuggerEventListenerOriginalHandler :: Maybe Runtime.RuntimeRemoteObject,
     -- | Node the listener is added to (if any).
-    dOMDebuggerEventListenerBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId
+    dOMDebuggerEventListenerBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
   }
   deriving (Eq, Show)
 instance FromJSON DOMDebuggerEventListener where
@@ -185,7 +185,7 @@ instance Command PDOMDebuggerGetEventListeners where
 data PDOMDebuggerRemoveDOMBreakpoint = PDOMDebuggerRemoveDOMBreakpoint
   {
     -- | Identifier of the node to remove breakpoint from.
-    pDOMDebuggerRemoveDOMBreakpointNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pDOMDebuggerRemoveDOMBreakpointNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Type of the breakpoint to remove.
     pDOMDebuggerRemoveDOMBreakpointType :: DOMDebuggerDOMBreakpointType
   }
@@ -194,7 +194,7 @@ pDOMDebuggerRemoveDOMBreakpoint
   {-
   -- | Identifier of the node to remove breakpoint from.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   {-
   -- | Type of the breakpoint to remove.
   -}
@@ -246,34 +246,6 @@ instance ToJSON PDOMDebuggerRemoveEventListenerBreakpoint where
 instance Command PDOMDebuggerRemoveEventListenerBreakpoint where
   type CommandResponse PDOMDebuggerRemoveEventListenerBreakpoint = ()
   commandName _ = "DOMDebugger.removeEventListenerBreakpoint"
-  fromJSON = const . A.Success . const ()
-
--- | Removes breakpoint on particular native event.
-
--- | Parameters of the 'DOMDebugger.removeInstrumentationBreakpoint' command.
-data PDOMDebuggerRemoveInstrumentationBreakpoint = PDOMDebuggerRemoveInstrumentationBreakpoint
-  {
-    -- | Instrumentation name to stop on.
-    pDOMDebuggerRemoveInstrumentationBreakpointEventName :: T.Text
-  }
-  deriving (Eq, Show)
-pDOMDebuggerRemoveInstrumentationBreakpoint
-  {-
-  -- | Instrumentation name to stop on.
-  -}
-  :: T.Text
-  -> PDOMDebuggerRemoveInstrumentationBreakpoint
-pDOMDebuggerRemoveInstrumentationBreakpoint
-  arg_pDOMDebuggerRemoveInstrumentationBreakpointEventName
-  = PDOMDebuggerRemoveInstrumentationBreakpoint
-    arg_pDOMDebuggerRemoveInstrumentationBreakpointEventName
-instance ToJSON PDOMDebuggerRemoveInstrumentationBreakpoint where
-  toJSON p = A.object $ catMaybes [
-    ("eventName" A..=) <$> Just (pDOMDebuggerRemoveInstrumentationBreakpointEventName p)
-    ]
-instance Command PDOMDebuggerRemoveInstrumentationBreakpoint where
-  type CommandResponse PDOMDebuggerRemoveInstrumentationBreakpoint = ()
-  commandName _ = "DOMDebugger.removeInstrumentationBreakpoint"
   fromJSON = const . A.Success . const ()
 
 -- | Removes breakpoint from XMLHttpRequest.
@@ -338,7 +310,7 @@ instance Command PDOMDebuggerSetBreakOnCSPViolation where
 data PDOMDebuggerSetDOMBreakpoint = PDOMDebuggerSetDOMBreakpoint
   {
     -- | Identifier of the node to set breakpoint on.
-    pDOMDebuggerSetDOMBreakpointNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pDOMDebuggerSetDOMBreakpointNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Type of the operation to stop upon.
     pDOMDebuggerSetDOMBreakpointType :: DOMDebuggerDOMBreakpointType
   }
@@ -347,7 +319,7 @@ pDOMDebuggerSetDOMBreakpoint
   {-
   -- | Identifier of the node to set breakpoint on.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   {-
   -- | Type of the operation to stop upon.
   -}
@@ -400,34 +372,6 @@ instance ToJSON PDOMDebuggerSetEventListenerBreakpoint where
 instance Command PDOMDebuggerSetEventListenerBreakpoint where
   type CommandResponse PDOMDebuggerSetEventListenerBreakpoint = ()
   commandName _ = "DOMDebugger.setEventListenerBreakpoint"
-  fromJSON = const . A.Success . const ()
-
--- | Sets breakpoint on particular native event.
-
--- | Parameters of the 'DOMDebugger.setInstrumentationBreakpoint' command.
-data PDOMDebuggerSetInstrumentationBreakpoint = PDOMDebuggerSetInstrumentationBreakpoint
-  {
-    -- | Instrumentation name to stop on.
-    pDOMDebuggerSetInstrumentationBreakpointEventName :: T.Text
-  }
-  deriving (Eq, Show)
-pDOMDebuggerSetInstrumentationBreakpoint
-  {-
-  -- | Instrumentation name to stop on.
-  -}
-  :: T.Text
-  -> PDOMDebuggerSetInstrumentationBreakpoint
-pDOMDebuggerSetInstrumentationBreakpoint
-  arg_pDOMDebuggerSetInstrumentationBreakpointEventName
-  = PDOMDebuggerSetInstrumentationBreakpoint
-    arg_pDOMDebuggerSetInstrumentationBreakpointEventName
-instance ToJSON PDOMDebuggerSetInstrumentationBreakpoint where
-  toJSON p = A.object $ catMaybes [
-    ("eventName" A..=) <$> Just (pDOMDebuggerSetInstrumentationBreakpointEventName p)
-    ]
-instance Command PDOMDebuggerSetInstrumentationBreakpoint where
-  type CommandResponse PDOMDebuggerSetInstrumentationBreakpoint = ()
-  commandName _ = "DOMDebugger.setInstrumentationBreakpoint"
   fromJSON = const . A.Success . const ()
 
 -- | Sets breakpoint on XMLHttpRequest.

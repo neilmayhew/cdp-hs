@@ -51,11 +51,8 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
-
--- | Type 'CSS.StyleSheetId'.
-type CSSStyleSheetId = T.Text
 
 -- | Type 'CSS.StyleSheetOrigin'.
 --   Stylesheet type: "injected" for stylesheets injected via extension, "user-agent" for user-agent
@@ -82,7 +79,7 @@ instance ToJSON CSSStyleSheetOrigin where
 data CSSPseudoElementMatches = CSSPseudoElementMatches
   {
     -- | Pseudo element type.
-    cSSPseudoElementMatchesPseudoType :: DOMPageNetworkEmulationSecurity.DOMPseudoType,
+    cSSPseudoElementMatchesPseudoType :: DOMNetworkEmulationPageSecurity.DOMPseudoType,
     -- | Pseudo element custom ident.
     cSSPseudoElementMatchesPseudoIdentifier :: Maybe T.Text,
     -- | Matches of CSS rules applicable to the pseudo style.
@@ -99,6 +96,26 @@ instance ToJSON CSSPseudoElementMatches where
     ("pseudoType" A..=) <$> Just (cSSPseudoElementMatchesPseudoType p),
     ("pseudoIdentifier" A..=) <$> (cSSPseudoElementMatchesPseudoIdentifier p),
     ("matches" A..=) <$> Just (cSSPseudoElementMatchesMatches p)
+    ]
+
+-- | Type 'CSS.CSSAnimationStyle'.
+--   CSS style coming from animations with the name of the animation.
+data CSSCSSAnimationStyle = CSSCSSAnimationStyle
+  {
+    -- | The name of the animation.
+    cSSCSSAnimationStyleName :: Maybe T.Text,
+    -- | The style coming from the animation.
+    cSSCSSAnimationStyleStyle :: CSSCSSStyle
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSAnimationStyle where
+  parseJSON = A.withObject "CSSCSSAnimationStyle" $ \o -> CSSCSSAnimationStyle
+    <$> o A..:? "name"
+    <*> o A..: "style"
+instance ToJSON CSSCSSAnimationStyle where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> (cSSCSSAnimationStyleName p),
+    ("style" A..=) <$> Just (cSSCSSAnimationStyleStyle p)
     ]
 
 -- | Type 'CSS.InheritedStyleEntry'.
@@ -119,6 +136,26 @@ instance ToJSON CSSInheritedStyleEntry where
   toJSON p = A.object $ catMaybes [
     ("inlineStyle" A..=) <$> (cSSInheritedStyleEntryInlineStyle p),
     ("matchedCSSRules" A..=) <$> Just (cSSInheritedStyleEntryMatchedCSSRules p)
+    ]
+
+-- | Type 'CSS.InheritedAnimatedStyleEntry'.
+--   Inherited CSS style collection for animated styles from ancestor node.
+data CSSInheritedAnimatedStyleEntry = CSSInheritedAnimatedStyleEntry
+  {
+    -- | Styles coming from the animations of the ancestor, if any, in the style inheritance chain.
+    cSSInheritedAnimatedStyleEntryAnimationStyles :: Maybe [CSSCSSAnimationStyle],
+    -- | The style coming from the transitions of the ancestor, if any, in the style inheritance chain.
+    cSSInheritedAnimatedStyleEntryTransitionsStyle :: Maybe CSSCSSStyle
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSInheritedAnimatedStyleEntry where
+  parseJSON = A.withObject "CSSInheritedAnimatedStyleEntry" $ \o -> CSSInheritedAnimatedStyleEntry
+    <$> o A..:? "animationStyles"
+    <*> o A..:? "transitionsStyle"
+instance ToJSON CSSInheritedAnimatedStyleEntry where
+  toJSON p = A.object $ catMaybes [
+    ("animationStyles" A..=) <$> (cSSInheritedAnimatedStyleEntryAnimationStyles p),
+    ("transitionsStyle" A..=) <$> (cSSInheritedAnimatedStyleEntryTransitionsStyle p)
     ]
 
 -- | Type 'CSS.InheritedPseudoElementMatches'.
@@ -164,17 +201,79 @@ data CSSValue = CSSValue
     -- | Value text.
     cSSValueText :: T.Text,
     -- | Value range in the underlying resource (if available).
-    cSSValueRange :: Maybe CSSSourceRange
+    cSSValueRange :: Maybe CSSSourceRange,
+    -- | Specificity of the selector.
+    cSSValueSpecificity :: Maybe CSSSpecificity
   }
   deriving (Eq, Show)
 instance FromJSON CSSValue where
   parseJSON = A.withObject "CSSValue" $ \o -> CSSValue
     <$> o A..: "text"
     <*> o A..:? "range"
+    <*> o A..:? "specificity"
 instance ToJSON CSSValue where
   toJSON p = A.object $ catMaybes [
     ("text" A..=) <$> Just (cSSValueText p),
-    ("range" A..=) <$> (cSSValueRange p)
+    ("range" A..=) <$> (cSSValueRange p),
+    ("specificity" A..=) <$> (cSSValueSpecificity p)
+    ]
+
+-- | Type 'CSS.SpecificityComponent'.
+--   Contribution of an individual simple selector to specificity.
+data CSSSpecificityComponent = CSSSpecificityComponent
+  {
+    -- | The simple selector text that contributes to specificity.
+    cSSSpecificityComponentText :: T.Text,
+    -- | The a component contribution.
+    cSSSpecificityComponentA :: Int,
+    -- | The b component contribution.
+    cSSSpecificityComponentB :: Int,
+    -- | The c component contribution.
+    cSSSpecificityComponentC :: Int
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSSpecificityComponent where
+  parseJSON = A.withObject "CSSSpecificityComponent" $ \o -> CSSSpecificityComponent
+    <$> o A..: "text"
+    <*> o A..: "a"
+    <*> o A..: "b"
+    <*> o A..: "c"
+instance ToJSON CSSSpecificityComponent where
+  toJSON p = A.object $ catMaybes [
+    ("text" A..=) <$> Just (cSSSpecificityComponentText p),
+    ("a" A..=) <$> Just (cSSSpecificityComponentA p),
+    ("b" A..=) <$> Just (cSSSpecificityComponentB p),
+    ("c" A..=) <$> Just (cSSSpecificityComponentC p)
+    ]
+
+-- | Type 'CSS.Specificity'.
+--   Specificity:
+--   https://drafts.csswg.org/selectors/#specificity-rules
+data CSSSpecificity = CSSSpecificity
+  {
+    -- | The a component, which represents the number of ID selectors.
+    cSSSpecificityA :: Int,
+    -- | The b component, which represents the number of class selectors, attributes selectors, and
+    --   pseudo-classes.
+    cSSSpecificityB :: Int,
+    -- | The c component, which represents the number of type selectors and pseudo-elements.
+    cSSSpecificityC :: Int,
+    -- | Per-simple-selector contributions used to explain this specificity.
+    cSSSpecificityComponents :: Maybe [CSSSpecificityComponent]
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSSpecificity where
+  parseJSON = A.withObject "CSSSpecificity" $ \o -> CSSSpecificity
+    <$> o A..: "a"
+    <*> o A..: "b"
+    <*> o A..: "c"
+    <*> o A..:? "components"
+instance ToJSON CSSSpecificity where
+  toJSON p = A.object $ catMaybes [
+    ("a" A..=) <$> Just (cSSSpecificityA p),
+    ("b" A..=) <$> Just (cSSSpecificityB p),
+    ("c" A..=) <$> Just (cSSSpecificityC p),
+    ("components" A..=) <$> (cSSSpecificityComponents p)
     ]
 
 -- | Type 'CSS.SelectorList'.
@@ -202,11 +301,11 @@ instance ToJSON CSSSelectorList where
 data CSSCSSStyleSheetHeader = CSSCSSStyleSheetHeader
   {
     -- | The stylesheet identifier.
-    cSSCSSStyleSheetHeaderStyleSheetId :: CSSStyleSheetId,
+    cSSCSSStyleSheetHeaderStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | Owner frame identifier.
-    cSSCSSStyleSheetHeaderFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId,
+    cSSCSSStyleSheetHeaderFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
     -- | Stylesheet resource URL. Empty if this is a constructed stylesheet created using
-    --   new CSSStyleSheet() (but non-empty if this is a constructed sylesheet imported
+    --   new CSSStyleSheet() (but non-empty if this is a constructed stylesheet imported
     --   as a CSS module script).
     cSSCSSStyleSheetHeaderSourceURL :: T.Text,
     -- | URL of source map associated with the stylesheet (if any).
@@ -216,7 +315,7 @@ data CSSCSSStyleSheetHeader = CSSCSSStyleSheetHeader
     -- | Stylesheet title.
     cSSCSSStyleSheetHeaderTitle :: T.Text,
     -- | The backend id for the owner node of the stylesheet.
-    cSSCSSStyleSheetHeaderOwnerNode :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    cSSCSSStyleSheetHeaderOwnerNode :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | Denotes whether the stylesheet is disabled.
     cSSCSSStyleSheetHeaderDisabled :: Bool,
     -- | Whether the sourceURL field value comes from the sourceURL comment.
@@ -226,7 +325,7 @@ data CSSCSSStyleSheetHeader = CSSCSSStyleSheetHeader
     cSSCSSStyleSheetHeaderIsInline :: Bool,
     -- | Whether this stylesheet is mutable. Inline stylesheets become mutable
     --   after they have been modified via CSSOM API.
-    --   <link> element's stylesheets become mutable only if DevTools modifies them.
+    --   `<link>` element's stylesheets become mutable only if DevTools modifies them.
     --   Constructed stylesheets (new CSSStyleSheet()) are mutable immediately after creation.
     cSSCSSStyleSheetHeaderIsMutable :: Bool,
     -- | True if this stylesheet is created through new CSSStyleSheet() or imported as a
@@ -241,7 +340,9 @@ data CSSCSSStyleSheetHeader = CSSCSSStyleSheetHeader
     -- | Line offset of the end of the stylesheet within the resource (zero based).
     cSSCSSStyleSheetHeaderEndLine :: Double,
     -- | Column offset of the end of the stylesheet within the resource (zero based).
-    cSSCSSStyleSheetHeaderEndColumn :: Double
+    cSSCSSStyleSheetHeaderEndColumn :: Double,
+    -- | If the style sheet was loaded from a network resource, this indicates when the resource failed to load
+    cSSCSSStyleSheetHeaderLoadingFailed :: Maybe Bool
   }
   deriving (Eq, Show)
 instance FromJSON CSSCSSStyleSheetHeader where
@@ -263,6 +364,7 @@ instance FromJSON CSSCSSStyleSheetHeader where
     <*> o A..: "length"
     <*> o A..: "endLine"
     <*> o A..: "endColumn"
+    <*> o A..:? "loadingFailed"
 instance ToJSON CSSCSSStyleSheetHeader where
   toJSON p = A.object $ catMaybes [
     ("styleSheetId" A..=) <$> Just (cSSCSSStyleSheetHeaderStyleSheetId p),
@@ -281,7 +383,8 @@ instance ToJSON CSSCSSStyleSheetHeader where
     ("startColumn" A..=) <$> Just (cSSCSSStyleSheetHeaderStartColumn p),
     ("length" A..=) <$> Just (cSSCSSStyleSheetHeaderLength p),
     ("endLine" A..=) <$> Just (cSSCSSStyleSheetHeaderEndLine p),
-    ("endColumn" A..=) <$> Just (cSSCSSStyleSheetHeaderEndColumn p)
+    ("endColumn" A..=) <$> Just (cSSCSSStyleSheetHeaderEndColumn p),
+    ("loadingFailed" A..=) <$> (cSSCSSStyleSheetHeaderLoadingFailed p)
     ]
 
 -- | Type 'CSS.CSSRule'.
@@ -290,13 +393,17 @@ data CSSCSSRule = CSSCSSRule
   {
     -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
     --   stylesheet rules) this rule came from.
-    cSSCSSRuleStyleSheetId :: Maybe CSSStyleSheetId,
+    cSSCSSRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | Rule selector data.
     cSSCSSRuleSelectorList :: CSSSelectorList,
+    -- | Array of selectors from ancestor style rules, sorted by distance from the current rule.
+    cSSCSSRuleNestingSelectors :: Maybe [T.Text],
     -- | Parent stylesheet's origin.
     cSSCSSRuleOrigin :: CSSStyleSheetOrigin,
     -- | Associated style declaration.
     cSSCSSRuleStyle :: CSSCSSStyle,
+    -- | The BackendNodeId of the DOM node that constitutes the origin tree scope of this rule.
+    cSSCSSRuleOriginTreeScopeNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | Media list array (for rules involving media queries). The array enumerates media queries
     --   starting with the innermost one, going outwards.
     cSSCSSRuleMedia :: Maybe [CSSCSSMedia],
@@ -311,32 +418,77 @@ data CSSCSSRule = CSSCSSRule
     cSSCSSRuleLayers :: Maybe [CSSCSSLayer],
     -- | @scope CSS at-rule array.
     --   The array enumerates @scope at-rules starting with the innermost one, going outwards.
-    cSSCSSRuleScopes :: Maybe [CSSCSSScope]
+    cSSCSSRuleScopes :: Maybe [CSSCSSScope],
+    -- | The array keeps the types of ancestor CSSRules from the innermost going outwards.
+    cSSCSSRuleRuleTypes :: Maybe [CSSCSSRuleType],
+    -- | @starting-style CSS at-rule array.
+    --   The array enumerates @starting-style at-rules starting with the innermost one, going outwards.
+    cSSCSSRuleStartingStyles :: Maybe [CSSCSSStartingStyle],
+    -- | @navigation CSS at-rule array.
+    --   The array enumerates @navigation at-rules starting with the innermost one, going outwards.
+    cSSCSSRuleNavigations :: Maybe [CSSCSSNavigation]
   }
   deriving (Eq, Show)
 instance FromJSON CSSCSSRule where
   parseJSON = A.withObject "CSSCSSRule" $ \o -> CSSCSSRule
     <$> o A..:? "styleSheetId"
     <*> o A..: "selectorList"
+    <*> o A..:? "nestingSelectors"
     <*> o A..: "origin"
     <*> o A..: "style"
+    <*> o A..:? "originTreeScopeNodeId"
     <*> o A..:? "media"
     <*> o A..:? "containerQueries"
     <*> o A..:? "supports"
     <*> o A..:? "layers"
     <*> o A..:? "scopes"
+    <*> o A..:? "ruleTypes"
+    <*> o A..:? "startingStyles"
+    <*> o A..:? "navigations"
 instance ToJSON CSSCSSRule where
   toJSON p = A.object $ catMaybes [
     ("styleSheetId" A..=) <$> (cSSCSSRuleStyleSheetId p),
     ("selectorList" A..=) <$> Just (cSSCSSRuleSelectorList p),
+    ("nestingSelectors" A..=) <$> (cSSCSSRuleNestingSelectors p),
     ("origin" A..=) <$> Just (cSSCSSRuleOrigin p),
     ("style" A..=) <$> Just (cSSCSSRuleStyle p),
+    ("originTreeScopeNodeId" A..=) <$> (cSSCSSRuleOriginTreeScopeNodeId p),
     ("media" A..=) <$> (cSSCSSRuleMedia p),
     ("containerQueries" A..=) <$> (cSSCSSRuleContainerQueries p),
     ("supports" A..=) <$> (cSSCSSRuleSupports p),
     ("layers" A..=) <$> (cSSCSSRuleLayers p),
-    ("scopes" A..=) <$> (cSSCSSRuleScopes p)
+    ("scopes" A..=) <$> (cSSCSSRuleScopes p),
+    ("ruleTypes" A..=) <$> (cSSCSSRuleRuleTypes p),
+    ("startingStyles" A..=) <$> (cSSCSSRuleStartingStyles p),
+    ("navigations" A..=) <$> (cSSCSSRuleNavigations p)
     ]
+
+-- | Type 'CSS.CSSRuleType'.
+--   Enum indicating the type of a CSS rule, used to represent the order of a style rule's ancestors.
+--   This list only contains rule types that are collected during the ancestor rule collection.
+data CSSCSSRuleType = CSSCSSRuleTypeMediaRule | CSSCSSRuleTypeSupportsRule | CSSCSSRuleTypeContainerRule | CSSCSSRuleTypeLayerRule | CSSCSSRuleTypeScopeRule | CSSCSSRuleTypeStyleRule | CSSCSSRuleTypeStartingStyleRule | CSSCSSRuleTypeNavigationRule
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON CSSCSSRuleType where
+  parseJSON = A.withText "CSSCSSRuleType" $ \v -> case v of
+    "MediaRule" -> pure CSSCSSRuleTypeMediaRule
+    "SupportsRule" -> pure CSSCSSRuleTypeSupportsRule
+    "ContainerRule" -> pure CSSCSSRuleTypeContainerRule
+    "LayerRule" -> pure CSSCSSRuleTypeLayerRule
+    "ScopeRule" -> pure CSSCSSRuleTypeScopeRule
+    "StyleRule" -> pure CSSCSSRuleTypeStyleRule
+    "StartingStyleRule" -> pure CSSCSSRuleTypeStartingStyleRule
+    "NavigationRule" -> pure CSSCSSRuleTypeNavigationRule
+    "_" -> fail "failed to parse CSSCSSRuleType"
+instance ToJSON CSSCSSRuleType where
+  toJSON v = A.String $ case v of
+    CSSCSSRuleTypeMediaRule -> "MediaRule"
+    CSSCSSRuleTypeSupportsRule -> "SupportsRule"
+    CSSCSSRuleTypeContainerRule -> "ContainerRule"
+    CSSCSSRuleTypeLayerRule -> "LayerRule"
+    CSSCSSRuleTypeScopeRule -> "ScopeRule"
+    CSSCSSRuleTypeStyleRule -> "StyleRule"
+    CSSCSSRuleTypeStartingStyleRule -> "StartingStyleRule"
+    CSSCSSRuleTypeNavigationRule -> "NavigationRule"
 
 -- | Type 'CSS.RuleUsage'.
 --   CSS coverage information.
@@ -344,7 +496,7 @@ data CSSRuleUsage = CSSRuleUsage
   {
     -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
     --   stylesheet rules) this rule came from.
-    cSSRuleUsageStyleSheetId :: CSSStyleSheetId,
+    cSSRuleUsageStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | Offset of the start of the rule (including selector) from the beginning of the stylesheet.
     cSSRuleUsageStartOffset :: Double,
     -- | Offset of the end of the rule body from the beginning of the stylesheet.
@@ -437,13 +589,30 @@ instance ToJSON CSSCSSComputedStyleProperty where
     ("value" A..=) <$> Just (cSSCSSComputedStylePropertyValue p)
     ]
 
+-- | Type 'CSS.ComputedStyleExtraFields'.
+data CSSComputedStyleExtraFields = CSSComputedStyleExtraFields
+  {
+    -- | Returns whether or not this node is being rendered with base appearance,
+    --   which happens when it has its appearance property set to base/base-select
+    --   or it is in the subtree of an element being rendered with base appearance.
+    cSSComputedStyleExtraFieldsIsAppearanceBase :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSComputedStyleExtraFields where
+  parseJSON = A.withObject "CSSComputedStyleExtraFields" $ \o -> CSSComputedStyleExtraFields
+    <$> o A..: "isAppearanceBase"
+instance ToJSON CSSComputedStyleExtraFields where
+  toJSON p = A.object $ catMaybes [
+    ("isAppearanceBase" A..=) <$> Just (cSSComputedStyleExtraFieldsIsAppearanceBase p)
+    ]
+
 -- | Type 'CSS.CSSStyle'.
 --   CSS style representation.
 data CSSCSSStyle = CSSCSSStyle
   {
     -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
     --   stylesheet rules) this rule came from.
-    cSSCSSStyleStyleSheetId :: Maybe CSSStyleSheetId,
+    cSSCSSStyleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | CSS properties in the style.
     cSSCSSStyleCssProperties :: [CSSCSSProperty],
     -- | Computed values for all shorthands found in the style.
@@ -551,7 +720,7 @@ data CSSCSSMedia = CSSCSSMedia
     --   available).
     cSSCSSMediaRange :: Maybe CSSSourceRange,
     -- | Identifier of the stylesheet containing this object (if exists).
-    cSSCSSMediaStyleSheetId :: Maybe CSSStyleSheetId,
+    cSSCSSMediaStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | Array of media queries.
     cSSCSSMediaMediaList :: Maybe [CSSMediaQuery]
   }
@@ -630,29 +799,45 @@ instance ToJSON CSSMediaQueryExpression where
 --   CSS container query rule descriptor.
 data CSSCSSContainerQuery = CSSCSSContainerQuery
   {
-    -- | Container query text.
-    cSSCSSContainerQueryText :: T.Text,
     -- | The associated rule header range in the enclosing stylesheet (if
     --   available).
     cSSCSSContainerQueryRange :: Maybe CSSSourceRange,
     -- | Identifier of the stylesheet containing this object (if exists).
-    cSSCSSContainerQueryStyleSheetId :: Maybe CSSStyleSheetId,
+    cSSCSSContainerQueryStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | Optional name for the container.
-    cSSCSSContainerQueryName :: Maybe T.Text
+    cSSCSSContainerQueryName :: Maybe T.Text,
+    -- | Optional physical axes queried for the container.
+    cSSCSSContainerQueryPhysicalAxes :: Maybe DOMNetworkEmulationPageSecurity.DOMPhysicalAxes,
+    -- | Optional logical axes queried for the container.
+    cSSCSSContainerQueryLogicalAxes :: Maybe DOMNetworkEmulationPageSecurity.DOMLogicalAxes,
+    -- | true if the query contains scroll-state() queries.
+    cSSCSSContainerQueryQueriesScrollState :: Maybe Bool,
+    -- | true if the query contains anchored() queries.
+    cSSCSSContainerQueryQueriesAnchored :: Maybe Bool,
+    -- | CSSContainerRule.conditionText
+    cSSCSSContainerQueryConditionText :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON CSSCSSContainerQuery where
   parseJSON = A.withObject "CSSCSSContainerQuery" $ \o -> CSSCSSContainerQuery
-    <$> o A..: "text"
-    <*> o A..:? "range"
+    <$> o A..:? "range"
     <*> o A..:? "styleSheetId"
     <*> o A..:? "name"
+    <*> o A..:? "physicalAxes"
+    <*> o A..:? "logicalAxes"
+    <*> o A..:? "queriesScrollState"
+    <*> o A..:? "queriesAnchored"
+    <*> o A..: "conditionText"
 instance ToJSON CSSCSSContainerQuery where
   toJSON p = A.object $ catMaybes [
-    ("text" A..=) <$> Just (cSSCSSContainerQueryText p),
     ("range" A..=) <$> (cSSCSSContainerQueryRange p),
     ("styleSheetId" A..=) <$> (cSSCSSContainerQueryStyleSheetId p),
-    ("name" A..=) <$> (cSSCSSContainerQueryName p)
+    ("name" A..=) <$> (cSSCSSContainerQueryName p),
+    ("physicalAxes" A..=) <$> (cSSCSSContainerQueryPhysicalAxes p),
+    ("logicalAxes" A..=) <$> (cSSCSSContainerQueryLogicalAxes p),
+    ("queriesScrollState" A..=) <$> (cSSCSSContainerQueryQueriesScrollState p),
+    ("queriesAnchored" A..=) <$> (cSSCSSContainerQueryQueriesAnchored p),
+    ("conditionText" A..=) <$> Just (cSSCSSContainerQueryConditionText p)
     ]
 
 -- | Type 'CSS.CSSSupports'.
@@ -667,7 +852,7 @@ data CSSCSSSupports = CSSCSSSupports
     --   available).
     cSSCSSSupportsRange :: Maybe CSSSourceRange,
     -- | Identifier of the stylesheet containing this object (if exists).
-    cSSCSSSupportsStyleSheetId :: Maybe CSSStyleSheetId
+    cSSCSSSupportsStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 instance FromJSON CSSCSSSupports where
@@ -684,6 +869,35 @@ instance ToJSON CSSCSSSupports where
     ("styleSheetId" A..=) <$> (cSSCSSSupportsStyleSheetId p)
     ]
 
+-- | Type 'CSS.CSSNavigation'.
+--   CSS Navigation at-rule descriptor.
+data CSSCSSNavigation = CSSCSSNavigation
+  {
+    -- | Navigation rule text.
+    cSSCSSNavigationText :: T.Text,
+    -- | Whether the navigation condition is satisfied.
+    cSSCSSNavigationActive :: Maybe Bool,
+    -- | The associated rule header range in the enclosing stylesheet (if
+    --   available).
+    cSSCSSNavigationRange :: Maybe CSSSourceRange,
+    -- | Identifier of the stylesheet containing this object (if exists).
+    cSSCSSNavigationStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSNavigation where
+  parseJSON = A.withObject "CSSCSSNavigation" $ \o -> CSSCSSNavigation
+    <$> o A..: "text"
+    <*> o A..:? "active"
+    <*> o A..:? "range"
+    <*> o A..:? "styleSheetId"
+instance ToJSON CSSCSSNavigation where
+  toJSON p = A.object $ catMaybes [
+    ("text" A..=) <$> Just (cSSCSSNavigationText p),
+    ("active" A..=) <$> (cSSCSSNavigationActive p),
+    ("range" A..=) <$> (cSSCSSNavigationRange p),
+    ("styleSheetId" A..=) <$> (cSSCSSNavigationStyleSheetId p)
+    ]
+
 -- | Type 'CSS.CSSScope'.
 --   CSS Scope at-rule descriptor.
 data CSSCSSScope = CSSCSSScope
@@ -694,7 +908,7 @@ data CSSCSSScope = CSSCSSScope
     --   available).
     cSSCSSScopeRange :: Maybe CSSSourceRange,
     -- | Identifier of the stylesheet containing this object (if exists).
-    cSSCSSScopeStyleSheetId :: Maybe CSSStyleSheetId
+    cSSCSSScopeStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 instance FromJSON CSSCSSScope where
@@ -719,7 +933,7 @@ data CSSCSSLayer = CSSCSSLayer
     --   available).
     cSSCSSLayerRange :: Maybe CSSSourceRange,
     -- | Identifier of the stylesheet containing this object (if exists).
-    cSSCSSLayerStyleSheetId :: Maybe CSSStyleSheetId
+    cSSCSSLayerStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 instance FromJSON CSSCSSLayer where
@@ -732,6 +946,27 @@ instance ToJSON CSSCSSLayer where
     ("text" A..=) <$> Just (cSSCSSLayerText p),
     ("range" A..=) <$> (cSSCSSLayerRange p),
     ("styleSheetId" A..=) <$> (cSSCSSLayerStyleSheetId p)
+    ]
+
+-- | Type 'CSS.CSSStartingStyle'.
+--   CSS Starting Style at-rule descriptor.
+data CSSCSSStartingStyle = CSSCSSStartingStyle
+  {
+    -- | The associated rule header range in the enclosing stylesheet (if
+    --   available).
+    cSSCSSStartingStyleRange :: Maybe CSSSourceRange,
+    -- | Identifier of the stylesheet containing this object (if exists).
+    cSSCSSStartingStyleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSStartingStyle where
+  parseJSON = A.withObject "CSSCSSStartingStyle" $ \o -> CSSCSSStartingStyle
+    <$> o A..:? "range"
+    <*> o A..:? "styleSheetId"
+instance ToJSON CSSCSSStartingStyle where
+  toJSON p = A.object $ catMaybes [
+    ("range" A..=) <$> (cSSCSSStartingStyleRange p),
+    ("styleSheetId" A..=) <$> (cSSCSSStartingStyleStyleSheetId p)
     ]
 
 -- | Type 'CSS.CSSLayerData'.
@@ -765,6 +1000,8 @@ data CSSPlatformFontUsage = CSSPlatformFontUsage
   {
     -- | Font's family name reported by platform.
     cSSPlatformFontUsageFamilyName :: T.Text,
+    -- | Font's PostScript name reported by platform.
+    cSSPlatformFontUsagePostScriptName :: T.Text,
     -- | Indicates if the font was downloaded or resolved locally.
     cSSPlatformFontUsageIsCustomFont :: Bool,
     -- | Amount of glyphs that were rendered with this font.
@@ -774,11 +1011,13 @@ data CSSPlatformFontUsage = CSSPlatformFontUsage
 instance FromJSON CSSPlatformFontUsage where
   parseJSON = A.withObject "CSSPlatformFontUsage" $ \o -> CSSPlatformFontUsage
     <$> o A..: "familyName"
+    <*> o A..: "postScriptName"
     <*> o A..: "isCustomFont"
     <*> o A..: "glyphCount"
 instance ToJSON CSSPlatformFontUsage where
   toJSON p = A.object $ catMaybes [
     ("familyName" A..=) <$> Just (cSSPlatformFontUsageFamilyName p),
+    ("postScriptName" A..=) <$> Just (cSSPlatformFontUsagePostScriptName p),
     ("isCustomFont" A..=) <$> Just (cSSPlatformFontUsageIsCustomFont p),
     ("glyphCount" A..=) <$> Just (cSSPlatformFontUsageGlyphCount p)
     ]
@@ -868,6 +1107,63 @@ instance ToJSON CSSFontFace where
     ("fontVariationAxes" A..=) <$> (cSSFontFaceFontVariationAxes p)
     ]
 
+-- | Type 'CSS.CSSTryRule'.
+--   CSS try rule representation.
+data CSSCSSTryRule = CSSCSSTryRule
+  {
+    -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
+    --   stylesheet rules) this rule came from.
+    cSSCSSTryRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    -- | Parent stylesheet's origin.
+    cSSCSSTryRuleOrigin :: CSSStyleSheetOrigin,
+    -- | Associated style declaration.
+    cSSCSSTryRuleStyle :: CSSCSSStyle
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSTryRule where
+  parseJSON = A.withObject "CSSCSSTryRule" $ \o -> CSSCSSTryRule
+    <$> o A..:? "styleSheetId"
+    <*> o A..: "origin"
+    <*> o A..: "style"
+instance ToJSON CSSCSSTryRule where
+  toJSON p = A.object $ catMaybes [
+    ("styleSheetId" A..=) <$> (cSSCSSTryRuleStyleSheetId p),
+    ("origin" A..=) <$> Just (cSSCSSTryRuleOrigin p),
+    ("style" A..=) <$> Just (cSSCSSTryRuleStyle p)
+    ]
+
+-- | Type 'CSS.CSSPositionTryRule'.
+--   CSS @position-try rule representation.
+data CSSCSSPositionTryRule = CSSCSSPositionTryRule
+  {
+    -- | The prelude dashed-ident name
+    cSSCSSPositionTryRuleName :: CSSValue,
+    -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
+    --   stylesheet rules) this rule came from.
+    cSSCSSPositionTryRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    -- | Parent stylesheet's origin.
+    cSSCSSPositionTryRuleOrigin :: CSSStyleSheetOrigin,
+    -- | Associated style declaration.
+    cSSCSSPositionTryRuleStyle :: CSSCSSStyle,
+    cSSCSSPositionTryRuleActive :: Bool
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSPositionTryRule where
+  parseJSON = A.withObject "CSSCSSPositionTryRule" $ \o -> CSSCSSPositionTryRule
+    <$> o A..: "name"
+    <*> o A..:? "styleSheetId"
+    <*> o A..: "origin"
+    <*> o A..: "style"
+    <*> o A..: "active"
+instance ToJSON CSSCSSPositionTryRule where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> Just (cSSCSSPositionTryRuleName p),
+    ("styleSheetId" A..=) <$> (cSSCSSPositionTryRuleStyleSheetId p),
+    ("origin" A..=) <$> Just (cSSCSSPositionTryRuleOrigin p),
+    ("style" A..=) <$> Just (cSSCSSPositionTryRuleStyle p),
+    ("active" A..=) <$> Just (cSSCSSPositionTryRuleActive p)
+    ]
+
 -- | Type 'CSS.CSSKeyframesRule'.
 --   CSS keyframes rule representation.
 data CSSCSSKeyframesRule = CSSCSSKeyframesRule
@@ -888,13 +1184,251 @@ instance ToJSON CSSCSSKeyframesRule where
     ("keyframes" A..=) <$> Just (cSSCSSKeyframesRuleKeyframes p)
     ]
 
+-- | Type 'CSS.CSSPropertyRegistration'.
+--   Representation of a custom property registration through CSS.registerProperty
+data CSSCSSPropertyRegistration = CSSCSSPropertyRegistration
+  {
+    cSSCSSPropertyRegistrationPropertyName :: T.Text,
+    cSSCSSPropertyRegistrationInitialValue :: Maybe CSSValue,
+    cSSCSSPropertyRegistrationInherits :: Bool,
+    cSSCSSPropertyRegistrationSyntax :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSPropertyRegistration where
+  parseJSON = A.withObject "CSSCSSPropertyRegistration" $ \o -> CSSCSSPropertyRegistration
+    <$> o A..: "propertyName"
+    <*> o A..:? "initialValue"
+    <*> o A..: "inherits"
+    <*> o A..: "syntax"
+instance ToJSON CSSCSSPropertyRegistration where
+  toJSON p = A.object $ catMaybes [
+    ("propertyName" A..=) <$> Just (cSSCSSPropertyRegistrationPropertyName p),
+    ("initialValue" A..=) <$> (cSSCSSPropertyRegistrationInitialValue p),
+    ("inherits" A..=) <$> Just (cSSCSSPropertyRegistrationInherits p),
+    ("syntax" A..=) <$> Just (cSSCSSPropertyRegistrationSyntax p)
+    ]
+
+-- | Type 'CSS.CSSAtRule'.
+--   CSS generic @rule representation.
+data CSSCSSAtRuleType = CSSCSSAtRuleTypeFontFace | CSSCSSAtRuleTypeFontFeatureValues | CSSCSSAtRuleTypeFontPaletteValues | CSSCSSAtRuleTypeCounterStyle
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON CSSCSSAtRuleType where
+  parseJSON = A.withText "CSSCSSAtRuleType" $ \v -> case v of
+    "font-face" -> pure CSSCSSAtRuleTypeFontFace
+    "font-feature-values" -> pure CSSCSSAtRuleTypeFontFeatureValues
+    "font-palette-values" -> pure CSSCSSAtRuleTypeFontPaletteValues
+    "counter-style" -> pure CSSCSSAtRuleTypeCounterStyle
+    "_" -> fail "failed to parse CSSCSSAtRuleType"
+instance ToJSON CSSCSSAtRuleType where
+  toJSON v = A.String $ case v of
+    CSSCSSAtRuleTypeFontFace -> "font-face"
+    CSSCSSAtRuleTypeFontFeatureValues -> "font-feature-values"
+    CSSCSSAtRuleTypeFontPaletteValues -> "font-palette-values"
+    CSSCSSAtRuleTypeCounterStyle -> "counter-style"
+data CSSCSSAtRuleSubsection = CSSCSSAtRuleSubsectionSwash | CSSCSSAtRuleSubsectionAnnotation | CSSCSSAtRuleSubsectionOrnaments | CSSCSSAtRuleSubsectionStylistic | CSSCSSAtRuleSubsectionStyleset | CSSCSSAtRuleSubsectionCharacterVariant
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON CSSCSSAtRuleSubsection where
+  parseJSON = A.withText "CSSCSSAtRuleSubsection" $ \v -> case v of
+    "swash" -> pure CSSCSSAtRuleSubsectionSwash
+    "annotation" -> pure CSSCSSAtRuleSubsectionAnnotation
+    "ornaments" -> pure CSSCSSAtRuleSubsectionOrnaments
+    "stylistic" -> pure CSSCSSAtRuleSubsectionStylistic
+    "styleset" -> pure CSSCSSAtRuleSubsectionStyleset
+    "character-variant" -> pure CSSCSSAtRuleSubsectionCharacterVariant
+    "_" -> fail "failed to parse CSSCSSAtRuleSubsection"
+instance ToJSON CSSCSSAtRuleSubsection where
+  toJSON v = A.String $ case v of
+    CSSCSSAtRuleSubsectionSwash -> "swash"
+    CSSCSSAtRuleSubsectionAnnotation -> "annotation"
+    CSSCSSAtRuleSubsectionOrnaments -> "ornaments"
+    CSSCSSAtRuleSubsectionStylistic -> "stylistic"
+    CSSCSSAtRuleSubsectionStyleset -> "styleset"
+    CSSCSSAtRuleSubsectionCharacterVariant -> "character-variant"
+data CSSCSSAtRule = CSSCSSAtRule
+  {
+    -- | Type of at-rule.
+    cSSCSSAtRuleType :: CSSCSSAtRuleType,
+    -- | Subsection of font-feature-values, if this is a subsection.
+    cSSCSSAtRuleSubsection :: Maybe CSSCSSAtRuleSubsection,
+    -- | LINT.ThenChange(//third_party/blink/renderer/core/inspector/inspector_style_sheet.cc:FontVariantAlternatesFeatureType,//third_party/blink/renderer/core/inspector/inspector_css_agent.cc:FontVariantAlternatesFeatureType)
+    --   Associated name, if applicable.
+    cSSCSSAtRuleName :: Maybe CSSValue,
+    -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
+    --   stylesheet rules) this rule came from.
+    cSSCSSAtRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    -- | Parent stylesheet's origin.
+    cSSCSSAtRuleOrigin :: CSSStyleSheetOrigin,
+    -- | Associated style declaration.
+    cSSCSSAtRuleStyle :: CSSCSSStyle
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSAtRule where
+  parseJSON = A.withObject "CSSCSSAtRule" $ \o -> CSSCSSAtRule
+    <$> o A..: "type"
+    <*> o A..:? "subsection"
+    <*> o A..:? "name"
+    <*> o A..:? "styleSheetId"
+    <*> o A..: "origin"
+    <*> o A..: "style"
+instance ToJSON CSSCSSAtRule where
+  toJSON p = A.object $ catMaybes [
+    ("type" A..=) <$> Just (cSSCSSAtRuleType p),
+    ("subsection" A..=) <$> (cSSCSSAtRuleSubsection p),
+    ("name" A..=) <$> (cSSCSSAtRuleName p),
+    ("styleSheetId" A..=) <$> (cSSCSSAtRuleStyleSheetId p),
+    ("origin" A..=) <$> Just (cSSCSSAtRuleOrigin p),
+    ("style" A..=) <$> Just (cSSCSSAtRuleStyle p)
+    ]
+
+-- | Type 'CSS.CSSPropertyRule'.
+--   CSS property at-rule representation.
+data CSSCSSPropertyRule = CSSCSSPropertyRule
+  {
+    -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
+    --   stylesheet rules) this rule came from.
+    cSSCSSPropertyRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    -- | Parent stylesheet's origin.
+    cSSCSSPropertyRuleOrigin :: CSSStyleSheetOrigin,
+    -- | Associated property name.
+    cSSCSSPropertyRulePropertyName :: CSSValue,
+    -- | Associated style declaration.
+    cSSCSSPropertyRuleStyle :: CSSCSSStyle
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSPropertyRule where
+  parseJSON = A.withObject "CSSCSSPropertyRule" $ \o -> CSSCSSPropertyRule
+    <$> o A..:? "styleSheetId"
+    <*> o A..: "origin"
+    <*> o A..: "propertyName"
+    <*> o A..: "style"
+instance ToJSON CSSCSSPropertyRule where
+  toJSON p = A.object $ catMaybes [
+    ("styleSheetId" A..=) <$> (cSSCSSPropertyRuleStyleSheetId p),
+    ("origin" A..=) <$> Just (cSSCSSPropertyRuleOrigin p),
+    ("propertyName" A..=) <$> Just (cSSCSSPropertyRulePropertyName p),
+    ("style" A..=) <$> Just (cSSCSSPropertyRuleStyle p)
+    ]
+
+-- | Type 'CSS.CSSFunctionParameter'.
+--   CSS function argument representation.
+data CSSCSSFunctionParameter = CSSCSSFunctionParameter
+  {
+    -- | The parameter name.
+    cSSCSSFunctionParameterName :: T.Text,
+    -- | The parameter type.
+    cSSCSSFunctionParameterType :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSFunctionParameter where
+  parseJSON = A.withObject "CSSCSSFunctionParameter" $ \o -> CSSCSSFunctionParameter
+    <$> o A..: "name"
+    <*> o A..: "type"
+instance ToJSON CSSCSSFunctionParameter where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> Just (cSSCSSFunctionParameterName p),
+    ("type" A..=) <$> Just (cSSCSSFunctionParameterType p)
+    ]
+
+-- | Type 'CSS.CSSFunctionConditionNode'.
+--   CSS function conditional block representation.
+data CSSCSSFunctionConditionNode = CSSCSSFunctionConditionNode
+  {
+    -- | Media query for this conditional block. Only one type of condition should be set.
+    cSSCSSFunctionConditionNodeMedia :: Maybe CSSCSSMedia,
+    -- | Container query for this conditional block. Only one type of condition should be set.
+    cSSCSSFunctionConditionNodeContainerQueries :: Maybe CSSCSSContainerQuery,
+    -- | @supports CSS at-rule condition. Only one type of condition should be set.
+    cSSCSSFunctionConditionNodeSupports :: Maybe CSSCSSSupports,
+    -- | @navigation condition. Only one type of condition should be set.
+    cSSCSSFunctionConditionNodeNavigation :: Maybe CSSCSSNavigation,
+    -- | Block body.
+    cSSCSSFunctionConditionNodeChildren :: [CSSCSSFunctionNode],
+    -- | The condition text.
+    cSSCSSFunctionConditionNodeConditionText :: T.Text
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSFunctionConditionNode where
+  parseJSON = A.withObject "CSSCSSFunctionConditionNode" $ \o -> CSSCSSFunctionConditionNode
+    <$> o A..:? "media"
+    <*> o A..:? "containerQueries"
+    <*> o A..:? "supports"
+    <*> o A..:? "navigation"
+    <*> o A..: "children"
+    <*> o A..: "conditionText"
+instance ToJSON CSSCSSFunctionConditionNode where
+  toJSON p = A.object $ catMaybes [
+    ("media" A..=) <$> (cSSCSSFunctionConditionNodeMedia p),
+    ("containerQueries" A..=) <$> (cSSCSSFunctionConditionNodeContainerQueries p),
+    ("supports" A..=) <$> (cSSCSSFunctionConditionNodeSupports p),
+    ("navigation" A..=) <$> (cSSCSSFunctionConditionNodeNavigation p),
+    ("children" A..=) <$> Just (cSSCSSFunctionConditionNodeChildren p),
+    ("conditionText" A..=) <$> Just (cSSCSSFunctionConditionNodeConditionText p)
+    ]
+
+-- | Type 'CSS.CSSFunctionNode'.
+--   Section of the body of a CSS function rule.
+data CSSCSSFunctionNode = CSSCSSFunctionNode
+  {
+    -- | A conditional block. If set, style should not be set.
+    cSSCSSFunctionNodeCondition :: Maybe CSSCSSFunctionConditionNode,
+    -- | Values set by this node. If set, condition should not be set.
+    cSSCSSFunctionNodeStyle :: Maybe CSSCSSStyle
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSFunctionNode where
+  parseJSON = A.withObject "CSSCSSFunctionNode" $ \o -> CSSCSSFunctionNode
+    <$> o A..:? "condition"
+    <*> o A..:? "style"
+instance ToJSON CSSCSSFunctionNode where
+  toJSON p = A.object $ catMaybes [
+    ("condition" A..=) <$> (cSSCSSFunctionNodeCondition p),
+    ("style" A..=) <$> (cSSCSSFunctionNodeStyle p)
+    ]
+
+-- | Type 'CSS.CSSFunctionRule'.
+--   CSS function at-rule representation.
+data CSSCSSFunctionRule = CSSCSSFunctionRule
+  {
+    -- | Name of the function.
+    cSSCSSFunctionRuleName :: CSSValue,
+    -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
+    --   stylesheet rules) this rule came from.
+    cSSCSSFunctionRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    -- | Parent stylesheet's origin.
+    cSSCSSFunctionRuleOrigin :: CSSStyleSheetOrigin,
+    -- | List of parameters.
+    cSSCSSFunctionRuleParameters :: [CSSCSSFunctionParameter],
+    -- | Function body.
+    cSSCSSFunctionRuleChildren :: [CSSCSSFunctionNode],
+    -- | The BackendNodeId of the DOM node that constitutes the origin tree scope of this rule.
+    cSSCSSFunctionRuleOriginTreeScopeNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSCSSFunctionRule where
+  parseJSON = A.withObject "CSSCSSFunctionRule" $ \o -> CSSCSSFunctionRule
+    <$> o A..: "name"
+    <*> o A..:? "styleSheetId"
+    <*> o A..: "origin"
+    <*> o A..: "parameters"
+    <*> o A..: "children"
+    <*> o A..:? "originTreeScopeNodeId"
+instance ToJSON CSSCSSFunctionRule where
+  toJSON p = A.object $ catMaybes [
+    ("name" A..=) <$> Just (cSSCSSFunctionRuleName p),
+    ("styleSheetId" A..=) <$> (cSSCSSFunctionRuleStyleSheetId p),
+    ("origin" A..=) <$> Just (cSSCSSFunctionRuleOrigin p),
+    ("parameters" A..=) <$> Just (cSSCSSFunctionRuleParameters p),
+    ("children" A..=) <$> Just (cSSCSSFunctionRuleChildren p),
+    ("originTreeScopeNodeId" A..=) <$> (cSSCSSFunctionRuleOriginTreeScopeNodeId p)
+    ]
+
 -- | Type 'CSS.CSSKeyframeRule'.
 --   CSS keyframe rule representation.
 data CSSCSSKeyframeRule = CSSCSSKeyframeRule
   {
     -- | The css style sheet identifier (absent for user agent stylesheet and user-specified
     --   stylesheet rules) this rule came from.
-    cSSCSSKeyframeRuleStyleSheetId :: Maybe CSSStyleSheetId,
+    cSSCSSKeyframeRuleStyleSheetId :: Maybe DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | Parent stylesheet's origin.
     cSSCSSKeyframeRuleOrigin :: CSSStyleSheetOrigin,
     -- | Associated key text.
@@ -922,7 +1456,7 @@ instance ToJSON CSSCSSKeyframeRule where
 data CSSStyleDeclarationEdit = CSSStyleDeclarationEdit
   {
     -- | The css style sheet identifier.
-    cSSStyleDeclarationEditStyleSheetId :: CSSStyleSheetId,
+    cSSStyleDeclarationEditStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | The range of the style text in the enclosing stylesheet.
     cSSStyleDeclarationEditRange :: CSSSourceRange,
     -- | New style text.
@@ -978,7 +1512,7 @@ instance Event CSSStyleSheetAdded where
 -- | Type of the 'CSS.styleSheetChanged' event.
 data CSSStyleSheetChanged = CSSStyleSheetChanged
   {
-    cSSStyleSheetChangedStyleSheetId :: CSSStyleSheetId
+    cSSStyleSheetChangedStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 instance FromJSON CSSStyleSheetChanged where
@@ -991,7 +1525,7 @@ instance Event CSSStyleSheetChanged where
 data CSSStyleSheetRemoved = CSSStyleSheetRemoved
   {
     -- | Identifier of the removed stylesheet.
-    cSSStyleSheetRemovedStyleSheetId :: CSSStyleSheetId
+    cSSStyleSheetRemovedStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 instance FromJSON CSSStyleSheetRemoved where
@@ -1000,6 +1534,19 @@ instance FromJSON CSSStyleSheetRemoved where
 instance Event CSSStyleSheetRemoved where
   eventName _ = "CSS.styleSheetRemoved"
 
+-- | Type of the 'CSS.computedStyleUpdated' event.
+data CSSComputedStyleUpdated = CSSComputedStyleUpdated
+  {
+    -- | The node id that has updated computed styles.
+    cSSComputedStyleUpdatedNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSComputedStyleUpdated where
+  parseJSON = A.withObject "CSSComputedStyleUpdated" $ \o -> CSSComputedStyleUpdated
+    <$> o A..: "nodeId"
+instance Event CSSComputedStyleUpdated where
+  eventName _ = "CSS.computedStyleUpdated"
+
 -- | Inserts a new rule with the given `ruleText` in a stylesheet with given `styleSheetId`, at the
 --   position specified by `location`.
 
@@ -1007,18 +1554,22 @@ instance Event CSSStyleSheetRemoved where
 data PCSSAddRule = PCSSAddRule
   {
     -- | The css style sheet identifier where a new rule should be inserted.
-    pCSSAddRuleStyleSheetId :: CSSStyleSheetId,
+    pCSSAddRuleStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     -- | The text of a new rule.
     pCSSAddRuleRuleText :: T.Text,
     -- | Text position of a new rule in the target style sheet.
-    pCSSAddRuleLocation :: CSSSourceRange
+    pCSSAddRuleLocation :: CSSSourceRange,
+    -- | NodeId for the DOM node in whose context custom property declarations for registered properties should be
+    --   validated. If omitted, declarations in the new rule text can only be validated statically, which may produce
+    --   incorrect results if the declaration contains a var() for example.
+    pCSSAddRuleNodeForPropertySyntaxValidation :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSAddRule
   {-
   -- | The css style sheet identifier where a new rule should be inserted.
   -}
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   {-
   -- | The text of a new rule.
   -}
@@ -1036,11 +1587,13 @@ pCSSAddRule
     arg_pCSSAddRuleStyleSheetId
     arg_pCSSAddRuleRuleText
     arg_pCSSAddRuleLocation
+    Nothing
 instance ToJSON PCSSAddRule where
   toJSON p = A.object $ catMaybes [
     ("styleSheetId" A..=) <$> Just (pCSSAddRuleStyleSheetId p),
     ("ruleText" A..=) <$> Just (pCSSAddRuleRuleText p),
-    ("location" A..=) <$> Just (pCSSAddRuleLocation p)
+    ("location" A..=) <$> Just (pCSSAddRuleLocation p),
+    ("nodeForPropertySyntaxValidation" A..=) <$> (pCSSAddRuleNodeForPropertySyntaxValidation p)
     ]
 data CSSAddRule = CSSAddRule
   {
@@ -1060,11 +1613,11 @@ instance Command PCSSAddRule where
 -- | Parameters of the 'CSS.collectClassNames' command.
 data PCSSCollectClassNames = PCSSCollectClassNames
   {
-    pCSSCollectClassNamesStyleSheetId :: CSSStyleSheetId
+    pCSSCollectClassNamesStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 pCSSCollectClassNames
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> PCSSCollectClassNames
 pCSSCollectClassNames
   arg_pCSSCollectClassNamesStyleSheetId
@@ -1093,27 +1646,34 @@ instance Command PCSSCollectClassNames where
 data PCSSCreateStyleSheet = PCSSCreateStyleSheet
   {
     -- | Identifier of the frame where "via-inspector" stylesheet should be created.
-    pCSSCreateStyleSheetFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId
+    pCSSCreateStyleSheetFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
+    -- | If true, creates a new stylesheet for every call. If false,
+    --   returns a stylesheet previously created by a call with force=false
+    --   for the frame's document if it exists or creates a new stylesheet
+    --   (default: false).
+    pCSSCreateStyleSheetForce :: Maybe Bool
   }
   deriving (Eq, Show)
 pCSSCreateStyleSheet
   {-
   -- | Identifier of the frame where "via-inspector" stylesheet should be created.
   -}
-  :: DOMPageNetworkEmulationSecurity.PageFrameId
+  :: DOMNetworkEmulationPageSecurity.PageFrameId
   -> PCSSCreateStyleSheet
 pCSSCreateStyleSheet
   arg_pCSSCreateStyleSheetFrameId
   = PCSSCreateStyleSheet
     arg_pCSSCreateStyleSheetFrameId
+    Nothing
 instance ToJSON PCSSCreateStyleSheet where
   toJSON p = A.object $ catMaybes [
-    ("frameId" A..=) <$> Just (pCSSCreateStyleSheetFrameId p)
+    ("frameId" A..=) <$> Just (pCSSCreateStyleSheetFrameId p),
+    ("force" A..=) <$> (pCSSCreateStyleSheetForce p)
     ]
 data CSSCreateStyleSheet = CSSCreateStyleSheet
   {
     -- | Identifier of the created "via-inspector" stylesheet.
-    cSSCreateStyleSheetStyleSheetId :: CSSStyleSheetId
+    cSSCreateStyleSheetStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 instance FromJSON CSSCreateStyleSheet where
@@ -1163,7 +1723,7 @@ instance Command PCSSEnable where
 data PCSSForcePseudoState = PCSSForcePseudoState
   {
     -- | The element id for which to force the pseudo state.
-    pCSSForcePseudoStateNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pCSSForcePseudoStateNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Element pseudo classes to force when computing the element's style.
     pCSSForcePseudoStateForcedPseudoClasses :: [T.Text]
   }
@@ -1172,7 +1732,7 @@ pCSSForcePseudoState
   {-
   -- | The element id for which to force the pseudo state.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   {-
   -- | Element pseudo classes to force when computing the element's style.
   -}
@@ -1194,19 +1754,56 @@ instance Command PCSSForcePseudoState where
   commandName _ = "CSS.forcePseudoState"
   fromJSON = const . A.Success . const ()
 
+-- | Ensures that the given node is in its starting-style state.
+
+-- | Parameters of the 'CSS.forceStartingStyle' command.
+data PCSSForceStartingStyle = PCSSForceStartingStyle
+  {
+    -- | The element id for which to force the starting-style state.
+    pCSSForceStartingStyleNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
+    -- | Boolean indicating if this is on or off.
+    pCSSForceStartingStyleForced :: Bool
+  }
+  deriving (Eq, Show)
+pCSSForceStartingStyle
+  {-
+  -- | The element id for which to force the starting-style state.
+  -}
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
+  {-
+  -- | Boolean indicating if this is on or off.
+  -}
+  -> Bool
+  -> PCSSForceStartingStyle
+pCSSForceStartingStyle
+  arg_pCSSForceStartingStyleNodeId
+  arg_pCSSForceStartingStyleForced
+  = PCSSForceStartingStyle
+    arg_pCSSForceStartingStyleNodeId
+    arg_pCSSForceStartingStyleForced
+instance ToJSON PCSSForceStartingStyle where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (pCSSForceStartingStyleNodeId p),
+    ("forced" A..=) <$> Just (pCSSForceStartingStyleForced p)
+    ]
+instance Command PCSSForceStartingStyle where
+  type CommandResponse PCSSForceStartingStyle = ()
+  commandName _ = "CSS.forceStartingStyle"
+  fromJSON = const . A.Success . const ()
+
 
 -- | Parameters of the 'CSS.getBackgroundColors' command.
 data PCSSGetBackgroundColors = PCSSGetBackgroundColors
   {
     -- | Id of the node to get background colors for.
-    pCSSGetBackgroundColorsNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pCSSGetBackgroundColorsNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSGetBackgroundColors
   {-
   -- | Id of the node to get background colors for.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> PCSSGetBackgroundColors
 pCSSGetBackgroundColors
   arg_pCSSGetBackgroundColorsNodeId
@@ -1245,11 +1842,11 @@ instance Command PCSSGetBackgroundColors where
 -- | Parameters of the 'CSS.getComputedStyleForNode' command.
 data PCSSGetComputedStyleForNode = PCSSGetComputedStyleForNode
   {
-    pCSSGetComputedStyleForNodeNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pCSSGetComputedStyleForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSGetComputedStyleForNode
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> PCSSGetComputedStyleForNode
 pCSSGetComputedStyleForNode
   arg_pCSSGetComputedStyleForNodeNodeId
@@ -1262,15 +1859,121 @@ instance ToJSON PCSSGetComputedStyleForNode where
 data CSSGetComputedStyleForNode = CSSGetComputedStyleForNode
   {
     -- | Computed style for the specified DOM node.
-    cSSGetComputedStyleForNodeComputedStyle :: [CSSCSSComputedStyleProperty]
+    cSSGetComputedStyleForNodeComputedStyle :: [CSSCSSComputedStyleProperty],
+    -- | A list of non-standard "extra fields" which blink stores alongside each
+    --   computed style.
+    cSSGetComputedStyleForNodeExtraFields :: CSSComputedStyleExtraFields
   }
   deriving (Eq, Show)
 instance FromJSON CSSGetComputedStyleForNode where
   parseJSON = A.withObject "CSSGetComputedStyleForNode" $ \o -> CSSGetComputedStyleForNode
     <$> o A..: "computedStyle"
+    <*> o A..: "extraFields"
 instance Command PCSSGetComputedStyleForNode where
   type CommandResponse PCSSGetComputedStyleForNode = CSSGetComputedStyleForNode
   commandName _ = "CSS.getComputedStyleForNode"
+
+-- | Resolve the specified values in the context of the provided element.
+--   For example, a value of '1em' is evaluated according to the computed
+--   'font-size' of the element and a value 'calc(1px + 2px)' will be
+--   resolved to '3px'.
+--   If the `propertyName` was specified the `values` are resolved as if
+--   they were property's declaration. If a value cannot be parsed according
+--   to the provided property syntax, the value is parsed using combined
+--   syntax as if null `propertyName` was provided. If the value cannot be
+--   resolved even then, return the provided value without any changes.
+--   Note: this function currently does not resolve CSS random() function,
+--   it returns unmodified random() function parts.`
+
+-- | Parameters of the 'CSS.resolveValues' command.
+data PCSSResolveValues = PCSSResolveValues
+  {
+    -- | Cascade-dependent keywords (revert/revert-layer) do not work.
+    pCSSResolveValuesValues :: [T.Text],
+    -- | Id of the node in whose context the expression is evaluated
+    pCSSResolveValuesNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
+    -- | Only longhands and custom property names are accepted.
+    pCSSResolveValuesPropertyName :: Maybe T.Text,
+    -- | Pseudo element type, only works for pseudo elements that generate
+    --   elements in the tree, such as ::before and ::after.
+    pCSSResolveValuesPseudoType :: Maybe DOMNetworkEmulationPageSecurity.DOMPseudoType,
+    -- | Pseudo element custom ident.
+    pCSSResolveValuesPseudoIdentifier :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+pCSSResolveValues
+  {-
+  -- | Cascade-dependent keywords (revert/revert-layer) do not work.
+  -}
+  :: [T.Text]
+  {-
+  -- | Id of the node in whose context the expression is evaluated
+  -}
+  -> DOMNetworkEmulationPageSecurity.DOMNodeId
+  -> PCSSResolveValues
+pCSSResolveValues
+  arg_pCSSResolveValuesValues
+  arg_pCSSResolveValuesNodeId
+  = PCSSResolveValues
+    arg_pCSSResolveValuesValues
+    arg_pCSSResolveValuesNodeId
+    Nothing
+    Nothing
+    Nothing
+instance ToJSON PCSSResolveValues where
+  toJSON p = A.object $ catMaybes [
+    ("values" A..=) <$> Just (pCSSResolveValuesValues p),
+    ("nodeId" A..=) <$> Just (pCSSResolveValuesNodeId p),
+    ("propertyName" A..=) <$> (pCSSResolveValuesPropertyName p),
+    ("pseudoType" A..=) <$> (pCSSResolveValuesPseudoType p),
+    ("pseudoIdentifier" A..=) <$> (pCSSResolveValuesPseudoIdentifier p)
+    ]
+data CSSResolveValues = CSSResolveValues
+  {
+    cSSResolveValuesResults :: [T.Text]
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSResolveValues where
+  parseJSON = A.withObject "CSSResolveValues" $ \o -> CSSResolveValues
+    <$> o A..: "results"
+instance Command PCSSResolveValues where
+  type CommandResponse PCSSResolveValues = CSSResolveValues
+  commandName _ = "CSS.resolveValues"
+
+
+-- | Parameters of the 'CSS.getLonghandProperties' command.
+data PCSSGetLonghandProperties = PCSSGetLonghandProperties
+  {
+    pCSSGetLonghandPropertiesShorthandName :: T.Text,
+    pCSSGetLonghandPropertiesValue :: T.Text
+  }
+  deriving (Eq, Show)
+pCSSGetLonghandProperties
+  :: T.Text
+  -> T.Text
+  -> PCSSGetLonghandProperties
+pCSSGetLonghandProperties
+  arg_pCSSGetLonghandPropertiesShorthandName
+  arg_pCSSGetLonghandPropertiesValue
+  = PCSSGetLonghandProperties
+    arg_pCSSGetLonghandPropertiesShorthandName
+    arg_pCSSGetLonghandPropertiesValue
+instance ToJSON PCSSGetLonghandProperties where
+  toJSON p = A.object $ catMaybes [
+    ("shorthandName" A..=) <$> Just (pCSSGetLonghandPropertiesShorthandName p),
+    ("value" A..=) <$> Just (pCSSGetLonghandPropertiesValue p)
+    ]
+data CSSGetLonghandProperties = CSSGetLonghandProperties
+  {
+    cSSGetLonghandPropertiesLonghandProperties :: [CSSCSSProperty]
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSGetLonghandProperties where
+  parseJSON = A.withObject "CSSGetLonghandProperties" $ \o -> CSSGetLonghandProperties
+    <$> o A..: "longhandProperties"
+instance Command PCSSGetLonghandProperties where
+  type CommandResponse PCSSGetLonghandProperties = CSSGetLonghandProperties
+  commandName _ = "CSS.getLonghandProperties"
 
 -- | Returns the styles defined inline (explicitly in the "style" attribute and implicitly, using DOM
 --   attributes) for a DOM node identified by `nodeId`.
@@ -1278,11 +1981,11 @@ instance Command PCSSGetComputedStyleForNode where
 -- | Parameters of the 'CSS.getInlineStylesForNode' command.
 data PCSSGetInlineStylesForNode = PCSSGetInlineStylesForNode
   {
-    pCSSGetInlineStylesForNodeNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pCSSGetInlineStylesForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSGetInlineStylesForNode
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> PCSSGetInlineStylesForNode
 pCSSGetInlineStylesForNode
   arg_pCSSGetInlineStylesForNodeNodeId
@@ -1308,16 +2011,56 @@ instance Command PCSSGetInlineStylesForNode where
   type CommandResponse PCSSGetInlineStylesForNode = CSSGetInlineStylesForNode
   commandName _ = "CSS.getInlineStylesForNode"
 
+-- | Returns the styles coming from animations & transitions
+--   including the animation & transition styles coming from inheritance chain.
+
+-- | Parameters of the 'CSS.getAnimatedStylesForNode' command.
+data PCSSGetAnimatedStylesForNode = PCSSGetAnimatedStylesForNode
+  {
+    pCSSGetAnimatedStylesForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
+  }
+  deriving (Eq, Show)
+pCSSGetAnimatedStylesForNode
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
+  -> PCSSGetAnimatedStylesForNode
+pCSSGetAnimatedStylesForNode
+  arg_pCSSGetAnimatedStylesForNodeNodeId
+  = PCSSGetAnimatedStylesForNode
+    arg_pCSSGetAnimatedStylesForNodeNodeId
+instance ToJSON PCSSGetAnimatedStylesForNode where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> Just (pCSSGetAnimatedStylesForNodeNodeId p)
+    ]
+data CSSGetAnimatedStylesForNode = CSSGetAnimatedStylesForNode
+  {
+    -- | Styles coming from animations.
+    cSSGetAnimatedStylesForNodeAnimationStyles :: Maybe [CSSCSSAnimationStyle],
+    -- | Style coming from transitions.
+    cSSGetAnimatedStylesForNodeTransitionsStyle :: Maybe CSSCSSStyle,
+    -- | Inherited style entries for animationsStyle and transitionsStyle from
+    --   the inheritance chain of the element.
+    cSSGetAnimatedStylesForNodeInherited :: Maybe [CSSInheritedAnimatedStyleEntry]
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSGetAnimatedStylesForNode where
+  parseJSON = A.withObject "CSSGetAnimatedStylesForNode" $ \o -> CSSGetAnimatedStylesForNode
+    <$> o A..:? "animationStyles"
+    <*> o A..:? "transitionsStyle"
+    <*> o A..:? "inherited"
+instance Command PCSSGetAnimatedStylesForNode where
+  type CommandResponse PCSSGetAnimatedStylesForNode = CSSGetAnimatedStylesForNode
+  commandName _ = "CSS.getAnimatedStylesForNode"
+
 -- | Returns requested styles for a DOM node identified by `nodeId`.
 
 -- | Parameters of the 'CSS.getMatchedStylesForNode' command.
 data PCSSGetMatchedStylesForNode = PCSSGetMatchedStylesForNode
   {
-    pCSSGetMatchedStylesForNodeNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pCSSGetMatchedStylesForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSGetMatchedStylesForNode
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> PCSSGetMatchedStylesForNode
 pCSSGetMatchedStylesForNode
   arg_pCSSGetMatchedStylesForNodeNodeId
@@ -1343,8 +2086,21 @@ data CSSGetMatchedStylesForNode = CSSGetMatchedStylesForNode
     cSSGetMatchedStylesForNodeInheritedPseudoElements :: Maybe [CSSInheritedPseudoElementMatches],
     -- | A list of CSS keyframed animations matching this node.
     cSSGetMatchedStylesForNodeCssKeyframesRules :: Maybe [CSSCSSKeyframesRule],
+    -- | A list of CSS @position-try rules matching this node, based on the position-try-fallbacks property.
+    cSSGetMatchedStylesForNodeCssPositionTryRules :: Maybe [CSSCSSPositionTryRule],
+    -- | Index of the active fallback in the applied position-try-fallback property,
+    --   will not be set if there is no active position-try fallback.
+    cSSGetMatchedStylesForNodeActivePositionFallbackIndex :: Maybe Int,
+    -- | A list of CSS at-property rules matching this node.
+    cSSGetMatchedStylesForNodeCssPropertyRules :: Maybe [CSSCSSPropertyRule],
+    -- | A list of CSS property registrations matching this node.
+    cSSGetMatchedStylesForNodeCssPropertyRegistrations :: Maybe [CSSCSSPropertyRegistration],
+    -- | A list of simple @rules matching this node or its pseudo-elements.
+    cSSGetMatchedStylesForNodeCssAtRules :: Maybe [CSSCSSAtRule],
     -- | Id of the first parent element that does not have display: contents.
-    cSSGetMatchedStylesForNodeParentLayoutNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMNodeId
+    cSSGetMatchedStylesForNodeParentLayoutNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
+    -- | A list of CSS at-function rules referenced by styles of this node.
+    cSSGetMatchedStylesForNodeCssFunctionRules :: Maybe [CSSCSSFunctionRule]
   }
   deriving (Eq, Show)
 instance FromJSON CSSGetMatchedStylesForNode where
@@ -1356,10 +2112,39 @@ instance FromJSON CSSGetMatchedStylesForNode where
     <*> o A..:? "inherited"
     <*> o A..:? "inheritedPseudoElements"
     <*> o A..:? "cssKeyframesRules"
+    <*> o A..:? "cssPositionTryRules"
+    <*> o A..:? "activePositionFallbackIndex"
+    <*> o A..:? "cssPropertyRules"
+    <*> o A..:? "cssPropertyRegistrations"
+    <*> o A..:? "cssAtRules"
     <*> o A..:? "parentLayoutNodeId"
+    <*> o A..:? "cssFunctionRules"
 instance Command PCSSGetMatchedStylesForNode where
   type CommandResponse PCSSGetMatchedStylesForNode = CSSGetMatchedStylesForNode
   commandName _ = "CSS.getMatchedStylesForNode"
+
+-- | Returns the values of the default UA-defined environment variables used in env()
+
+-- | Parameters of the 'CSS.getEnvironmentVariables' command.
+data PCSSGetEnvironmentVariables = PCSSGetEnvironmentVariables
+  deriving (Eq, Show)
+pCSSGetEnvironmentVariables
+  :: PCSSGetEnvironmentVariables
+pCSSGetEnvironmentVariables
+  = PCSSGetEnvironmentVariables
+instance ToJSON PCSSGetEnvironmentVariables where
+  toJSON _ = A.Null
+data CSSGetEnvironmentVariables = CSSGetEnvironmentVariables
+  {
+    cSSGetEnvironmentVariablesEnvironmentVariables :: [(T.Text, T.Text)]
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSGetEnvironmentVariables where
+  parseJSON = A.withObject "CSSGetEnvironmentVariables" $ \o -> CSSGetEnvironmentVariables
+    <$> o A..: "environmentVariables"
+instance Command PCSSGetEnvironmentVariables where
+  type CommandResponse PCSSGetEnvironmentVariables = CSSGetEnvironmentVariables
+  commandName _ = "CSS.getEnvironmentVariables"
 
 -- | Returns all media queries parsed by the rendering engine.
 
@@ -1390,11 +2175,11 @@ instance Command PCSSGetMediaQueries where
 -- | Parameters of the 'CSS.getPlatformFontsForNode' command.
 data PCSSGetPlatformFontsForNode = PCSSGetPlatformFontsForNode
   {
-    pCSSGetPlatformFontsForNodeNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pCSSGetPlatformFontsForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSGetPlatformFontsForNode
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> PCSSGetPlatformFontsForNode
 pCSSGetPlatformFontsForNode
   arg_pCSSGetPlatformFontsForNodeNodeId
@@ -1422,11 +2207,11 @@ instance Command PCSSGetPlatformFontsForNode where
 -- | Parameters of the 'CSS.getStyleSheetText' command.
 data PCSSGetStyleSheetText = PCSSGetStyleSheetText
   {
-    pCSSGetStyleSheetTextStyleSheetId :: CSSStyleSheetId
+    pCSSGetStyleSheetTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   }
   deriving (Eq, Show)
 pCSSGetStyleSheetText
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> PCSSGetStyleSheetText
 pCSSGetStyleSheetText
   arg_pCSSGetStyleSheetTextStyleSheetId
@@ -1457,11 +2242,11 @@ instance Command PCSSGetStyleSheetText where
 -- | Parameters of the 'CSS.getLayersForNode' command.
 data PCSSGetLayersForNode = PCSSGetLayersForNode
   {
-    pCSSGetLayersForNodeNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId
+    pCSSGetLayersForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSGetLayersForNode
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> PCSSGetLayersForNode
 pCSSGetLayersForNode
   arg_pCSSGetLayersForNodeNodeId
@@ -1482,6 +2267,70 @@ instance FromJSON CSSGetLayersForNode where
 instance Command PCSSGetLayersForNode where
   type CommandResponse PCSSGetLayersForNode = CSSGetLayersForNode
   commandName _ = "CSS.getLayersForNode"
+
+-- | Given a CSS selector text and a style sheet ID, getLocationForSelector
+--   returns an array of locations of the CSS selector in the style sheet.
+
+-- | Parameters of the 'CSS.getLocationForSelector' command.
+data PCSSGetLocationForSelector = PCSSGetLocationForSelector
+  {
+    pCSSGetLocationForSelectorStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    pCSSGetLocationForSelectorSelectorText :: T.Text
+  }
+  deriving (Eq, Show)
+pCSSGetLocationForSelector
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
+  -> T.Text
+  -> PCSSGetLocationForSelector
+pCSSGetLocationForSelector
+  arg_pCSSGetLocationForSelectorStyleSheetId
+  arg_pCSSGetLocationForSelectorSelectorText
+  = PCSSGetLocationForSelector
+    arg_pCSSGetLocationForSelectorStyleSheetId
+    arg_pCSSGetLocationForSelectorSelectorText
+instance ToJSON PCSSGetLocationForSelector where
+  toJSON p = A.object $ catMaybes [
+    ("styleSheetId" A..=) <$> Just (pCSSGetLocationForSelectorStyleSheetId p),
+    ("selectorText" A..=) <$> Just (pCSSGetLocationForSelectorSelectorText p)
+    ]
+data CSSGetLocationForSelector = CSSGetLocationForSelector
+  {
+    cSSGetLocationForSelectorRanges :: [CSSSourceRange]
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSGetLocationForSelector where
+  parseJSON = A.withObject "CSSGetLocationForSelector" $ \o -> CSSGetLocationForSelector
+    <$> o A..: "ranges"
+instance Command PCSSGetLocationForSelector where
+  type CommandResponse PCSSGetLocationForSelector = CSSGetLocationForSelector
+  commandName _ = "CSS.getLocationForSelector"
+
+-- | Starts tracking the given node for the computed style updates
+--   and whenever the computed style is updated for node, it queues
+--   a `computedStyleUpdated` event with throttling.
+--   There can only be 1 node tracked for computed style updates
+--   so passing a new node id removes tracking from the previous node.
+--   Pass `undefined` to disable tracking.
+
+-- | Parameters of the 'CSS.trackComputedStyleUpdatesForNode' command.
+data PCSSTrackComputedStyleUpdatesForNode = PCSSTrackComputedStyleUpdatesForNode
+  {
+    pCSSTrackComputedStyleUpdatesForNodeNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId
+  }
+  deriving (Eq, Show)
+pCSSTrackComputedStyleUpdatesForNode
+  :: PCSSTrackComputedStyleUpdatesForNode
+pCSSTrackComputedStyleUpdatesForNode
+  = PCSSTrackComputedStyleUpdatesForNode
+    Nothing
+instance ToJSON PCSSTrackComputedStyleUpdatesForNode where
+  toJSON p = A.object $ catMaybes [
+    ("nodeId" A..=) <$> (pCSSTrackComputedStyleUpdatesForNodeNodeId p)
+    ]
+instance Command PCSSTrackComputedStyleUpdatesForNode where
+  type CommandResponse PCSSTrackComputedStyleUpdatesForNode = ()
+  commandName _ = "CSS.trackComputedStyleUpdatesForNode"
+  fromJSON = const . A.Success . const ()
 
 -- | Starts tracking the given computed styles for updates. The specified array of properties
 --   replaces the one previously specified. Pass empty array to disable tracking.
@@ -1525,8 +2374,8 @@ instance ToJSON PCSSTakeComputedStyleUpdates where
   toJSON _ = A.Null
 data CSSTakeComputedStyleUpdates = CSSTakeComputedStyleUpdates
   {
-    -- | The list of node Ids that have their tracked computed styles updated
-    cSSTakeComputedStyleUpdatesNodeIds :: [DOMPageNetworkEmulationSecurity.DOMNodeId]
+    -- | The list of node Ids that have their tracked computed styles updated.
+    cSSTakeComputedStyleUpdatesNodeIds :: [DOMNetworkEmulationPageSecurity.DOMNodeId]
   }
   deriving (Eq, Show)
 instance FromJSON CSSTakeComputedStyleUpdates where
@@ -1543,7 +2392,7 @@ instance Command PCSSTakeComputedStyleUpdates where
 data PCSSSetEffectivePropertyValueForNode = PCSSSetEffectivePropertyValueForNode
   {
     -- | The element id for which to set property.
-    pCSSSetEffectivePropertyValueForNodeNodeId :: DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pCSSSetEffectivePropertyValueForNodeNodeId :: DOMNetworkEmulationPageSecurity.DOMNodeId,
     pCSSSetEffectivePropertyValueForNodePropertyName :: T.Text,
     pCSSSetEffectivePropertyValueForNodeValue :: T.Text
   }
@@ -1552,7 +2401,7 @@ pCSSSetEffectivePropertyValueForNode
   {-
   -- | The element id for which to set property.
   -}
-  :: DOMPageNetworkEmulationSecurity.DOMNodeId
+  :: DOMNetworkEmulationPageSecurity.DOMNodeId
   -> T.Text
   -> T.Text
   -> PCSSSetEffectivePropertyValueForNode
@@ -1575,18 +2424,60 @@ instance Command PCSSSetEffectivePropertyValueForNode where
   commandName _ = "CSS.setEffectivePropertyValueForNode"
   fromJSON = const . A.Success . const ()
 
+-- | Modifies the property rule property name.
+
+-- | Parameters of the 'CSS.setPropertyRulePropertyName' command.
+data PCSSSetPropertyRulePropertyName = PCSSSetPropertyRulePropertyName
+  {
+    pCSSSetPropertyRulePropertyNameStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    pCSSSetPropertyRulePropertyNameRange :: CSSSourceRange,
+    pCSSSetPropertyRulePropertyNamePropertyName :: T.Text
+  }
+  deriving (Eq, Show)
+pCSSSetPropertyRulePropertyName
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
+  -> CSSSourceRange
+  -> T.Text
+  -> PCSSSetPropertyRulePropertyName
+pCSSSetPropertyRulePropertyName
+  arg_pCSSSetPropertyRulePropertyNameStyleSheetId
+  arg_pCSSSetPropertyRulePropertyNameRange
+  arg_pCSSSetPropertyRulePropertyNamePropertyName
+  = PCSSSetPropertyRulePropertyName
+    arg_pCSSSetPropertyRulePropertyNameStyleSheetId
+    arg_pCSSSetPropertyRulePropertyNameRange
+    arg_pCSSSetPropertyRulePropertyNamePropertyName
+instance ToJSON PCSSSetPropertyRulePropertyName where
+  toJSON p = A.object $ catMaybes [
+    ("styleSheetId" A..=) <$> Just (pCSSSetPropertyRulePropertyNameStyleSheetId p),
+    ("range" A..=) <$> Just (pCSSSetPropertyRulePropertyNameRange p),
+    ("propertyName" A..=) <$> Just (pCSSSetPropertyRulePropertyNamePropertyName p)
+    ]
+data CSSSetPropertyRulePropertyName = CSSSetPropertyRulePropertyName
+  {
+    -- | The resulting key text after modification.
+    cSSSetPropertyRulePropertyNamePropertyName :: CSSValue
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSSetPropertyRulePropertyName where
+  parseJSON = A.withObject "CSSSetPropertyRulePropertyName" $ \o -> CSSSetPropertyRulePropertyName
+    <$> o A..: "propertyName"
+instance Command PCSSSetPropertyRulePropertyName where
+  type CommandResponse PCSSSetPropertyRulePropertyName = CSSSetPropertyRulePropertyName
+  commandName _ = "CSS.setPropertyRulePropertyName"
+
 -- | Modifies the keyframe rule key text.
 
 -- | Parameters of the 'CSS.setKeyframeKey' command.
 data PCSSSetKeyframeKey = PCSSSetKeyframeKey
   {
-    pCSSSetKeyframeKeyStyleSheetId :: CSSStyleSheetId,
+    pCSSSetKeyframeKeyStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     pCSSSetKeyframeKeyRange :: CSSSourceRange,
     pCSSSetKeyframeKeyKeyText :: T.Text
   }
   deriving (Eq, Show)
 pCSSSetKeyframeKey
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> CSSSourceRange
   -> T.Text
   -> PCSSSetKeyframeKey
@@ -1622,13 +2513,13 @@ instance Command PCSSSetKeyframeKey where
 -- | Parameters of the 'CSS.setMediaText' command.
 data PCSSSetMediaText = PCSSSetMediaText
   {
-    pCSSSetMediaTextStyleSheetId :: CSSStyleSheetId,
+    pCSSSetMediaTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     pCSSSetMediaTextRange :: CSSSourceRange,
     pCSSSetMediaTextText :: T.Text
   }
   deriving (Eq, Show)
 pCSSSetMediaText
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> CSSSourceRange
   -> T.Text
   -> PCSSSetMediaText
@@ -1659,60 +2550,59 @@ instance Command PCSSSetMediaText where
   type CommandResponse PCSSSetMediaText = CSSSetMediaText
   commandName _ = "CSS.setMediaText"
 
--- | Modifies the expression of a container query.
 
--- | Parameters of the 'CSS.setContainerQueryText' command.
-data PCSSSetContainerQueryText = PCSSSetContainerQueryText
+-- | Parameters of the 'CSS.setContainerQueryConditionText' command.
+data PCSSSetContainerQueryConditionText = PCSSSetContainerQueryConditionText
   {
-    pCSSSetContainerQueryTextStyleSheetId :: CSSStyleSheetId,
-    pCSSSetContainerQueryTextRange :: CSSSourceRange,
-    pCSSSetContainerQueryTextText :: T.Text
+    pCSSSetContainerQueryConditionTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    pCSSSetContainerQueryConditionTextRange :: CSSSourceRange,
+    pCSSSetContainerQueryConditionTextText :: T.Text
   }
   deriving (Eq, Show)
-pCSSSetContainerQueryText
-  :: CSSStyleSheetId
+pCSSSetContainerQueryConditionText
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> CSSSourceRange
   -> T.Text
-  -> PCSSSetContainerQueryText
-pCSSSetContainerQueryText
-  arg_pCSSSetContainerQueryTextStyleSheetId
-  arg_pCSSSetContainerQueryTextRange
-  arg_pCSSSetContainerQueryTextText
-  = PCSSSetContainerQueryText
-    arg_pCSSSetContainerQueryTextStyleSheetId
-    arg_pCSSSetContainerQueryTextRange
-    arg_pCSSSetContainerQueryTextText
-instance ToJSON PCSSSetContainerQueryText where
+  -> PCSSSetContainerQueryConditionText
+pCSSSetContainerQueryConditionText
+  arg_pCSSSetContainerQueryConditionTextStyleSheetId
+  arg_pCSSSetContainerQueryConditionTextRange
+  arg_pCSSSetContainerQueryConditionTextText
+  = PCSSSetContainerQueryConditionText
+    arg_pCSSSetContainerQueryConditionTextStyleSheetId
+    arg_pCSSSetContainerQueryConditionTextRange
+    arg_pCSSSetContainerQueryConditionTextText
+instance ToJSON PCSSSetContainerQueryConditionText where
   toJSON p = A.object $ catMaybes [
-    ("styleSheetId" A..=) <$> Just (pCSSSetContainerQueryTextStyleSheetId p),
-    ("range" A..=) <$> Just (pCSSSetContainerQueryTextRange p),
-    ("text" A..=) <$> Just (pCSSSetContainerQueryTextText p)
+    ("styleSheetId" A..=) <$> Just (pCSSSetContainerQueryConditionTextStyleSheetId p),
+    ("range" A..=) <$> Just (pCSSSetContainerQueryConditionTextRange p),
+    ("text" A..=) <$> Just (pCSSSetContainerQueryConditionTextText p)
     ]
-data CSSSetContainerQueryText = CSSSetContainerQueryText
+data CSSSetContainerQueryConditionText = CSSSetContainerQueryConditionText
   {
     -- | The resulting CSS container query rule after modification.
-    cSSSetContainerQueryTextContainerQuery :: CSSCSSContainerQuery
+    cSSSetContainerQueryConditionTextContainerQuery :: CSSCSSContainerQuery
   }
   deriving (Eq, Show)
-instance FromJSON CSSSetContainerQueryText where
-  parseJSON = A.withObject "CSSSetContainerQueryText" $ \o -> CSSSetContainerQueryText
+instance FromJSON CSSSetContainerQueryConditionText where
+  parseJSON = A.withObject "CSSSetContainerQueryConditionText" $ \o -> CSSSetContainerQueryConditionText
     <$> o A..: "containerQuery"
-instance Command PCSSSetContainerQueryText where
-  type CommandResponse PCSSSetContainerQueryText = CSSSetContainerQueryText
-  commandName _ = "CSS.setContainerQueryText"
+instance Command PCSSSetContainerQueryConditionText where
+  type CommandResponse PCSSSetContainerQueryConditionText = CSSSetContainerQueryConditionText
+  commandName _ = "CSS.setContainerQueryConditionText"
 
 -- | Modifies the expression of a supports at-rule.
 
 -- | Parameters of the 'CSS.setSupportsText' command.
 data PCSSSetSupportsText = PCSSSetSupportsText
   {
-    pCSSSetSupportsTextStyleSheetId :: CSSStyleSheetId,
+    pCSSSetSupportsTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     pCSSSetSupportsTextRange :: CSSSourceRange,
     pCSSSetSupportsTextText :: T.Text
   }
   deriving (Eq, Show)
 pCSSSetSupportsText
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> CSSSourceRange
   -> T.Text
   -> PCSSSetSupportsText
@@ -1743,18 +2633,60 @@ instance Command PCSSSetSupportsText where
   type CommandResponse PCSSSetSupportsText = CSSSetSupportsText
   commandName _ = "CSS.setSupportsText"
 
+-- | Modifies the expression of a navigation at-rule.
+
+-- | Parameters of the 'CSS.setNavigationText' command.
+data PCSSSetNavigationText = PCSSSetNavigationText
+  {
+    pCSSSetNavigationTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
+    pCSSSetNavigationTextRange :: CSSSourceRange,
+    pCSSSetNavigationTextText :: T.Text
+  }
+  deriving (Eq, Show)
+pCSSSetNavigationText
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
+  -> CSSSourceRange
+  -> T.Text
+  -> PCSSSetNavigationText
+pCSSSetNavigationText
+  arg_pCSSSetNavigationTextStyleSheetId
+  arg_pCSSSetNavigationTextRange
+  arg_pCSSSetNavigationTextText
+  = PCSSSetNavigationText
+    arg_pCSSSetNavigationTextStyleSheetId
+    arg_pCSSSetNavigationTextRange
+    arg_pCSSSetNavigationTextText
+instance ToJSON PCSSSetNavigationText where
+  toJSON p = A.object $ catMaybes [
+    ("styleSheetId" A..=) <$> Just (pCSSSetNavigationTextStyleSheetId p),
+    ("range" A..=) <$> Just (pCSSSetNavigationTextRange p),
+    ("text" A..=) <$> Just (pCSSSetNavigationTextText p)
+    ]
+data CSSSetNavigationText = CSSSetNavigationText
+  {
+    -- | The resulting CSS Navigation rule after modification.
+    cSSSetNavigationTextNavigation :: CSSCSSNavigation
+  }
+  deriving (Eq, Show)
+instance FromJSON CSSSetNavigationText where
+  parseJSON = A.withObject "CSSSetNavigationText" $ \o -> CSSSetNavigationText
+    <$> o A..: "navigation"
+instance Command PCSSSetNavigationText where
+  type CommandResponse PCSSSetNavigationText = CSSSetNavigationText
+  commandName _ = "CSS.setNavigationText"
+
 -- | Modifies the expression of a scope at-rule.
 
 -- | Parameters of the 'CSS.setScopeText' command.
 data PCSSSetScopeText = PCSSSetScopeText
   {
-    pCSSSetScopeTextStyleSheetId :: CSSStyleSheetId,
+    pCSSSetScopeTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     pCSSSetScopeTextRange :: CSSSourceRange,
     pCSSSetScopeTextText :: T.Text
   }
   deriving (Eq, Show)
 pCSSSetScopeText
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> CSSSourceRange
   -> T.Text
   -> PCSSSetScopeText
@@ -1790,13 +2722,13 @@ instance Command PCSSSetScopeText where
 -- | Parameters of the 'CSS.setRuleSelector' command.
 data PCSSSetRuleSelector = PCSSSetRuleSelector
   {
-    pCSSSetRuleSelectorStyleSheetId :: CSSStyleSheetId,
+    pCSSSetRuleSelectorStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     pCSSSetRuleSelectorRange :: CSSSourceRange,
     pCSSSetRuleSelectorSelector :: T.Text
   }
   deriving (Eq, Show)
 pCSSSetRuleSelector
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> CSSSourceRange
   -> T.Text
   -> PCSSSetRuleSelector
@@ -1832,12 +2764,12 @@ instance Command PCSSSetRuleSelector where
 -- | Parameters of the 'CSS.setStyleSheetText' command.
 data PCSSSetStyleSheetText = PCSSSetStyleSheetText
   {
-    pCSSSetStyleSheetTextStyleSheetId :: CSSStyleSheetId,
+    pCSSSetStyleSheetTextStyleSheetId :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId,
     pCSSSetStyleSheetTextText :: T.Text
   }
   deriving (Eq, Show)
 pCSSSetStyleSheetText
-  :: CSSStyleSheetId
+  :: DOMNetworkEmulationPageSecurity.DOMStyleSheetId
   -> T.Text
   -> PCSSSetStyleSheetText
 pCSSSetStyleSheetText
@@ -1869,7 +2801,11 @@ instance Command PCSSSetStyleSheetText where
 -- | Parameters of the 'CSS.setStyleTexts' command.
 data PCSSSetStyleTexts = PCSSSetStyleTexts
   {
-    pCSSSetStyleTextsEdits :: [CSSStyleDeclarationEdit]
+    pCSSSetStyleTextsEdits :: [CSSStyleDeclarationEdit],
+    -- | NodeId for the DOM node in whose context custom property declarations for registered properties should be
+    --   validated. If omitted, declarations in the new rule text can only be validated statically, which may produce
+    --   incorrect results if the declaration contains a var() for example.
+    pCSSSetStyleTextsNodeForPropertySyntaxValidation :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId
   }
   deriving (Eq, Show)
 pCSSSetStyleTexts
@@ -1879,9 +2815,11 @@ pCSSSetStyleTexts
   arg_pCSSSetStyleTextsEdits
   = PCSSSetStyleTexts
     arg_pCSSSetStyleTextsEdits
+    Nothing
 instance ToJSON PCSSSetStyleTexts where
   toJSON p = A.object $ catMaybes [
-    ("edits" A..=) <$> Just (pCSSSetStyleTextsEdits p)
+    ("edits" A..=) <$> Just (pCSSSetStyleTextsEdits p),
+    ("nodeForPropertySyntaxValidation" A..=) <$> (pCSSSetStyleTextsNodeForPropertySyntaxValidation p)
     ]
 data CSSSetStyleTexts = CSSSetStyleTexts
   {
@@ -1913,7 +2851,7 @@ instance Command PCSSStartRuleUsageTracking where
   fromJSON = const . A.Success . const ()
 
 -- | Stop tracking rule usage and return the list of rules that were used since last call to
---   `takeCoverageDelta` (or since start of coverage instrumentation)
+--   `takeCoverageDelta` (or since start of coverage instrumentation).
 
 -- | Parameters of the 'CSS.stopRuleUsageTracking' command.
 data PCSSStopRuleUsageTracking = PCSSStopRuleUsageTracking
@@ -1937,7 +2875,7 @@ instance Command PCSSStopRuleUsageTracking where
   commandName _ = "CSS.stopRuleUsageTracking"
 
 -- | Obtain list of rules that became used since last call to this method (or since start of coverage
---   instrumentation)
+--   instrumentation).
 
 -- | Parameters of the 'CSS.takeCoverageDelta' command.
 data PCSSTakeCoverageDelta = PCSSTakeCoverageDelta

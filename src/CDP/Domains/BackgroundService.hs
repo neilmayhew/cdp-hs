@@ -46,7 +46,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.ServiceWorker as ServiceWorker
 
 
@@ -96,7 +96,7 @@ instance ToJSON BackgroundServiceEventMetadata where
 data BackgroundServiceBackgroundServiceEvent = BackgroundServiceBackgroundServiceEvent
   {
     -- | Timestamp of the event (in seconds).
-    backgroundServiceBackgroundServiceEventTimestamp :: DOMPageNetworkEmulationSecurity.NetworkTimeSinceEpoch,
+    backgroundServiceBackgroundServiceEventTimestamp :: DOMNetworkEmulationPageSecurity.NetworkTimeSinceEpoch,
     -- | The origin this event belongs to.
     backgroundServiceBackgroundServiceEventOrigin :: T.Text,
     -- | The Service Worker ID that initiated the event.
@@ -108,7 +108,9 @@ data BackgroundServiceBackgroundServiceEvent = BackgroundServiceBackgroundServic
     -- | An identifier that groups related events together.
     backgroundServiceBackgroundServiceEventInstanceId :: T.Text,
     -- | A list of event-specific information.
-    backgroundServiceBackgroundServiceEventEventMetadata :: [BackgroundServiceEventMetadata]
+    backgroundServiceBackgroundServiceEventEventMetadata :: [BackgroundServiceEventMetadata],
+    -- | Storage key this event belongs to.
+    backgroundServiceBackgroundServiceEventStorageKey :: T.Text
   }
   deriving (Eq, Show)
 instance FromJSON BackgroundServiceBackgroundServiceEvent where
@@ -120,6 +122,7 @@ instance FromJSON BackgroundServiceBackgroundServiceEvent where
     <*> o A..: "eventName"
     <*> o A..: "instanceId"
     <*> o A..: "eventMetadata"
+    <*> o A..: "storageKey"
 instance ToJSON BackgroundServiceBackgroundServiceEvent where
   toJSON p = A.object $ catMaybes [
     ("timestamp" A..=) <$> Just (backgroundServiceBackgroundServiceEventTimestamp p),
@@ -128,7 +131,8 @@ instance ToJSON BackgroundServiceBackgroundServiceEvent where
     ("service" A..=) <$> Just (backgroundServiceBackgroundServiceEventService p),
     ("eventName" A..=) <$> Just (backgroundServiceBackgroundServiceEventEventName p),
     ("instanceId" A..=) <$> Just (backgroundServiceBackgroundServiceEventInstanceId p),
-    ("eventMetadata" A..=) <$> Just (backgroundServiceBackgroundServiceEventEventMetadata p)
+    ("eventMetadata" A..=) <$> Just (backgroundServiceBackgroundServiceEventEventMetadata p),
+    ("storageKey" A..=) <$> Just (backgroundServiceBackgroundServiceEventStorageKey p)
     ]
 
 -- | Type of the 'BackgroundService.recordingStateChanged' event.

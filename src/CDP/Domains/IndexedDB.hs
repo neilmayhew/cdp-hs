@@ -46,6 +46,7 @@ import CDP.Internal.Utils
 
 
 import CDP.Domains.Runtime as Runtime
+import CDP.Domains.Storage as Storage
 
 
 -- | Type 'IndexedDB.DatabaseWithObjectStores'.
@@ -270,11 +271,13 @@ instance ToJSON IndexedDBKeyPath where
 -- | Parameters of the 'IndexedDB.clearObjectStore' command.
 data PIndexedDBClearObjectStore = PIndexedDBClearObjectStore
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBClearObjectStoreSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
     pIndexedDBClearObjectStoreStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBClearObjectStoreStorageBucket :: Maybe Storage.StorageStorageBucket,
     -- | Database name.
     pIndexedDBClearObjectStoreDatabaseName :: T.Text,
     -- | Object store name.
@@ -297,12 +300,14 @@ pIndexedDBClearObjectStore
   = PIndexedDBClearObjectStore
     Nothing
     Nothing
+    Nothing
     arg_pIndexedDBClearObjectStoreDatabaseName
     arg_pIndexedDBClearObjectStoreObjectStoreName
 instance ToJSON PIndexedDBClearObjectStore where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBClearObjectStoreSecurityOrigin p),
     ("storageKey" A..=) <$> (pIndexedDBClearObjectStoreStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBClearObjectStoreStorageBucket p),
     ("databaseName" A..=) <$> Just (pIndexedDBClearObjectStoreDatabaseName p),
     ("objectStoreName" A..=) <$> Just (pIndexedDBClearObjectStoreObjectStoreName p)
     ]
@@ -316,11 +321,13 @@ instance Command PIndexedDBClearObjectStore where
 -- | Parameters of the 'IndexedDB.deleteDatabase' command.
 data PIndexedDBDeleteDatabase = PIndexedDBDeleteDatabase
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBDeleteDatabaseSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
     pIndexedDBDeleteDatabaseStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBDeleteDatabaseStorageBucket :: Maybe Storage.StorageStorageBucket,
     -- | Database name.
     pIndexedDBDeleteDatabaseDatabaseName :: T.Text
   }
@@ -336,11 +343,13 @@ pIndexedDBDeleteDatabase
   = PIndexedDBDeleteDatabase
     Nothing
     Nothing
+    Nothing
     arg_pIndexedDBDeleteDatabaseDatabaseName
 instance ToJSON PIndexedDBDeleteDatabase where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBDeleteDatabaseSecurityOrigin p),
     ("storageKey" A..=) <$> (pIndexedDBDeleteDatabaseStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBDeleteDatabaseStorageBucket p),
     ("databaseName" A..=) <$> Just (pIndexedDBDeleteDatabaseDatabaseName p)
     ]
 instance Command PIndexedDBDeleteDatabase where
@@ -353,11 +362,13 @@ instance Command PIndexedDBDeleteDatabase where
 -- | Parameters of the 'IndexedDB.deleteObjectStoreEntries' command.
 data PIndexedDBDeleteObjectStoreEntries = PIndexedDBDeleteObjectStoreEntries
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBDeleteObjectStoreEntriesSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
     pIndexedDBDeleteObjectStoreEntriesStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBDeleteObjectStoreEntriesStorageBucket :: Maybe Storage.StorageStorageBucket,
     pIndexedDBDeleteObjectStoreEntriesDatabaseName :: T.Text,
     pIndexedDBDeleteObjectStoreEntriesObjectStoreName :: T.Text,
     -- | Range of entry keys to delete
@@ -379,6 +390,7 @@ pIndexedDBDeleteObjectStoreEntries
   = PIndexedDBDeleteObjectStoreEntries
     Nothing
     Nothing
+    Nothing
     arg_pIndexedDBDeleteObjectStoreEntriesDatabaseName
     arg_pIndexedDBDeleteObjectStoreEntriesObjectStoreName
     arg_pIndexedDBDeleteObjectStoreEntriesKeyRange
@@ -386,6 +398,7 @@ instance ToJSON PIndexedDBDeleteObjectStoreEntries where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBDeleteObjectStoreEntriesSecurityOrigin p),
     ("storageKey" A..=) <$> (pIndexedDBDeleteObjectStoreEntriesStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBDeleteObjectStoreEntriesStorageBucket p),
     ("databaseName" A..=) <$> Just (pIndexedDBDeleteObjectStoreEntriesDatabaseName p),
     ("objectStoreName" A..=) <$> Just (pIndexedDBDeleteObjectStoreEntriesObjectStoreName p),
     ("keyRange" A..=) <$> Just (pIndexedDBDeleteObjectStoreEntriesKeyRange p)
@@ -432,17 +445,19 @@ instance Command PIndexedDBEnable where
 -- | Parameters of the 'IndexedDB.requestData' command.
 data PIndexedDBRequestData = PIndexedDBRequestData
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBRequestDataSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
     pIndexedDBRequestDataStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBRequestDataStorageBucket :: Maybe Storage.StorageStorageBucket,
     -- | Database name.
     pIndexedDBRequestDataDatabaseName :: T.Text,
     -- | Object store name.
     pIndexedDBRequestDataObjectStoreName :: T.Text,
-    -- | Index name, empty string for object store data requests.
-    pIndexedDBRequestDataIndexName :: T.Text,
+    -- | Index name. If not specified, it performs an object store data request.
+    pIndexedDBRequestDataIndexName :: Maybe T.Text,
     -- | Number of records to skip.
     pIndexedDBRequestDataSkipCount :: Int,
     -- | Number of records to fetch.
@@ -461,10 +476,6 @@ pIndexedDBRequestData
   -}
   -> T.Text
   {-
-  -- | Index name, empty string for object store data requests.
-  -}
-  -> T.Text
-  {-
   -- | Number of records to skip.
   -}
   -> Int
@@ -476,15 +487,15 @@ pIndexedDBRequestData
 pIndexedDBRequestData
   arg_pIndexedDBRequestDataDatabaseName
   arg_pIndexedDBRequestDataObjectStoreName
-  arg_pIndexedDBRequestDataIndexName
   arg_pIndexedDBRequestDataSkipCount
   arg_pIndexedDBRequestDataPageSize
   = PIndexedDBRequestData
     Nothing
     Nothing
+    Nothing
     arg_pIndexedDBRequestDataDatabaseName
     arg_pIndexedDBRequestDataObjectStoreName
-    arg_pIndexedDBRequestDataIndexName
+    Nothing
     arg_pIndexedDBRequestDataSkipCount
     arg_pIndexedDBRequestDataPageSize
     Nothing
@@ -492,9 +503,10 @@ instance ToJSON PIndexedDBRequestData where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBRequestDataSecurityOrigin p),
     ("storageKey" A..=) <$> (pIndexedDBRequestDataStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBRequestDataStorageBucket p),
     ("databaseName" A..=) <$> Just (pIndexedDBRequestDataDatabaseName p),
     ("objectStoreName" A..=) <$> Just (pIndexedDBRequestDataObjectStoreName p),
-    ("indexName" A..=) <$> Just (pIndexedDBRequestDataIndexName p),
+    ("indexName" A..=) <$> (pIndexedDBRequestDataIndexName p),
     ("skipCount" A..=) <$> Just (pIndexedDBRequestDataSkipCount p),
     ("pageSize" A..=) <$> Just (pIndexedDBRequestDataPageSize p),
     ("keyRange" A..=) <$> (pIndexedDBRequestDataKeyRange p)
@@ -515,16 +527,18 @@ instance Command PIndexedDBRequestData where
   type CommandResponse PIndexedDBRequestData = IndexedDBRequestData
   commandName _ = "IndexedDB.requestData"
 
--- | Gets metadata of an object store
+-- | Gets metadata of an object store.
 
 -- | Parameters of the 'IndexedDB.getMetadata' command.
 data PIndexedDBGetMetadata = PIndexedDBGetMetadata
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBGetMetadataSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
     pIndexedDBGetMetadataStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBGetMetadataStorageBucket :: Maybe Storage.StorageStorageBucket,
     -- | Database name.
     pIndexedDBGetMetadataDatabaseName :: T.Text,
     -- | Object store name.
@@ -547,12 +561,14 @@ pIndexedDBGetMetadata
   = PIndexedDBGetMetadata
     Nothing
     Nothing
+    Nothing
     arg_pIndexedDBGetMetadataDatabaseName
     arg_pIndexedDBGetMetadataObjectStoreName
 instance ToJSON PIndexedDBGetMetadata where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBGetMetadataSecurityOrigin p),
     ("storageKey" A..=) <$> (pIndexedDBGetMetadataStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBGetMetadataStorageBucket p),
     ("databaseName" A..=) <$> Just (pIndexedDBGetMetadataDatabaseName p),
     ("objectStoreName" A..=) <$> Just (pIndexedDBGetMetadataObjectStoreName p)
     ]
@@ -579,11 +595,13 @@ instance Command PIndexedDBGetMetadata where
 -- | Parameters of the 'IndexedDB.requestDatabase' command.
 data PIndexedDBRequestDatabase = PIndexedDBRequestDatabase
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBRequestDatabaseSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
     pIndexedDBRequestDatabaseStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBRequestDatabaseStorageBucket :: Maybe Storage.StorageStorageBucket,
     -- | Database name.
     pIndexedDBRequestDatabaseDatabaseName :: T.Text
   }
@@ -599,11 +617,13 @@ pIndexedDBRequestDatabase
   = PIndexedDBRequestDatabase
     Nothing
     Nothing
+    Nothing
     arg_pIndexedDBRequestDatabaseDatabaseName
 instance ToJSON PIndexedDBRequestDatabase where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBRequestDatabaseSecurityOrigin p),
     ("storageKey" A..=) <$> (pIndexedDBRequestDatabaseStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBRequestDatabaseStorageBucket p),
     ("databaseName" A..=) <$> Just (pIndexedDBRequestDatabaseDatabaseName p)
     ]
 data IndexedDBRequestDatabase = IndexedDBRequestDatabase
@@ -624,11 +644,13 @@ instance Command PIndexedDBRequestDatabase where
 -- | Parameters of the 'IndexedDB.requestDatabaseNames' command.
 data PIndexedDBRequestDatabaseNames = PIndexedDBRequestDatabaseNames
   {
-    -- | At least and at most one of securityOrigin, storageKey must be specified.
+    -- | At least and at most one of securityOrigin, storageKey, or storageBucket must be specified.
     --   Security origin.
     pIndexedDBRequestDatabaseNamesSecurityOrigin :: Maybe T.Text,
     -- | Storage key.
-    pIndexedDBRequestDatabaseNamesStorageKey :: Maybe T.Text
+    pIndexedDBRequestDatabaseNamesStorageKey :: Maybe T.Text,
+    -- | Storage bucket. If not specified, it uses the default bucket.
+    pIndexedDBRequestDatabaseNamesStorageBucket :: Maybe Storage.StorageStorageBucket
   }
   deriving (Eq, Show)
 pIndexedDBRequestDatabaseNames
@@ -637,10 +659,12 @@ pIndexedDBRequestDatabaseNames
   = PIndexedDBRequestDatabaseNames
     Nothing
     Nothing
+    Nothing
 instance ToJSON PIndexedDBRequestDatabaseNames where
   toJSON p = A.object $ catMaybes [
     ("securityOrigin" A..=) <$> (pIndexedDBRequestDatabaseNamesSecurityOrigin p),
-    ("storageKey" A..=) <$> (pIndexedDBRequestDatabaseNamesStorageKey p)
+    ("storageKey" A..=) <$> (pIndexedDBRequestDatabaseNamesStorageKey p),
+    ("storageBucket" A..=) <$> (pIndexedDBRequestDatabaseNamesStorageBucket p)
     ]
 data IndexedDBRequestDatabaseNames = IndexedDBRequestDatabaseNames
   {

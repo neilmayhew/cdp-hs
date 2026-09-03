@@ -45,7 +45,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
 
 -- | Type 'LayerTree.LayerId'.
@@ -74,7 +74,7 @@ instance ToJSON LayerTreeScrollRectType where
 data LayerTreeScrollRect = LayerTreeScrollRect
   {
     -- | Rectangle itself.
-    layerTreeScrollRectRect :: DOMPageNetworkEmulationSecurity.DOMRect,
+    layerTreeScrollRectRect :: DOMNetworkEmulationPageSecurity.DOMRect,
     -- | Reason for rectangle to force scrolling on the main thread
     layerTreeScrollRectType :: LayerTreeScrollRectType
   }
@@ -94,9 +94,9 @@ instance ToJSON LayerTreeScrollRect where
 data LayerTreeStickyPositionConstraint = LayerTreeStickyPositionConstraint
   {
     -- | Layout rectangle of the sticky element before being shifted
-    layerTreeStickyPositionConstraintStickyBoxRect :: DOMPageNetworkEmulationSecurity.DOMRect,
+    layerTreeStickyPositionConstraintStickyBoxRect :: DOMNetworkEmulationPageSecurity.DOMRect,
     -- | Layout rectangle of the containing block of the sticky element
-    layerTreeStickyPositionConstraintContainingBlockRect :: DOMPageNetworkEmulationSecurity.DOMRect,
+    layerTreeStickyPositionConstraintContainingBlockRect :: DOMNetworkEmulationPageSecurity.DOMRect,
     -- | The nearest sticky layer that shifts the sticky box
     layerTreeStickyPositionConstraintNearestLayerShiftingStickyBox :: Maybe LayerTreeLayerId,
     -- | The nearest sticky layer that shifts the containing block
@@ -150,7 +150,7 @@ data LayerTreeLayer = LayerTreeLayer
     -- | The id of parent (not present for root).
     layerTreeLayerParentLayerId :: Maybe LayerTreeLayerId,
     -- | The backend id for the node associated with this layer.
-    layerTreeLayerBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    layerTreeLayerBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | Offset from parent layer, X coordinate.
     layerTreeLayerOffsetX :: Double,
     -- | Offset from parent layer, Y coordinate.
@@ -228,7 +228,7 @@ data LayerTreeLayerPainted = LayerTreeLayerPainted
     -- | The id of the painted layer.
     layerTreeLayerPaintedLayerId :: LayerTreeLayerId,
     -- | Clip rectangle.
-    layerTreeLayerPaintedClip :: DOMPageNetworkEmulationSecurity.DOMRect
+    layerTreeLayerPaintedClip :: DOMNetworkEmulationPageSecurity.DOMRect
   }
   deriving (Eq, Show)
 instance FromJSON LayerTreeLayerPainted where
@@ -241,7 +241,7 @@ instance Event LayerTreeLayerPainted where
 -- | Type of the 'LayerTree.layerTreeDidChange' event.
 data LayerTreeLayerTreeDidChange = LayerTreeLayerTreeDidChange
   {
-    -- | Layer tree, absent if not in the comspositing mode.
+    -- | Layer tree, absent if not in the compositing mode.
     layerTreeLayerTreeDidChangeLayers :: Maybe [LayerTreeLayer]
   }
   deriving (Eq, Show)
@@ -276,13 +276,16 @@ instance ToJSON PLayerTreeCompositingReasons where
     ]
 data LayerTreeCompositingReasons = LayerTreeCompositingReasons
   {
+    -- | A list of strings specifying reasons for the given layer to become composited.
+    layerTreeCompositingReasonsCompositingReasons :: [T.Text],
     -- | A list of strings specifying reason IDs for the given layer to become composited.
     layerTreeCompositingReasonsCompositingReasonIds :: [T.Text]
   }
   deriving (Eq, Show)
 instance FromJSON LayerTreeCompositingReasons where
   parseJSON = A.withObject "LayerTreeCompositingReasons" $ \o -> LayerTreeCompositingReasons
-    <$> o A..: "compositingReasonIds"
+    <$> o A..: "compositingReasons"
+    <*> o A..: "compositingReasonIds"
 instance Command PLayerTreeCompositingReasons where
   type CommandResponse PLayerTreeCompositingReasons = LayerTreeCompositingReasons
   commandName _ = "LayerTree.compositingReasons"
@@ -402,7 +405,7 @@ data PLayerTreeProfileSnapshot = PLayerTreeProfileSnapshot
     -- | The minimum duration (in seconds) to replay the snapshot.
     pLayerTreeProfileSnapshotMinDuration :: Maybe Double,
     -- | The clip rectangle to apply when replaying the snapshot.
-    pLayerTreeProfileSnapshotClipRect :: Maybe DOMPageNetworkEmulationSecurity.DOMRect
+    pLayerTreeProfileSnapshotClipRect :: Maybe DOMNetworkEmulationPageSecurity.DOMRect
   }
   deriving (Eq, Show)
 pLayerTreeProfileSnapshot

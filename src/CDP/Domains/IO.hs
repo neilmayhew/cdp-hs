@@ -50,8 +50,8 @@ import CDP.Domains.Runtime as Runtime
 
 
 -- | Type 'IO.StreamHandle'.
---   This is either obtained from another method or specified as `blob:&lt;uuid&gt;` where
---   `&lt;uuid&gt` is an UUID of a Blob.
+--   This is either obtained from another method or specified as `blob:<uuid>` where
+--   `<uuid>` is an UUID of a Blob.
 type IOStreamHandle = T.Text
 
 -- | Close the stream, discard any temporary backing storage.
@@ -89,7 +89,7 @@ data PIORead = PIORead
   {
     -- | Handle of the stream to read.
     pIOReadHandle :: IOStreamHandle,
-    -- | Seek to the specified offset before reading (if not specificed, proceed with offset
+    -- | Seek to the specified offset before reading (if not specified, proceed with offset
     --   following the last read). Some types of streams may only support sequential reads.
     pIOReadOffset :: Maybe Int,
     -- | Maximum number of bytes to read (left upon the agent discretion if not specified).

@@ -46,7 +46,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.Runtime as Runtime
 
 
@@ -127,7 +127,7 @@ data LogLogEntry = LogLogEntry
     -- | JavaScript stack trace.
     logLogEntryStackTrace :: Maybe Runtime.RuntimeStackTrace,
     -- | Identifier of the network request associated with this entry.
-    logLogEntryNetworkRequestId :: Maybe DOMPageNetworkEmulationSecurity.NetworkRequestId,
+    logLogEntryNetworkRequestId :: Maybe DOMNetworkEmulationPageSecurity.NetworkRequestId,
     -- | Identifier of the worker associated with this entry.
     logLogEntryWorkerId :: Maybe T.Text,
     -- | Call arguments.

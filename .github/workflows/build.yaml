@@ -1,24 +1,42 @@
 name: "build"
+
 on:
+  push:
+    branches:
+    - main
+    paths-ignore:
+    - "**/*.md"
+    - ".github/**/*"
   pull_request:
     paths-ignore:
-      - "**/*.md"
-      - ".github/**/*"
+    - "**/*.md"
+    - ".github/**/*"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v7
       with:
         submodules: true
-    - uses: cachix/install-nix-action@v14.1
+
+    - name: Install nix
+      uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
     - name: cdp build
       shell: bash
+      run: nix-shell --run "hpack && cabal build --enable-tests"
+
+    - name: cdp test
+      shell: bash
       run: |
-        nix-shell --run "hpack && cabal build"
-        docker run -d --network host -it --security-opt seccomp=.github/workflows/chrome.json justinribeiro/chrome-headless
-        sleep 1
+        CID=$(docker run -d -p 9222:9222 --security-opt seccomp=.github/workflows/chrome.json chromedp/headless-shell)
+        trap 'echo "Container log:"; docker logs "$CID"; docker rm -f "$CID"' EXIT
+        sleep 10
         docker ps | grep chrome
-        curl http://127.0.0.1:9222
-        nix-shell --run "cabal run cdp-test"
+        curl -f http://127.0.0.1:9222/json/version
+        nix-shell --run "cabal test"
 

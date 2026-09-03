@@ -66,9 +66,9 @@ data InputTouchPoint = InputTouchPoint
     -- | The normalized tangential pressure, which has a range of [-1,1] (default: 0).
     inputTouchPointTangentialPressure :: Maybe Double,
     -- | The plane angle between the Y-Z plane and the plane containing both the stylus axis and the Y axis, in degrees of the range [-90,90], a positive tiltX is to the right (default: 0)
-    inputTouchPointTiltX :: Maybe Int,
+    inputTouchPointTiltX :: Maybe Double,
     -- | The plane angle between the X-Z plane and the plane containing both the stylus axis and the X axis, in degrees of the range [-90,90], a positive tiltY is towards the user (default: 0).
-    inputTouchPointTiltY :: Maybe Int,
+    inputTouchPointTiltY :: Maybe Double,
     -- | The clockwise rotation of a pen stylus around its own major axis, in degrees in the range [0,359] (default: 0).
     inputTouchPointTwist :: Maybe Int,
     -- | Identifier used to track touch sources between events, must be unique within an event.
@@ -414,7 +414,7 @@ instance Command PInputInsertText where
   commandName _ = "Input.insertText"
   fromJSON = const . A.Success . const ()
 
--- | This method sets the current candidate text for ime.
+-- | This method sets the current candidate text for IME.
 --   Use imeCommitComposition to commit the final text.
 --   Use imeSetComposition with empty string as text to cancel composition.
 
@@ -525,9 +525,9 @@ data PInputDispatchMouseEvent = PInputDispatchMouseEvent
     -- | The normalized tangential pressure, which has a range of [-1,1] (default: 0).
     pInputDispatchMouseEventTangentialPressure :: Maybe Double,
     -- | The plane angle between the Y-Z plane and the plane containing both the stylus axis and the Y axis, in degrees of the range [-90,90], a positive tiltX is to the right (default: 0).
-    pInputDispatchMouseEventTiltX :: Maybe Int,
+    pInputDispatchMouseEventTiltX :: Maybe Double,
     -- | The plane angle between the X-Z plane and the plane containing both the stylus axis and the X axis, in degrees of the range [-90,90], a positive tiltY is towards the user (default: 0).
-    pInputDispatchMouseEventTiltY :: Maybe Int,
+    pInputDispatchMouseEventTiltY :: Maybe Double,
     -- | The clockwise rotation of a pen stylus around its own major axis, in degrees in the range [0,359] (default: 0).
     pInputDispatchMouseEventTwist :: Maybe Int,
     -- | X delta in CSS pixels for mouse wheel event (default: 0).
@@ -663,6 +663,22 @@ instance ToJSON PInputDispatchTouchEvent where
 instance Command PInputDispatchTouchEvent where
   type CommandResponse PInputDispatchTouchEvent = ()
   commandName _ = "Input.dispatchTouchEvent"
+  fromJSON = const . A.Success . const ()
+
+-- | Cancels any active dragging in the page.
+
+-- | Parameters of the 'Input.cancelDragging' command.
+data PInputCancelDragging = PInputCancelDragging
+  deriving (Eq, Show)
+pInputCancelDragging
+  :: PInputCancelDragging
+pInputCancelDragging
+  = PInputCancelDragging
+instance ToJSON PInputCancelDragging where
+  toJSON _ = A.Null
+instance Command PInputCancelDragging where
+  type CommandResponse PInputCancelDragging = ()
+  commandName _ = "Input.cancelDragging"
   fromJSON = const . A.Success . const ()
 
 -- | Emulates touch event from the mouse event parameters.

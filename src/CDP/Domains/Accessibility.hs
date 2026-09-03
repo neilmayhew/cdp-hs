@@ -45,7 +45,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 import CDP.Domains.Runtime as Runtime
 
 
@@ -163,7 +163,7 @@ data AccessibilityAXValueSource = AccessibilityAXValueSource
     accessibilityAXValueSourceAttributeValue :: Maybe AccessibilityAXValue,
     -- | Whether this source is superseded by a higher priority source.
     accessibilityAXValueSourceSuperseded :: Maybe Bool,
-    -- | The native markup source for this value, e.g. a <label> element.
+    -- | The native markup source for this value, e.g. a `<label>` element.
     accessibilityAXValueSourceNativeSource :: Maybe AccessibilityAXValueNativeSourceType,
     -- | The value, such as a node or node list, of the native source.
     accessibilityAXValueSourceNativeSourceValue :: Maybe AccessibilityAXValue,
@@ -201,7 +201,7 @@ instance ToJSON AccessibilityAXValueSource where
 data AccessibilityAXRelatedNode = AccessibilityAXRelatedNode
   {
     -- | The BackendNodeId of the related DOM node.
-    accessibilityAXRelatedNodeBackendDOMNodeId :: DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    accessibilityAXRelatedNodeBackendDOMNodeId :: DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | The IDRef value provided, if any.
     accessibilityAXRelatedNodeIdref :: Maybe T.Text,
     -- | The text alternative of this node in the current context.
@@ -273,11 +273,13 @@ instance ToJSON AccessibilityAXValue where
 --   - from 'live' to 'root': attributes which apply to nodes in live regions
 --   - from 'autocomplete' to 'valuetext': attributes which apply to widgets
 --   - from 'checked' to 'selected': states which apply to widgets
---   - from 'activedescendant' to 'owns' - relationships between elements other than parent/child/sibling.
-data AccessibilityAXPropertyName = AccessibilityAXPropertyNameBusy | AccessibilityAXPropertyNameDisabled | AccessibilityAXPropertyNameEditable | AccessibilityAXPropertyNameFocusable | AccessibilityAXPropertyNameFocused | AccessibilityAXPropertyNameHidden | AccessibilityAXPropertyNameHiddenRoot | AccessibilityAXPropertyNameInvalid | AccessibilityAXPropertyNameKeyshortcuts | AccessibilityAXPropertyNameSettable | AccessibilityAXPropertyNameRoledescription | AccessibilityAXPropertyNameLive | AccessibilityAXPropertyNameAtomic | AccessibilityAXPropertyNameRelevant | AccessibilityAXPropertyNameRoot | AccessibilityAXPropertyNameAutocomplete | AccessibilityAXPropertyNameHasPopup | AccessibilityAXPropertyNameLevel | AccessibilityAXPropertyNameMultiselectable | AccessibilityAXPropertyNameOrientation | AccessibilityAXPropertyNameMultiline | AccessibilityAXPropertyNameReadonly | AccessibilityAXPropertyNameRequired | AccessibilityAXPropertyNameValuemin | AccessibilityAXPropertyNameValuemax | AccessibilityAXPropertyNameValuetext | AccessibilityAXPropertyNameChecked | AccessibilityAXPropertyNameExpanded | AccessibilityAXPropertyNameModal | AccessibilityAXPropertyNamePressed | AccessibilityAXPropertyNameSelected | AccessibilityAXPropertyNameActivedescendant | AccessibilityAXPropertyNameControls | AccessibilityAXPropertyNameDescribedby | AccessibilityAXPropertyNameDetails | AccessibilityAXPropertyNameErrormessage | AccessibilityAXPropertyNameFlowto | AccessibilityAXPropertyNameLabelledby | AccessibilityAXPropertyNameOwns
+--   - from 'activedescendant' to 'owns': relationships between elements other than parent/child/sibling
+--   - from 'activeFullscreenElement' to 'uninteresting': reasons why this noode is hidden
+data AccessibilityAXPropertyName = AccessibilityAXPropertyNameActions | AccessibilityAXPropertyNameBusy | AccessibilityAXPropertyNameDisabled | AccessibilityAXPropertyNameEditable | AccessibilityAXPropertyNameFocusable | AccessibilityAXPropertyNameFocused | AccessibilityAXPropertyNameHidden | AccessibilityAXPropertyNameHiddenRoot | AccessibilityAXPropertyNameInvalid | AccessibilityAXPropertyNameKeyshortcuts | AccessibilityAXPropertyNameSettable | AccessibilityAXPropertyNameRoledescription | AccessibilityAXPropertyNameLive | AccessibilityAXPropertyNameAtomic | AccessibilityAXPropertyNameRelevant | AccessibilityAXPropertyNameRoot | AccessibilityAXPropertyNameAutocomplete | AccessibilityAXPropertyNameHasPopup | AccessibilityAXPropertyNameLevel | AccessibilityAXPropertyNameMultiselectable | AccessibilityAXPropertyNameOrientation | AccessibilityAXPropertyNameMultiline | AccessibilityAXPropertyNameReadonly | AccessibilityAXPropertyNameRequired | AccessibilityAXPropertyNameValuemin | AccessibilityAXPropertyNameValuemax | AccessibilityAXPropertyNameValuetext | AccessibilityAXPropertyNameChecked | AccessibilityAXPropertyNameExpanded | AccessibilityAXPropertyNameModal | AccessibilityAXPropertyNamePressed | AccessibilityAXPropertyNameSelected | AccessibilityAXPropertyNameActivedescendant | AccessibilityAXPropertyNameControls | AccessibilityAXPropertyNameDescribedby | AccessibilityAXPropertyNameDetails | AccessibilityAXPropertyNameErrormessage | AccessibilityAXPropertyNameFlowto | AccessibilityAXPropertyNameLabelledby | AccessibilityAXPropertyNameOwns | AccessibilityAXPropertyNameUrl | AccessibilityAXPropertyNameActiveFullscreenElement | AccessibilityAXPropertyNameActiveModalDialog | AccessibilityAXPropertyNameActiveAriaModalDialog | AccessibilityAXPropertyNameAriaHiddenElement | AccessibilityAXPropertyNameAriaHiddenSubtree | AccessibilityAXPropertyNameEmptyAlt | AccessibilityAXPropertyNameEmptyText | AccessibilityAXPropertyNameInertElement | AccessibilityAXPropertyNameInertSubtree | AccessibilityAXPropertyNameLabelContainer | AccessibilityAXPropertyNameLabelFor | AccessibilityAXPropertyNameNotRendered | AccessibilityAXPropertyNameNotVisible | AccessibilityAXPropertyNamePresentationalRole | AccessibilityAXPropertyNameProbablyPresentational | AccessibilityAXPropertyNameInactiveCarouselTabContent | AccessibilityAXPropertyNameUninteresting
   deriving (Ord, Eq, Show, Read)
 instance FromJSON AccessibilityAXPropertyName where
   parseJSON = A.withText "AccessibilityAXPropertyName" $ \v -> case v of
+    "actions" -> pure AccessibilityAXPropertyNameActions
     "busy" -> pure AccessibilityAXPropertyNameBusy
     "disabled" -> pure AccessibilityAXPropertyNameDisabled
     "editable" -> pure AccessibilityAXPropertyNameEditable
@@ -317,9 +319,28 @@ instance FromJSON AccessibilityAXPropertyName where
     "flowto" -> pure AccessibilityAXPropertyNameFlowto
     "labelledby" -> pure AccessibilityAXPropertyNameLabelledby
     "owns" -> pure AccessibilityAXPropertyNameOwns
+    "url" -> pure AccessibilityAXPropertyNameUrl
+    "activeFullscreenElement" -> pure AccessibilityAXPropertyNameActiveFullscreenElement
+    "activeModalDialog" -> pure AccessibilityAXPropertyNameActiveModalDialog
+    "activeAriaModalDialog" -> pure AccessibilityAXPropertyNameActiveAriaModalDialog
+    "ariaHiddenElement" -> pure AccessibilityAXPropertyNameAriaHiddenElement
+    "ariaHiddenSubtree" -> pure AccessibilityAXPropertyNameAriaHiddenSubtree
+    "emptyAlt" -> pure AccessibilityAXPropertyNameEmptyAlt
+    "emptyText" -> pure AccessibilityAXPropertyNameEmptyText
+    "inertElement" -> pure AccessibilityAXPropertyNameInertElement
+    "inertSubtree" -> pure AccessibilityAXPropertyNameInertSubtree
+    "labelContainer" -> pure AccessibilityAXPropertyNameLabelContainer
+    "labelFor" -> pure AccessibilityAXPropertyNameLabelFor
+    "notRendered" -> pure AccessibilityAXPropertyNameNotRendered
+    "notVisible" -> pure AccessibilityAXPropertyNameNotVisible
+    "presentationalRole" -> pure AccessibilityAXPropertyNamePresentationalRole
+    "probablyPresentational" -> pure AccessibilityAXPropertyNameProbablyPresentational
+    "inactiveCarouselTabContent" -> pure AccessibilityAXPropertyNameInactiveCarouselTabContent
+    "uninteresting" -> pure AccessibilityAXPropertyNameUninteresting
     "_" -> fail "failed to parse AccessibilityAXPropertyName"
 instance ToJSON AccessibilityAXPropertyName where
   toJSON v = A.String $ case v of
+    AccessibilityAXPropertyNameActions -> "actions"
     AccessibilityAXPropertyNameBusy -> "busy"
     AccessibilityAXPropertyNameDisabled -> "disabled"
     AccessibilityAXPropertyNameEditable -> "editable"
@@ -359,6 +380,24 @@ instance ToJSON AccessibilityAXPropertyName where
     AccessibilityAXPropertyNameFlowto -> "flowto"
     AccessibilityAXPropertyNameLabelledby -> "labelledby"
     AccessibilityAXPropertyNameOwns -> "owns"
+    AccessibilityAXPropertyNameUrl -> "url"
+    AccessibilityAXPropertyNameActiveFullscreenElement -> "activeFullscreenElement"
+    AccessibilityAXPropertyNameActiveModalDialog -> "activeModalDialog"
+    AccessibilityAXPropertyNameActiveAriaModalDialog -> "activeAriaModalDialog"
+    AccessibilityAXPropertyNameAriaHiddenElement -> "ariaHiddenElement"
+    AccessibilityAXPropertyNameAriaHiddenSubtree -> "ariaHiddenSubtree"
+    AccessibilityAXPropertyNameEmptyAlt -> "emptyAlt"
+    AccessibilityAXPropertyNameEmptyText -> "emptyText"
+    AccessibilityAXPropertyNameInertElement -> "inertElement"
+    AccessibilityAXPropertyNameInertSubtree -> "inertSubtree"
+    AccessibilityAXPropertyNameLabelContainer -> "labelContainer"
+    AccessibilityAXPropertyNameLabelFor -> "labelFor"
+    AccessibilityAXPropertyNameNotRendered -> "notRendered"
+    AccessibilityAXPropertyNameNotVisible -> "notVisible"
+    AccessibilityAXPropertyNamePresentationalRole -> "presentationalRole"
+    AccessibilityAXPropertyNameProbablyPresentational -> "probablyPresentational"
+    AccessibilityAXPropertyNameInactiveCarouselTabContent -> "inactiveCarouselTabContent"
+    AccessibilityAXPropertyNameUninteresting -> "uninteresting"
 
 -- | Type 'Accessibility.AXNode'.
 --   A node in the accessibility tree.
@@ -387,9 +426,9 @@ data AccessibilityAXNode = AccessibilityAXNode
     -- | IDs for each of this node's child nodes.
     accessibilityAXNodeChildIds :: Maybe [AccessibilityAXNodeId],
     -- | The backend ID for the associated DOM node, if any.
-    accessibilityAXNodeBackendDOMNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    accessibilityAXNodeBackendDOMNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | The frame ID for the frame associated with this nodes document.
-    accessibilityAXNodeFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId
+    accessibilityAXNodeFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId
   }
   deriving (Eq, Show)
 instance FromJSON AccessibilityAXNode where
@@ -489,12 +528,12 @@ instance Command PAccessibilityEnable where
 data PAccessibilityGetPartialAXTree = PAccessibilityGetPartialAXTree
   {
     -- | Identifier of the node to get the partial accessibility tree for.
-    pAccessibilityGetPartialAXTreeNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pAccessibilityGetPartialAXTreeNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Identifier of the backend node to get the partial accessibility tree for.
-    pAccessibilityGetPartialAXTreeBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    pAccessibilityGetPartialAXTreeBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | JavaScript object id of the node wrapper to get the partial accessibility tree for.
     pAccessibilityGetPartialAXTreeObjectId :: Maybe Runtime.RuntimeRemoteObjectId,
-    -- | Whether to fetch this nodes ancestors, siblings and children. Defaults to true.
+    -- | Whether to fetch this node's ancestors, siblings and children. Defaults to true.
     pAccessibilityGetPartialAXTreeFetchRelatives :: Maybe Bool
   }
   deriving (Eq, Show)
@@ -536,8 +575,8 @@ data PAccessibilityGetFullAXTree = PAccessibilityGetFullAXTree
     --   If omitted, the full tree is returned.
     pAccessibilityGetFullAXTreeDepth :: Maybe Int,
     -- | The frame for whose document the AX tree should be retrieved.
-    --   If omited, the root frame is used.
-    pAccessibilityGetFullAXTreeFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId
+    --   If omitted, the root frame is used.
+    pAccessibilityGetFullAXTreeFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId
   }
   deriving (Eq, Show)
 pAccessibilityGetFullAXTree
@@ -571,7 +610,7 @@ data PAccessibilityGetRootAXNode = PAccessibilityGetRootAXNode
   {
     -- | The frame in whose document the node resides.
     --   If omitted, the root frame is used.
-    pAccessibilityGetRootAXNodeFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId
+    pAccessibilityGetRootAXNodeFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId
   }
   deriving (Eq, Show)
 pAccessibilityGetRootAXNode
@@ -602,9 +641,9 @@ instance Command PAccessibilityGetRootAXNode where
 data PAccessibilityGetAXNodeAndAncestors = PAccessibilityGetAXNodeAndAncestors
   {
     -- | Identifier of the node to get.
-    pAccessibilityGetAXNodeAndAncestorsNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pAccessibilityGetAXNodeAndAncestorsNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Identifier of the backend node to get.
-    pAccessibilityGetAXNodeAndAncestorsBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    pAccessibilityGetAXNodeAndAncestorsBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | JavaScript object id of the node wrapper to get.
     pAccessibilityGetAXNodeAndAncestorsObjectId :: Maybe Runtime.RuntimeRemoteObjectId
   }
@@ -643,7 +682,7 @@ data PAccessibilityGetChildAXNodes = PAccessibilityGetChildAXNodes
     pAccessibilityGetChildAXNodesId :: AccessibilityAXNodeId,
     -- | The frame in whose document the node resides.
     --   If omitted, the root frame is used.
-    pAccessibilityGetChildAXNodesFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId
+    pAccessibilityGetChildAXNodesFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId
   }
   deriving (Eq, Show)
 pAccessibilityGetChildAXNodes
@@ -673,7 +712,7 @@ instance Command PAccessibilityGetChildAXNodes where
 
 -- | Query a DOM node's accessibility subtree for accessible name and role.
 --   This command computes the name and role for all nodes in the subtree, including those that are
---   ignored for accessibility, and returns those that mactch the specified name and role. If no DOM
+--   ignored for accessibility, and returns those that match the specified name and role. If no DOM
 --   node is specified, or the DOM node does not exist, the command returns an error. If neither
 --   `accessibleName` or `role` is specified, it returns all the accessibility nodes in the subtree.
 
@@ -681,9 +720,9 @@ instance Command PAccessibilityGetChildAXNodes where
 data PAccessibilityQueryAXTree = PAccessibilityQueryAXTree
   {
     -- | Identifier of the node for the root to query.
-    pAccessibilityQueryAXTreeNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMNodeId,
+    pAccessibilityQueryAXTreeNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMNodeId,
     -- | Identifier of the backend node for the root to query.
-    pAccessibilityQueryAXTreeBackendNodeId :: Maybe DOMPageNetworkEmulationSecurity.DOMBackendNodeId,
+    pAccessibilityQueryAXTreeBackendNodeId :: Maybe DOMNetworkEmulationPageSecurity.DOMBackendNodeId,
     -- | JavaScript object id of the node wrapper for the root to query.
     pAccessibilityQueryAXTreeObjectId :: Maybe Runtime.RuntimeRemoteObjectId,
     -- | Find nodes with this computed name.

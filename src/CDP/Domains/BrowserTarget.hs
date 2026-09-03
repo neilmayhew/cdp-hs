@@ -49,7 +49,7 @@ import Data.Default
 import CDP.Internal.Utils
 
 
-import CDP.Domains.DOMPageNetworkEmulationSecurity as DOMPageNetworkEmulationSecurity
+import CDP.Domains.DOMNetworkEmulationPageSecurity as DOMNetworkEmulationPageSecurity
 
 
 -- | Type 'Browser.BrowserContextID'.
@@ -109,59 +109,91 @@ instance ToJSON BrowserBounds where
     ]
 
 -- | Type 'Browser.PermissionType'.
-data BrowserPermissionType = BrowserPermissionTypeAccessibilityEvents | BrowserPermissionTypeAudioCapture | BrowserPermissionTypeBackgroundSync | BrowserPermissionTypeBackgroundFetch | BrowserPermissionTypeClipboardReadWrite | BrowserPermissionTypeClipboardSanitizedWrite | BrowserPermissionTypeDisplayCapture | BrowserPermissionTypeDurableStorage | BrowserPermissionTypeFlash | BrowserPermissionTypeGeolocation | BrowserPermissionTypeMidi | BrowserPermissionTypeMidiSysex | BrowserPermissionTypeNfc | BrowserPermissionTypeNotifications | BrowserPermissionTypePaymentHandler | BrowserPermissionTypePeriodicBackgroundSync | BrowserPermissionTypeProtectedMediaIdentifier | BrowserPermissionTypeSensors | BrowserPermissionTypeVideoCapture | BrowserPermissionTypeVideoCapturePanTiltZoom | BrowserPermissionTypeIdleDetection | BrowserPermissionTypeWakeLockScreen | BrowserPermissionTypeWakeLockSystem
+data BrowserPermissionType = BrowserPermissionTypeAr | BrowserPermissionTypeAudioCapture | BrowserPermissionTypeAutomaticFullscreen | BrowserPermissionTypeBackgroundFetch | BrowserPermissionTypeBackgroundSync | BrowserPermissionTypeCameraPanTiltZoom | BrowserPermissionTypeCapturedSurfaceControl | BrowserPermissionTypeClipboardReadWrite | BrowserPermissionTypeClipboardSanitizedWrite | BrowserPermissionTypeDisplayCapture | BrowserPermissionTypeDurableStorage | BrowserPermissionTypeGeolocation | BrowserPermissionTypeHandTracking | BrowserPermissionTypeIdleDetection | BrowserPermissionTypeKeyboardLock | BrowserPermissionTypeLocalFonts | BrowserPermissionTypeLocalNetwork | BrowserPermissionTypeLocalNetworkAccess | BrowserPermissionTypeLoopbackNetwork | BrowserPermissionTypeMidi | BrowserPermissionTypeMidiSysex | BrowserPermissionTypeNfc | BrowserPermissionTypeNotifications | BrowserPermissionTypePaymentHandler | BrowserPermissionTypePeriodicBackgroundSync | BrowserPermissionTypePointerLock | BrowserPermissionTypeProtectedMediaIdentifier | BrowserPermissionTypeSensors | BrowserPermissionTypeSmartCard | BrowserPermissionTypeSpeakerSelection | BrowserPermissionTypeStorageAccess | BrowserPermissionTypeTopLevelStorageAccess | BrowserPermissionTypeVideoCapture | BrowserPermissionTypeVr | BrowserPermissionTypeWakeLockScreen | BrowserPermissionTypeWakeLockSystem | BrowserPermissionTypeWebAppInstallation | BrowserPermissionTypeWebPrinting | BrowserPermissionTypeWindowManagement
   deriving (Ord, Eq, Show, Read)
 instance FromJSON BrowserPermissionType where
   parseJSON = A.withText "BrowserPermissionType" $ \v -> case v of
-    "accessibilityEvents" -> pure BrowserPermissionTypeAccessibilityEvents
+    "ar" -> pure BrowserPermissionTypeAr
     "audioCapture" -> pure BrowserPermissionTypeAudioCapture
-    "backgroundSync" -> pure BrowserPermissionTypeBackgroundSync
+    "automaticFullscreen" -> pure BrowserPermissionTypeAutomaticFullscreen
     "backgroundFetch" -> pure BrowserPermissionTypeBackgroundFetch
+    "backgroundSync" -> pure BrowserPermissionTypeBackgroundSync
+    "cameraPanTiltZoom" -> pure BrowserPermissionTypeCameraPanTiltZoom
+    "capturedSurfaceControl" -> pure BrowserPermissionTypeCapturedSurfaceControl
     "clipboardReadWrite" -> pure BrowserPermissionTypeClipboardReadWrite
     "clipboardSanitizedWrite" -> pure BrowserPermissionTypeClipboardSanitizedWrite
     "displayCapture" -> pure BrowserPermissionTypeDisplayCapture
     "durableStorage" -> pure BrowserPermissionTypeDurableStorage
-    "flash" -> pure BrowserPermissionTypeFlash
     "geolocation" -> pure BrowserPermissionTypeGeolocation
+    "handTracking" -> pure BrowserPermissionTypeHandTracking
+    "idleDetection" -> pure BrowserPermissionTypeIdleDetection
+    "keyboardLock" -> pure BrowserPermissionTypeKeyboardLock
+    "localFonts" -> pure BrowserPermissionTypeLocalFonts
+    "localNetwork" -> pure BrowserPermissionTypeLocalNetwork
+    "localNetworkAccess" -> pure BrowserPermissionTypeLocalNetworkAccess
+    "loopbackNetwork" -> pure BrowserPermissionTypeLoopbackNetwork
     "midi" -> pure BrowserPermissionTypeMidi
     "midiSysex" -> pure BrowserPermissionTypeMidiSysex
     "nfc" -> pure BrowserPermissionTypeNfc
     "notifications" -> pure BrowserPermissionTypeNotifications
     "paymentHandler" -> pure BrowserPermissionTypePaymentHandler
     "periodicBackgroundSync" -> pure BrowserPermissionTypePeriodicBackgroundSync
+    "pointerLock" -> pure BrowserPermissionTypePointerLock
     "protectedMediaIdentifier" -> pure BrowserPermissionTypeProtectedMediaIdentifier
     "sensors" -> pure BrowserPermissionTypeSensors
+    "smartCard" -> pure BrowserPermissionTypeSmartCard
+    "speakerSelection" -> pure BrowserPermissionTypeSpeakerSelection
+    "storageAccess" -> pure BrowserPermissionTypeStorageAccess
+    "topLevelStorageAccess" -> pure BrowserPermissionTypeTopLevelStorageAccess
     "videoCapture" -> pure BrowserPermissionTypeVideoCapture
-    "videoCapturePanTiltZoom" -> pure BrowserPermissionTypeVideoCapturePanTiltZoom
-    "idleDetection" -> pure BrowserPermissionTypeIdleDetection
+    "vr" -> pure BrowserPermissionTypeVr
     "wakeLockScreen" -> pure BrowserPermissionTypeWakeLockScreen
     "wakeLockSystem" -> pure BrowserPermissionTypeWakeLockSystem
+    "webAppInstallation" -> pure BrowserPermissionTypeWebAppInstallation
+    "webPrinting" -> pure BrowserPermissionTypeWebPrinting
+    "windowManagement" -> pure BrowserPermissionTypeWindowManagement
     "_" -> fail "failed to parse BrowserPermissionType"
 instance ToJSON BrowserPermissionType where
   toJSON v = A.String $ case v of
-    BrowserPermissionTypeAccessibilityEvents -> "accessibilityEvents"
+    BrowserPermissionTypeAr -> "ar"
     BrowserPermissionTypeAudioCapture -> "audioCapture"
-    BrowserPermissionTypeBackgroundSync -> "backgroundSync"
+    BrowserPermissionTypeAutomaticFullscreen -> "automaticFullscreen"
     BrowserPermissionTypeBackgroundFetch -> "backgroundFetch"
+    BrowserPermissionTypeBackgroundSync -> "backgroundSync"
+    BrowserPermissionTypeCameraPanTiltZoom -> "cameraPanTiltZoom"
+    BrowserPermissionTypeCapturedSurfaceControl -> "capturedSurfaceControl"
     BrowserPermissionTypeClipboardReadWrite -> "clipboardReadWrite"
     BrowserPermissionTypeClipboardSanitizedWrite -> "clipboardSanitizedWrite"
     BrowserPermissionTypeDisplayCapture -> "displayCapture"
     BrowserPermissionTypeDurableStorage -> "durableStorage"
-    BrowserPermissionTypeFlash -> "flash"
     BrowserPermissionTypeGeolocation -> "geolocation"
+    BrowserPermissionTypeHandTracking -> "handTracking"
+    BrowserPermissionTypeIdleDetection -> "idleDetection"
+    BrowserPermissionTypeKeyboardLock -> "keyboardLock"
+    BrowserPermissionTypeLocalFonts -> "localFonts"
+    BrowserPermissionTypeLocalNetwork -> "localNetwork"
+    BrowserPermissionTypeLocalNetworkAccess -> "localNetworkAccess"
+    BrowserPermissionTypeLoopbackNetwork -> "loopbackNetwork"
     BrowserPermissionTypeMidi -> "midi"
     BrowserPermissionTypeMidiSysex -> "midiSysex"
     BrowserPermissionTypeNfc -> "nfc"
     BrowserPermissionTypeNotifications -> "notifications"
     BrowserPermissionTypePaymentHandler -> "paymentHandler"
     BrowserPermissionTypePeriodicBackgroundSync -> "periodicBackgroundSync"
+    BrowserPermissionTypePointerLock -> "pointerLock"
     BrowserPermissionTypeProtectedMediaIdentifier -> "protectedMediaIdentifier"
     BrowserPermissionTypeSensors -> "sensors"
+    BrowserPermissionTypeSmartCard -> "smartCard"
+    BrowserPermissionTypeSpeakerSelection -> "speakerSelection"
+    BrowserPermissionTypeStorageAccess -> "storageAccess"
+    BrowserPermissionTypeTopLevelStorageAccess -> "topLevelStorageAccess"
     BrowserPermissionTypeVideoCapture -> "videoCapture"
-    BrowserPermissionTypeVideoCapturePanTiltZoom -> "videoCapturePanTiltZoom"
-    BrowserPermissionTypeIdleDetection -> "idleDetection"
+    BrowserPermissionTypeVr -> "vr"
     BrowserPermissionTypeWakeLockScreen -> "wakeLockScreen"
     BrowserPermissionTypeWakeLockSystem -> "wakeLockSystem"
+    BrowserPermissionTypeWebAppInstallation -> "webAppInstallation"
+    BrowserPermissionTypeWebPrinting -> "webPrinting"
+    BrowserPermissionTypeWindowManagement -> "windowManagement"
 
 -- | Type 'Browser.PermissionSetting'.
 data BrowserPermissionSetting = BrowserPermissionSettingGranted | BrowserPermissionSettingDenied | BrowserPermissionSettingPrompt
@@ -180,7 +212,7 @@ instance ToJSON BrowserPermissionSetting where
 
 -- | Type 'Browser.PermissionDescriptor'.
 --   Definition of PermissionDescriptor defined in the Permissions API:
---   https://w3c.github.io/permissions/#dictdef-permissiondescriptor.
+--   https://w3c.github.io/permissions/#dom-permissiondescriptor.
 data BrowserPermissionDescriptor = BrowserPermissionDescriptor
   {
     -- | Name of permission.
@@ -193,6 +225,8 @@ data BrowserPermissionDescriptor = BrowserPermissionDescriptor
     browserPermissionDescriptorUserVisibleOnly :: Maybe Bool,
     -- | For "clipboard" permission, may specify allowWithoutSanitization.
     browserPermissionDescriptorAllowWithoutSanitization :: Maybe Bool,
+    -- | For "fullscreen" permission, must specify allowWithoutGesture:true.
+    browserPermissionDescriptorAllowWithoutGesture :: Maybe Bool,
     -- | For "camera" permission, may specify panTiltZoom.
     browserPermissionDescriptorPanTiltZoom :: Maybe Bool
   }
@@ -203,6 +237,7 @@ instance FromJSON BrowserPermissionDescriptor where
     <*> o A..:? "sysex"
     <*> o A..:? "userVisibleOnly"
     <*> o A..:? "allowWithoutSanitization"
+    <*> o A..:? "allowWithoutGesture"
     <*> o A..:? "panTiltZoom"
 instance ToJSON BrowserPermissionDescriptor where
   toJSON p = A.object $ catMaybes [
@@ -210,22 +245,25 @@ instance ToJSON BrowserPermissionDescriptor where
     ("sysex" A..=) <$> (browserPermissionDescriptorSysex p),
     ("userVisibleOnly" A..=) <$> (browserPermissionDescriptorUserVisibleOnly p),
     ("allowWithoutSanitization" A..=) <$> (browserPermissionDescriptorAllowWithoutSanitization p),
+    ("allowWithoutGesture" A..=) <$> (browserPermissionDescriptorAllowWithoutGesture p),
     ("panTiltZoom" A..=) <$> (browserPermissionDescriptorPanTiltZoom p)
     ]
 
 -- | Type 'Browser.BrowserCommandId'.
 --   Browser command ids used by executeBrowserCommand.
-data BrowserBrowserCommandId = BrowserBrowserCommandIdOpenTabSearch | BrowserBrowserCommandIdCloseTabSearch
+data BrowserBrowserCommandId = BrowserBrowserCommandIdOpenTabSearch | BrowserBrowserCommandIdCloseTabSearch | BrowserBrowserCommandIdOpenGlic
   deriving (Ord, Eq, Show, Read)
 instance FromJSON BrowserBrowserCommandId where
   parseJSON = A.withText "BrowserBrowserCommandId" $ \v -> case v of
     "openTabSearch" -> pure BrowserBrowserCommandIdOpenTabSearch
     "closeTabSearch" -> pure BrowserBrowserCommandIdCloseTabSearch
+    "openGlic" -> pure BrowserBrowserCommandIdOpenGlic
     "_" -> fail "failed to parse BrowserBrowserCommandId"
 instance ToJSON BrowserBrowserCommandId where
   toJSON v = A.String $ case v of
     BrowserBrowserCommandIdOpenTabSearch -> "openTabSearch"
     BrowserBrowserCommandIdCloseTabSearch -> "closeTabSearch"
+    BrowserBrowserCommandIdOpenGlic -> "openGlic"
 
 -- | Type 'Browser.Bucket'.
 --   Chrome histogram bucket.
@@ -283,7 +321,7 @@ instance ToJSON BrowserHistogram where
 data BrowserDownloadWillBegin = BrowserDownloadWillBegin
   {
     -- | Id of the frame that caused the download to begin.
-    browserDownloadWillBeginFrameId :: DOMPageNetworkEmulationSecurity.PageFrameId,
+    browserDownloadWillBeginFrameId :: DOMNetworkEmulationPageSecurity.PageFrameId,
     -- | Global unique identifier of the download.
     browserDownloadWillBeginGuid :: T.Text,
     -- | URL of the resource being downloaded.
@@ -324,7 +362,11 @@ data BrowserDownloadProgress = BrowserDownloadProgress
     -- | Total bytes received.
     browserDownloadProgressReceivedBytes :: Double,
     -- | Download status.
-    browserDownloadProgressState :: BrowserDownloadProgressState
+    browserDownloadProgressState :: BrowserDownloadProgressState,
+    -- | If download is "completed", provides the path of the downloaded file.
+    --   Depending on the platform, it is not guaranteed to be set, nor the file
+    --   is guaranteed to exist.
+    browserDownloadProgressFilePath :: Maybe T.Text
   }
   deriving (Eq, Show)
 instance FromJSON BrowserDownloadProgress where
@@ -333,10 +375,11 @@ instance FromJSON BrowserDownloadProgress where
     <*> o A..: "totalBytes"
     <*> o A..: "receivedBytes"
     <*> o A..: "state"
+    <*> o A..:? "filePath"
 instance Event BrowserDownloadProgress where
   eventName _ = "Browser.downloadProgress"
 
--- | Set permission settings for given origin.
+-- | Set permission settings for given embedding and embedded origins.
 
 -- | Parameters of the 'Browser.setPermission' command.
 data PBrowserSetPermission = PBrowserSetPermission
@@ -345,8 +388,12 @@ data PBrowserSetPermission = PBrowserSetPermission
     pBrowserSetPermissionPermission :: BrowserPermissionDescriptor,
     -- | Setting of the permission.
     pBrowserSetPermissionSetting :: BrowserPermissionSetting,
-    -- | Origin the permission applies to, all origins if not specified.
+    -- | Embedding origin the permission applies to, all origins if not specified.
     pBrowserSetPermissionOrigin :: Maybe T.Text,
+    -- | Embedded origin the permission applies to. It is ignored unless the embedding origin is
+    --   present and valid. If the embedding origin is provided but the embedded origin isn't, the
+    --   embedding origin is used as the embedded origin.
+    pBrowserSetPermissionEmbeddedOrigin :: Maybe T.Text,
     -- | Context to override. When omitted, default browser context is used.
     pBrowserSetPermissionBrowserContextId :: Maybe BrowserBrowserContextID
   }
@@ -369,48 +416,18 @@ pBrowserSetPermission
     arg_pBrowserSetPermissionSetting
     Nothing
     Nothing
+    Nothing
 instance ToJSON PBrowserSetPermission where
   toJSON p = A.object $ catMaybes [
     ("permission" A..=) <$> Just (pBrowserSetPermissionPermission p),
     ("setting" A..=) <$> Just (pBrowserSetPermissionSetting p),
     ("origin" A..=) <$> (pBrowserSetPermissionOrigin p),
+    ("embeddedOrigin" A..=) <$> (pBrowserSetPermissionEmbeddedOrigin p),
     ("browserContextId" A..=) <$> (pBrowserSetPermissionBrowserContextId p)
     ]
 instance Command PBrowserSetPermission where
   type CommandResponse PBrowserSetPermission = ()
   commandName _ = "Browser.setPermission"
-  fromJSON = const . A.Success . const ()
-
--- | Grant specific permissions to the given origin and reject all others.
-
--- | Parameters of the 'Browser.grantPermissions' command.
-data PBrowserGrantPermissions = PBrowserGrantPermissions
-  {
-    pBrowserGrantPermissionsPermissions :: [BrowserPermissionType],
-    -- | Origin the permission applies to, all origins if not specified.
-    pBrowserGrantPermissionsOrigin :: Maybe T.Text,
-    -- | BrowserContext to override permissions. When omitted, default browser context is used.
-    pBrowserGrantPermissionsBrowserContextId :: Maybe BrowserBrowserContextID
-  }
-  deriving (Eq, Show)
-pBrowserGrantPermissions
-  :: [BrowserPermissionType]
-  -> PBrowserGrantPermissions
-pBrowserGrantPermissions
-  arg_pBrowserGrantPermissionsPermissions
-  = PBrowserGrantPermissions
-    arg_pBrowserGrantPermissionsPermissions
-    Nothing
-    Nothing
-instance ToJSON PBrowserGrantPermissions where
-  toJSON p = A.object $ catMaybes [
-    ("permissions" A..=) <$> Just (pBrowserGrantPermissionsPermissions p),
-    ("origin" A..=) <$> (pBrowserGrantPermissionsOrigin p),
-    ("browserContextId" A..=) <$> (pBrowserGrantPermissionsBrowserContextId p)
-    ]
-instance Command PBrowserGrantPermissions where
-  type CommandResponse PBrowserGrantPermissions = ()
-  commandName _ = "Browser.grantPermissions"
   fromJSON = const . A.Success . const ()
 
 -- | Reset all permission management for all origins.
@@ -458,7 +475,7 @@ data PBrowserSetDownloadBehavior = PBrowserSetDownloadBehavior
   {
     -- | Whether to allow all or deny all download requests, or use default Chrome behavior if
     --   available (otherwise deny). |allowAndName| allows download and names files according to
-    --   their dowmload guids.
+    --   their download guids.
     pBrowserSetDownloadBehaviorBehavior :: PBrowserSetDownloadBehaviorBehavior,
     -- | BrowserContext to set download behavior. When omitted, default browser context is used.
     pBrowserSetDownloadBehaviorBrowserContextId :: Maybe BrowserBrowserContextID,
@@ -473,7 +490,7 @@ pBrowserSetDownloadBehavior
   {-
   -- | Whether to allow all or deny all download requests, or use default Chrome behavior if
   --   available (otherwise deny). |allowAndName| allows download and names files according to
-  --   their dowmload guids.
+  --   their download guids.
   -}
   :: PBrowserSetDownloadBehaviorBehavior
   -> PBrowserSetDownloadBehavior
@@ -646,7 +663,7 @@ data PBrowserGetHistograms = PBrowserGetHistograms
     --   substring in their name are extracted. An empty or absent query returns
     --   all histograms.
     pBrowserGetHistogramsQuery :: Maybe T.Text,
-    -- | If true, retrieve delta since last call.
+    -- | If true, retrieve delta since last delta call.
     pBrowserGetHistogramsDelta :: Maybe Bool
   }
   deriving (Eq, Show)
@@ -681,7 +698,7 @@ data PBrowserGetHistogram = PBrowserGetHistogram
   {
     -- | Requested histogram name.
     pBrowserGetHistogramName :: T.Text,
-    -- | If true, retrieve delta since last call.
+    -- | If true, retrieve delta since last delta call.
     pBrowserGetHistogramDelta :: Maybe Bool
   }
   deriving (Eq, Show)
@@ -825,6 +842,44 @@ instance Command PBrowserSetWindowBounds where
   commandName _ = "Browser.setWindowBounds"
   fromJSON = const . A.Success . const ()
 
+-- | Set size of the browser contents resizing browser window as necessary.
+
+-- | Parameters of the 'Browser.setContentsSize' command.
+data PBrowserSetContentsSize = PBrowserSetContentsSize
+  {
+    -- | Browser window id.
+    pBrowserSetContentsSizeWindowId :: BrowserWindowID,
+    -- | The window contents width in DIP. Assumes current width if omitted.
+    --   Must be specified if 'height' is omitted.
+    pBrowserSetContentsSizeWidth :: Maybe Int,
+    -- | The window contents height in DIP. Assumes current height if omitted.
+    --   Must be specified if 'width' is omitted.
+    pBrowserSetContentsSizeHeight :: Maybe Int
+  }
+  deriving (Eq, Show)
+pBrowserSetContentsSize
+  {-
+  -- | Browser window id.
+  -}
+  :: BrowserWindowID
+  -> PBrowserSetContentsSize
+pBrowserSetContentsSize
+  arg_pBrowserSetContentsSizeWindowId
+  = PBrowserSetContentsSize
+    arg_pBrowserSetContentsSizeWindowId
+    Nothing
+    Nothing
+instance ToJSON PBrowserSetContentsSize where
+  toJSON p = A.object $ catMaybes [
+    ("windowId" A..=) <$> Just (pBrowserSetContentsSizeWindowId p),
+    ("width" A..=) <$> (pBrowserSetContentsSizeWidth p),
+    ("height" A..=) <$> (pBrowserSetContentsSizeHeight p)
+    ]
+instance Command PBrowserSetContentsSize where
+  type CommandResponse PBrowserSetContentsSize = ()
+  commandName _ = "Browser.setContentsSize"
+  fromJSON = const . A.Success . const ()
+
 -- | Set dock tile details, platform-specific.
 
 -- | Parameters of the 'Browser.setDockTile' command.
@@ -875,6 +930,31 @@ instance Command PBrowserExecuteBrowserCommand where
   commandName _ = "Browser.executeBrowserCommand"
   fromJSON = const . A.Success . const ()
 
+-- | Allows a site to use privacy sandbox features that require enrollment
+--   without the site actually being enrolled. Only supported on page targets.
+
+-- | Parameters of the 'Browser.addPrivacySandboxEnrollmentOverride' command.
+data PBrowserAddPrivacySandboxEnrollmentOverride = PBrowserAddPrivacySandboxEnrollmentOverride
+  {
+    pBrowserAddPrivacySandboxEnrollmentOverrideUrl :: T.Text
+  }
+  deriving (Eq, Show)
+pBrowserAddPrivacySandboxEnrollmentOverride
+  :: T.Text
+  -> PBrowserAddPrivacySandboxEnrollmentOverride
+pBrowserAddPrivacySandboxEnrollmentOverride
+  arg_pBrowserAddPrivacySandboxEnrollmentOverrideUrl
+  = PBrowserAddPrivacySandboxEnrollmentOverride
+    arg_pBrowserAddPrivacySandboxEnrollmentOverrideUrl
+instance ToJSON PBrowserAddPrivacySandboxEnrollmentOverride where
+  toJSON p = A.object $ catMaybes [
+    ("url" A..=) <$> Just (pBrowserAddPrivacySandboxEnrollmentOverrideUrl p)
+    ]
+instance Command PBrowserAddPrivacySandboxEnrollmentOverride where
+  type CommandResponse PBrowserAddPrivacySandboxEnrollmentOverride = ()
+  commandName _ = "Browser.addPrivacySandboxEnrollmentOverride"
+  fromJSON = const . A.Success . const ()
+
 -- | Type 'Target.TargetID'.
 type TargetTargetID = T.Text
 
@@ -886,21 +966,30 @@ type TargetSessionID = T.Text
 data TargetTargetInfo = TargetTargetInfo
   {
     targetTargetInfoTargetId :: TargetTargetID,
+    -- | List of types: https://source.chromium.org/chromium/chromium/src/+/main:content/browser/devtools/devtools_agent_host_impl.cc?ss=chromium&q=f:devtools%20-f:out%20%22::kTypeTab%5B%5D%22
     targetTargetInfoType :: T.Text,
     targetTargetInfoTitle :: T.Text,
     targetTargetInfoUrl :: T.Text,
     -- | Whether the target has an attached client.
     targetTargetInfoAttached :: Bool,
+    -- | Id of the parent target, if any. For example, "iframe" target may have a "page" parent.
+    targetTargetInfoParentId :: Maybe TargetTargetID,
     -- | Opener target Id
     targetTargetInfoOpenerId :: Maybe TargetTargetID,
     -- | Whether the target has access to the originating window.
     targetTargetInfoCanAccessOpener :: Bool,
     -- | Frame id of originating window (is only set if target has an opener).
-    targetTargetInfoOpenerFrameId :: Maybe DOMPageNetworkEmulationSecurity.PageFrameId,
+    targetTargetInfoOpenerFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId,
+    -- | Id of the parent frame, present for "iframe" and "worker" targets. For nested workers,
+    --   this is the "ancestor" frame that created the first worker in the nested chain.
+    targetTargetInfoParentFrameId :: Maybe DOMNetworkEmulationPageSecurity.PageFrameId,
     targetTargetInfoBrowserContextId :: Maybe BrowserBrowserContextID,
     -- | Provides additional details for specific target types. For example, for
-    --   the type of "page", this may be set to "portal" or "prerender".
-    targetTargetInfoSubtype :: Maybe T.Text
+    --   the type of "page", this may be set to "prerender".
+    targetTargetInfoSubtype :: Maybe T.Text,
+    -- | Embedder-specific target metadata. This is only set for targets of
+    --   type "tab".
+    targetTargetInfoEmbedderData :: Maybe [(T.Text, T.Text)]
   }
   deriving (Eq, Show)
 instance FromJSON TargetTargetInfo where
@@ -910,11 +999,14 @@ instance FromJSON TargetTargetInfo where
     <*> o A..: "title"
     <*> o A..: "url"
     <*> o A..: "attached"
+    <*> o A..:? "parentId"
     <*> o A..:? "openerId"
     <*> o A..: "canAccessOpener"
     <*> o A..:? "openerFrameId"
+    <*> o A..:? "parentFrameId"
     <*> o A..:? "browserContextId"
     <*> o A..:? "subtype"
+    <*> o A..:? "embedderData"
 instance ToJSON TargetTargetInfo where
   toJSON p = A.object $ catMaybes [
     ("targetId" A..=) <$> Just (targetTargetInfoTargetId p),
@@ -922,18 +1014,21 @@ instance ToJSON TargetTargetInfo where
     ("title" A..=) <$> Just (targetTargetInfoTitle p),
     ("url" A..=) <$> Just (targetTargetInfoUrl p),
     ("attached" A..=) <$> Just (targetTargetInfoAttached p),
+    ("parentId" A..=) <$> (targetTargetInfoParentId p),
     ("openerId" A..=) <$> (targetTargetInfoOpenerId p),
     ("canAccessOpener" A..=) <$> Just (targetTargetInfoCanAccessOpener p),
     ("openerFrameId" A..=) <$> (targetTargetInfoOpenerFrameId p),
+    ("parentFrameId" A..=) <$> (targetTargetInfoParentFrameId p),
     ("browserContextId" A..=) <$> (targetTargetInfoBrowserContextId p),
-    ("subtype" A..=) <$> (targetTargetInfoSubtype p)
+    ("subtype" A..=) <$> (targetTargetInfoSubtype p),
+    ("embedderData" A..=) <$> (targetTargetInfoEmbedderData p)
     ]
 
 -- | Type 'Target.FilterEntry'.
 --   A filter used by target query/discovery/auto-attach operations.
 data TargetFilterEntry = TargetFilterEntry
   {
-    -- | If set, causes exclusion of mathcing targets from the list.
+    -- | If set, causes exclusion of matching targets from the list.
     targetFilterEntryExclude :: Maybe Bool,
     -- | If not present, matches any type.
     targetFilterEntryType :: Maybe T.Text
@@ -974,6 +1069,24 @@ instance ToJSON TargetRemoteLocation where
     ("host" A..=) <$> Just (targetRemoteLocationHost p),
     ("port" A..=) <$> Just (targetRemoteLocationPort p)
     ]
+
+-- | Type 'Target.WindowState'.
+--   The state of the target window.
+data TargetWindowState = TargetWindowStateNormal | TargetWindowStateMinimized | TargetWindowStateMaximized | TargetWindowStateFullscreen
+  deriving (Ord, Eq, Show, Read)
+instance FromJSON TargetWindowState where
+  parseJSON = A.withText "TargetWindowState" $ \v -> case v of
+    "normal" -> pure TargetWindowStateNormal
+    "minimized" -> pure TargetWindowStateMinimized
+    "maximized" -> pure TargetWindowStateMaximized
+    "fullscreen" -> pure TargetWindowStateFullscreen
+    "_" -> fail "failed to parse TargetWindowState"
+instance ToJSON TargetWindowState where
+  toJSON v = A.String $ case v of
+    TargetWindowStateNormal -> "normal"
+    TargetWindowStateMinimized -> "minimized"
+    TargetWindowStateMaximized -> "maximized"
+    TargetWindowStateFullscreen -> "fullscreen"
 
 -- | Type of the 'Target.attachedToTarget' event.
 data TargetAttachedToTarget = TargetAttachedToTarget
@@ -1189,7 +1302,7 @@ instance Command PTargetCloseTarget where
 --   
 --   Injected object will be available as `window[bindingName]`.
 --   
---   The object has the follwing API:
+--   The object has the following API:
 --   - `binding.send(json)` - a method to send messages over the remote debugging protocol
 --   - `binding.onmessage = json => handleMessage(json)` - a callback that will be called for the protocol notifications and command responses.
 
@@ -1198,7 +1311,9 @@ data PTargetExposeDevToolsProtocol = PTargetExposeDevToolsProtocol
   {
     pTargetExposeDevToolsProtocolTargetId :: TargetTargetID,
     -- | Binding name, 'cdp' if not specified.
-    pTargetExposeDevToolsProtocolBindingName :: Maybe T.Text
+    pTargetExposeDevToolsProtocolBindingName :: Maybe T.Text,
+    -- | If true, inherits the current root session's permissions (default: false).
+    pTargetExposeDevToolsProtocolInheritPermissions :: Maybe Bool
   }
   deriving (Eq, Show)
 pTargetExposeDevToolsProtocol
@@ -1209,10 +1324,12 @@ pTargetExposeDevToolsProtocol
   = PTargetExposeDevToolsProtocol
     arg_pTargetExposeDevToolsProtocolTargetId
     Nothing
+    Nothing
 instance ToJSON PTargetExposeDevToolsProtocol where
   toJSON p = A.object $ catMaybes [
     ("targetId" A..=) <$> Just (pTargetExposeDevToolsProtocolTargetId p),
-    ("bindingName" A..=) <$> (pTargetExposeDevToolsProtocolBindingName p)
+    ("bindingName" A..=) <$> (pTargetExposeDevToolsProtocolBindingName p),
+    ("inheritPermissions" A..=) <$> (pTargetExposeDevToolsProtocolInheritPermissions p)
     ]
 instance Command PTargetExposeDevToolsProtocol where
   type CommandResponse PTargetExposeDevToolsProtocol = ()
@@ -1278,12 +1395,15 @@ instance ToJSON PTargetGetBrowserContexts where
 data TargetGetBrowserContexts = TargetGetBrowserContexts
   {
     -- | An array of browser context ids.
-    targetGetBrowserContextsBrowserContextIds :: [BrowserBrowserContextID]
+    targetGetBrowserContextsBrowserContextIds :: [BrowserBrowserContextID],
+    -- | The id of the default browser context if available.
+    targetGetBrowserContextsDefaultBrowserContextId :: Maybe BrowserBrowserContextID
   }
   deriving (Eq, Show)
 instance FromJSON TargetGetBrowserContexts where
   parseJSON = A.withObject "TargetGetBrowserContexts" $ \o -> TargetGetBrowserContexts
     <$> o A..: "browserContextIds"
+    <*> o A..:? "defaultBrowserContextId"
 instance Command PTargetGetBrowserContexts where
   type CommandResponse PTargetGetBrowserContexts = TargetGetBrowserContexts
   commandName _ = "Target.getBrowserContexts"
@@ -1295,20 +1415,39 @@ data PTargetCreateTarget = PTargetCreateTarget
   {
     -- | The initial URL the page will be navigated to. An empty string indicates about:blank.
     pTargetCreateTargetUrl :: T.Text,
-    -- | Frame width in DIP (headless chrome only).
+    -- | Frame left origin in DIP (requires newWindow to be true or headless shell).
+    pTargetCreateTargetLeft :: Maybe Int,
+    -- | Frame top origin in DIP (requires newWindow to be true or headless shell).
+    pTargetCreateTargetTop :: Maybe Int,
+    -- | Frame width in DIP (requires newWindow to be true or headless shell).
     pTargetCreateTargetWidth :: Maybe Int,
-    -- | Frame height in DIP (headless chrome only).
+    -- | Frame height in DIP (requires newWindow to be true or headless shell).
     pTargetCreateTargetHeight :: Maybe Int,
+    -- | Frame window state (requires newWindow to be true or headless shell).
+    --   Default is normal.
+    pTargetCreateTargetWindowState :: Maybe TargetWindowState,
     -- | The browser context to create the page in.
     pTargetCreateTargetBrowserContextId :: Maybe BrowserBrowserContextID,
-    -- | Whether BeginFrames for this target will be controlled via DevTools (headless chrome only,
+    -- | Whether BeginFrames for this target will be controlled via DevTools (headless shell only,
     --   not supported on MacOS yet, false by default).
     pTargetCreateTargetEnableBeginFrameControl :: Maybe Bool,
-    -- | Whether to create a new Window or Tab (chrome-only, false by default).
+    -- | Whether to create a new Window or Tab (false by default, not supported by headless shell).
     pTargetCreateTargetNewWindow :: Maybe Bool,
-    -- | Whether to create the target in background or foreground (chrome-only,
-    --   false by default).
-    pTargetCreateTargetBackground :: Maybe Bool
+    -- | Whether to create the target in background or foreground (false by default, not supported
+    --   by headless shell).
+    pTargetCreateTargetBackground :: Maybe Bool,
+    -- | Whether to create the target of type "tab".
+    pTargetCreateTargetForTab :: Maybe Bool,
+    -- | Whether to create a hidden target. The hidden target is observable via protocol, but not
+    --   present in the tab UI strip. Cannot be created with `forTab: true`, `newWindow: true` or
+    --   `background: false`. The life-time of the tab is limited to the life-time of the session.
+    pTargetCreateTargetHidden :: Maybe Bool,
+    -- | If specified, determines whether the new target should be focused.
+    --   By default, the focus behavior depends on the `background` parameter:
+    --   - If `background` is false (default) and `focus` is omitted, the new target is focused and the browser window is brought to the foreground.
+    --   - If `background` is false and `focus` is false, the target is opened but the browser window's focus remains unchanged (e.g., if the window was in the background, it stays there).
+    --   - If `background` is true, setting `focus` to true is not supported and will result in an error.
+    pTargetCreateTargetFocus :: Maybe Bool
   }
   deriving (Eq, Show)
 pTargetCreateTarget
@@ -1327,15 +1466,27 @@ pTargetCreateTarget
     Nothing
     Nothing
     Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
+    Nothing
 instance ToJSON PTargetCreateTarget where
   toJSON p = A.object $ catMaybes [
     ("url" A..=) <$> Just (pTargetCreateTargetUrl p),
+    ("left" A..=) <$> (pTargetCreateTargetLeft p),
+    ("top" A..=) <$> (pTargetCreateTargetTop p),
     ("width" A..=) <$> (pTargetCreateTargetWidth p),
     ("height" A..=) <$> (pTargetCreateTargetHeight p),
+    ("windowState" A..=) <$> (pTargetCreateTargetWindowState p),
     ("browserContextId" A..=) <$> (pTargetCreateTargetBrowserContextId p),
     ("enableBeginFrameControl" A..=) <$> (pTargetCreateTargetEnableBeginFrameControl p),
     ("newWindow" A..=) <$> (pTargetCreateTargetNewWindow p),
-    ("background" A..=) <$> (pTargetCreateTargetBackground p)
+    ("background" A..=) <$> (pTargetCreateTargetBackground p),
+    ("forTab" A..=) <$> (pTargetCreateTargetForTab p),
+    ("hidden" A..=) <$> (pTargetCreateTargetHidden p),
+    ("focus" A..=) <$> (pTargetCreateTargetFocus p)
     ]
 data TargetCreateTarget = TargetCreateTarget
   {
@@ -1460,11 +1611,14 @@ instance Command PTargetGetTargets where
   type CommandResponse PTargetGetTargets = TargetGetTargets
   commandName _ = "Target.getTargets"
 
--- | Controls whether to automatically attach to new targets which are considered to be related to
---   this one. When turned on, attaches to all existing related targets as well. When turned off,
+-- | Controls whether to automatically attach to new targets which are considered
+--   to be directly related to this one (for example, iframes or workers).
+--   When turned on, attaches to all existing related targets as well. When turned off,
 --   automatically detaches from all currently attached targets.
 --   This also clears all targets added by `autoAttachRelated` from the list of targets to watch
 --   for creation of related targets.
+--   You might want to call this recursively for auto-attached targets to attach
+--   to all available targets.
 
 -- | Parameters of the 'Target.setAutoAttach' command.
 data PTargetSetAutoAttach = PTargetSetAutoAttach
@@ -1618,4 +1772,83 @@ instance Command PTargetSetRemoteLocations where
   type CommandResponse PTargetSetRemoteLocations = ()
   commandName _ = "Target.setRemoteLocations"
   fromJSON = const . A.Success . const ()
+
+-- | Gets the targetId of the DevTools page target opened for the given target
+--   (if any).
+
+-- | Parameters of the 'Target.getDevToolsTarget' command.
+data PTargetGetDevToolsTarget = PTargetGetDevToolsTarget
+  {
+    -- | Page or tab target ID.
+    pTargetGetDevToolsTargetTargetId :: TargetTargetID
+  }
+  deriving (Eq, Show)
+pTargetGetDevToolsTarget
+  {-
+  -- | Page or tab target ID.
+  -}
+  :: TargetTargetID
+  -> PTargetGetDevToolsTarget
+pTargetGetDevToolsTarget
+  arg_pTargetGetDevToolsTargetTargetId
+  = PTargetGetDevToolsTarget
+    arg_pTargetGetDevToolsTargetTargetId
+instance ToJSON PTargetGetDevToolsTarget where
+  toJSON p = A.object $ catMaybes [
+    ("targetId" A..=) <$> Just (pTargetGetDevToolsTargetTargetId p)
+    ]
+data TargetGetDevToolsTarget = TargetGetDevToolsTarget
+  {
+    -- | The targetId of DevTools page target if exists.
+    targetGetDevToolsTargetTargetId :: Maybe TargetTargetID
+  }
+  deriving (Eq, Show)
+instance FromJSON TargetGetDevToolsTarget where
+  parseJSON = A.withObject "TargetGetDevToolsTarget" $ \o -> TargetGetDevToolsTarget
+    <$> o A..:? "targetId"
+instance Command PTargetGetDevToolsTarget where
+  type CommandResponse PTargetGetDevToolsTarget = TargetGetDevToolsTarget
+  commandName _ = "Target.getDevToolsTarget"
+
+-- | Opens a DevTools window for the target.
+
+-- | Parameters of the 'Target.openDevTools' command.
+data PTargetOpenDevTools = PTargetOpenDevTools
+  {
+    -- | This can be the page or tab target ID.
+    pTargetOpenDevToolsTargetId :: TargetTargetID,
+    -- | The id of the panel we want DevTools to open initially. Currently
+    --   supported panels are elements, console, network, sources, resources,
+    --   timeline, chrome-recorder, heap-profiler, lighthouse, and security.
+    pTargetOpenDevToolsPanelId :: Maybe T.Text
+  }
+  deriving (Eq, Show)
+pTargetOpenDevTools
+  {-
+  -- | This can be the page or tab target ID.
+  -}
+  :: TargetTargetID
+  -> PTargetOpenDevTools
+pTargetOpenDevTools
+  arg_pTargetOpenDevToolsTargetId
+  = PTargetOpenDevTools
+    arg_pTargetOpenDevToolsTargetId
+    Nothing
+instance ToJSON PTargetOpenDevTools where
+  toJSON p = A.object $ catMaybes [
+    ("targetId" A..=) <$> Just (pTargetOpenDevToolsTargetId p),
+    ("panelId" A..=) <$> (pTargetOpenDevToolsPanelId p)
+    ]
+data TargetOpenDevTools = TargetOpenDevTools
+  {
+    -- | The targetId of DevTools page target.
+    targetOpenDevToolsTargetId :: TargetTargetID
+  }
+  deriving (Eq, Show)
+instance FromJSON TargetOpenDevTools where
+  parseJSON = A.withObject "TargetOpenDevTools" $ \o -> TargetOpenDevTools
+    <$> o A..: "targetId"
+instance Command PTargetOpenDevTools where
+  type CommandResponse PTargetOpenDevTools = TargetOpenDevTools
+  commandName _ = "Target.openDevTools"
 
